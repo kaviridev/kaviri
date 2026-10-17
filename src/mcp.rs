@@ -620,7 +620,11 @@ pub fn make_preview(
     let stem = mp4.with_extension("");
     let sheet = PathBuf::from(format!("{}.sheet.jpg", stem.display()));
     let poster = PathBuf::from(format!("{}.poster.jpg", stem.display()));
-    let tiles = crate::cdp::session_dir()?.join(format!("preview-{}", std::process::id()));
+    // One directory per call: two previews running at once must not share (and then
+    // delete) each other's tiles.
+    static N: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+    let n = N.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+    let tiles = crate::cdp::session_dir()?.join(format!("preview-{}-{n}", std::process::id()));
     std::fs::create_dir_all(&tiles).map_err(|e| format!("{}: {e}", tiles.display()))?;
     let result = (|| {
         // Landscape tiles 480 wide, portrait ones 270, so a sheet of nine stays readable
@@ -1296,11 +1300,18 @@ pub fn run(a: &Args) -> Result<(), String> {
     if a.script.is_some() {
         return Err("kaviri mcp takes its scripts from record_demo; drop --script".into());
     }
-    // Before anything can print: from here on, stdout belongs to the protocol.
-    let out = private_stdout()?;
     // Everything after `mcp` on the command line, so a `record_demo` child and every
     // browser opened later start from the same flags this one was given.
     let base: Vec<String> = std::env::args().skip(2).collect();
+    // Passed on to every `record_demo` child after its own `--out`, a server-wide one
+    // would win and send every take to the same file. Each take names its own.
+    if base.iter().any(|f| f == "--out") {
+        return Err("kaviri mcp names each take's file itself; drop --out \
+                    (use $KAVIRI_TAKES_DIR, or out on start and record_demo)"
+            .into());
+    }
+    // Before anything can print: from here on, stdout belongs to the protocol.
+    let out = private_stdout()?;
     let default = a.clone();
     let (tx, rx) = mpsc::channel::<Job>();
     let browser = std::thread::spawn(move || browser_loop(rx, default));

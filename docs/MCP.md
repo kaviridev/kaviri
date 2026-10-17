@@ -39,7 +39,8 @@ Or check it into a project as `.mcp.json`, so everyone working on the repo gets 
 Any client that launches a stdio server takes the same command and arguments. `kaviri mcp`
 accepts the browser flags `serve` does (`--chromium`, `--spool-dir`, `--keep-temp` and the
 rest) as defaults for the browser it opens; `--port` is refused, because MCP here is stdio
-only.
+only, and so is `--out`, because each take names its own file (`out` on `start` and
+`record_demo`, or `$KAVIRI_TAKES_DIR`).
 
 Takes land in `kaviri-takes/` under the directory the client started the server in, which for
 a coding agent is the project. `$KAVIRI_TAKES_DIR` moves them. Add the directory to
