@@ -3,6 +3,7 @@
 //!
 //!   kaviri record --script demo.jsonl --out demo.mp4
 //!   kaviri serve
+//!   kaviri mcp
 //!   kaviri doctor
 
 mod audio;
@@ -11,6 +12,9 @@ mod cdp;
 mod device;
 mod env;
 mod icons;
+mod inspect;
+#[cfg(feature = "mcp")]
+mod mcp;
 mod ops;
 mod zoom;
 
@@ -28,6 +32,7 @@ kaviri: programmable recording browser (Screen Studio for AI agents)
 USAGE:
   kaviri record --script <file.jsonl> --out <file.mp4> [options]
   kaviri serve [--port <n>] [--out <file.mp4>] [options]
+  kaviri mcp [options]          an MCP server on stdio (docs/MCP.md)
   kaviri doctor | kaviri presets | kaviri backgrounds | kaviri frames | kaviri --version
 
 OPTIONS:
@@ -115,6 +120,7 @@ OPS (one JSON object per line):
   {\"op\":\"scroll\",\"y\":600,\"smooth\":true}
   {\"op\":\"wait\",\"ms\":800}  or  {\"op\":\"wait\",\"selector\":\"css\"[,\"timeout_ms\":20000]}
   {\"op\":\"mark\",\"label\":\"checkout\"}
+  {\"op\":\"inspect\"[,\"all\":true][,\"limit\":150]}  (what can be clicked, and its selector)
   {\"op\":\"stop_recording\"}
 
 Every op answers with one JSON line: {\"ok\":true,\"result\":{…}} or
@@ -302,7 +308,12 @@ fn parse_args() -> Parsed {
 }
 
 fn parse_argv() -> Result<Parsed, String> {
-    let mut argv = std::env::args().skip(1);
+    parse_argv_from(std::env::args().skip(1))
+}
+
+/// The parser proper, over any argument list. `kaviri mcp` builds one from a tool call's
+/// fields, so an `open` takes exactly the flags `record` does and validates them the same way.
+fn parse_argv_from<I: Iterator<Item = String>>(mut argv: I) -> Result<Parsed, String> {
     let mode = match argv.next() {
         Some(m) => m,
         None => return Err(USAGE.to_string()),
@@ -1087,19 +1098,8 @@ fn random_token() -> String {
 static CLIENTS: AtomicUsize = AtomicUsize::new(0);
 const MAX_CLIENTS: usize = 16;
 
-fn run_serve(a: &Args) -> Result<(), String> {
-    let ffmpeg = preflight()?;
-    if env::is_set("DEBUG") {
-        eprintln!("kaviri[debug]: ffmpeg at {ffmpeg}");
-    }
-
-    eprintln!(
-        "kaviri {}: launching browser ({}x{}@{}x) ...",
-        env!("CARGO_PKG_VERSION"),
-        a.width,
-        a.height,
-        a.scale
-    );
+/// A browser set up the way the flags say, for the modes that hold one open.
+fn launch_session(a: &Args) -> Result<Session, String> {
     let mut sess = Session::launch(
         a.chromium.as_deref(),
         a.width,
@@ -1122,7 +1122,23 @@ fn run_serve(a: &Args) -> Result<(), String> {
     sess.cdp
         .set_spool_config(a.spool_dir.clone(), a.max_spool_bytes);
     sess.cdp.set_keep_spool(a.keep_temp);
-    let s = Arc::new(Mutex::new(sess));
+    Ok(sess)
+}
+
+fn run_serve(a: &Args) -> Result<(), String> {
+    let ffmpeg = preflight()?;
+    if env::is_set("DEBUG") {
+        eprintln!("kaviri[debug]: ffmpeg at {ffmpeg}");
+    }
+
+    eprintln!(
+        "kaviri {}: launching browser ({}x{}@{}x) ...",
+        env!("CARGO_PKG_VERSION"),
+        a.width,
+        a.height,
+        a.scale
+    );
+    let s = Arc::new(Mutex::new(launch_session(a)?));
 
     let failed = Arc::new(AtomicUsize::new(0));
     match a.port {
@@ -1295,6 +1311,12 @@ fn main() {
         "record" => run_record(&a),
         "serve" => run_serve(&a),
         "doctor" => run_doctor(&a),
+        #[cfg(feature = "mcp")]
+        "mcp" => mcp::run(&a),
+        #[cfg(not(feature = "mcp"))]
+        "mcp" => Err("this kaviri was built without the mcp feature; \
+                      rebuild it with default features to get `kaviri mcp`"
+            .into()),
         m => Err(format!("unknown mode: {m}\n\n{USAGE}")),
     };
     if let Err(e) = r {

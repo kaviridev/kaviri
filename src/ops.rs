@@ -1490,8 +1490,26 @@ impl Session {
                 }
                 Ok(result)
             }
+            // A question about the page, not an action on it: no mark, no camera, and
+            // safe to send in the middle of a take.
+            "inspect" => crate::inspect::run(&mut self.cdp, op, self.css_w, self.css_h),
             other => Err(format!("unknown op: {other}")),
         }
+    }
+
+    /// The marks of the take in flight (or the one just rendered), in the shape the op
+    /// results use, for a caller that wants them after the fact.
+    #[allow(dead_code)]
+    pub fn marks_json(&self) -> Value {
+        Value::Array(
+            self.marks
+                .iter()
+                .map(|m| {
+                    json!({"t": m.t, "kind": m.kind, "label": m.label,
+                           "box": m.bbox.map(|(x, y, w, h)| vec![x, y, w, h])})
+                })
+                .collect(),
+        )
     }
 }
 

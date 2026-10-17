@@ -43,6 +43,25 @@ dated `[0.1.0]` heading, when the tag is cut.
 
 ### Added
 
+- **`kaviri mcp`.** The op protocol as a Model Context Protocol server on stdio, built on the
+  official Rust SDK (`rmcp`, pinned at 3.5.1). Install with `claude mcp add kaviri -- kaviri
+  mcp` or a `.mcp.json` entry; `docs/MCP.md` has both. Each op (`navigate`, `click`, `type`,
+  `hover`, `press`, `scroll`, `wait`, `mark`, `frame`) is a tool of the same name, with
+  `open`, `start`, `stop` and `close` around them, all against one browser kept open across
+  calls with capture running between them, as under `serve`. `record_demo` films a whole
+  JSONL script in the background through `kaviri record` and returns a take id at once;
+  `get_take` reports `queued`, `running`, `done` or `failed` with the MP4 path, duration,
+  `zoom_events` and marks. Takes run one at a time and land in `kaviri-takes/`, or
+  `$KAVIRI_TAKES_DIR`. `preview` returns a contact sheet of keyframes taken just after each
+  interaction landed, plus a poster frame, as MCP image content, and writes both beside the
+  MP4. The server moves fd 1 to stderr at startup, so nothing but JSON-RPC ever reaches the
+  protocol channel. It is a default feature; `--no-default-features` builds without it on
+  the 1.75 floor, since the SDK needs Rust 1.88.
+- **`inspect` op.** `{"op":"inspect"}` lists the visible actionable elements from the
+  accessibility tree (`Accessibility.getFullAXTree`, `DOM.getBoxModel`): role, accessible
+  name, a CSS selector that matches only that element, its box in CSS pixels, and which
+  element covers it if one does. Works in `serve` and as the MCP `inspect` tool, so an agent
+  can explore a live page and write the script itself.
 - **Audio.** `--audio` records what the page plays and muxes it into the take as AAC. It was
   reserved and printed `not implemented`; it now works. The sound is tapped inside the page
   (every connection to an `AudioContext`'s destination, and each `<audio>` and `<video>` as it

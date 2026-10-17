@@ -496,6 +496,40 @@ prepared to wait.
 A named point on the recording clock. No box, so no zoom. It exists for the telemetry sidecar
 and for you, when you are working out which second of a two-minute take to look at.
 
+## `inspect`
+
+```jsonc
+{"op":"inspect"}
+{"op":"inspect","all":true,"limit":400}
+```
+
+| field | type | default |
+|---|---|---|
+| `all` | bool | `false`: only elements at least partly in the viewport |
+| `limit` | whole number, 1 to 1000 | `150` |
+
+A question about the page rather than an action on it: no mark, no camera move, and safe in
+the middle of a take. It answers with the controls a script can act on, read from the
+browser's accessibility tree (buttons, links, text fields, checkboxes, tabs, options and the
+other interactive roles), each with:
+
+| field | meaning |
+|---|---|
+| `role` | the accessibility role, so a `<div role="button">` is a `button` |
+| `name` | the accessible name: the label, the text, the `aria-label` |
+| `selector` | a CSS selector that matches this element and no other; an id, test id, `name`, `aria-label` or `placeholder` when one is unique, a structural path when not |
+| `box` | `[x, y, w, h]` in CSS pixels, the same coordinates as a mark's `box` |
+| `in_view` | whether any of it is inside the viewport |
+| `covered` | present when another element sits on its centre, named; `click` would refuse it |
+| `disabled`, `value` | present when the element has them |
+
+`offscreen` counts the controls left out because they are scrolled out of view, and
+`truncated` is `true` when `limit` cut the list short. The result also carries the page's
+`url` and the `viewport`. Elements with no layout (`display:none`, a zero-size box) are never
+listed.
+
+`kaviri mcp` exposes this as the `inspect` tool; see [the MCP server](MCP.md).
+
 ## `stop_recording`
 
 ```jsonc

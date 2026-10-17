@@ -39,6 +39,8 @@ PAGES = [
      "What each error means, starting with the ones that produce a video rather than a failure."),
     ("agents", "AGENTS.md", "For agents",
      "The whole protocol for something that has been asked for a video and has a shell."),
+    ("mcp", "docs/MCP.md", "MCP server",
+     "kaviri mcp: the op protocol as tools, plus inspect, background takes and previews."),
 ]
 
 SHELL = """<!doctype html>

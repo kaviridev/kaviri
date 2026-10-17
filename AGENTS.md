@@ -100,6 +100,15 @@ loopback port. The first line of a connection must be `{"op":"hello","token":"â€
 token printed on stderr at startup, and that is the only thing standing between a visited page
 and your filesystem. Prefer stdin, where the ops come from the process you started.
 
+## If you speak MCP
+
+If you are running inside an MCP client, `kaviri mcp` gives you all of this as tools
+(`claude mcp add kaviri -- kaviri mcp`), plus three you cannot get from a pipe: `inspect`
+lists what on the page can be acted on and the selector that reaches it, `record_demo` films
+a whole script in the background and returns a take id for `get_take`, and `preview` hands
+back a contact sheet of the moments the camera landed on, as an image you can look at.
+Check the sheet before you hand a take on. `docs/MCP.md` has the rest.
+
 ## Reading the result
 
 ```json
