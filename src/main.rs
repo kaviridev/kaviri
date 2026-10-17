@@ -8,6 +8,7 @@
 
 mod audio;
 mod backdrop;
+mod captions;
 mod cdp;
 mod device;
 mod env;
@@ -16,6 +17,8 @@ mod inspect;
 #[cfg(feature = "mcp")]
 mod mcp;
 mod ops;
+mod soundtrack;
+mod tts;
 mod zoom;
 
 use ops::{CursorCfg, Session, DEFAULT_CURSOR_SCALE};
@@ -33,7 +36,8 @@ USAGE:
   kaviri record --script <file.jsonl> --out <file.mp4> [options]
   kaviri serve [--port <n>] [--out <file.mp4>] [options]
   kaviri mcp [options]          an MCP server on stdio (docs/MCP.md)
-  kaviri doctor | kaviri presets | kaviri backgrounds | kaviri frames | kaviri --version
+  kaviri doctor [--fix] | kaviri presets | kaviri backgrounds | kaviri frames
+  kaviri voices | kaviri --version
 
 OPTIONS:
   --script <path>     newline-delimited JSON ops to run (record mode)
@@ -106,8 +110,29 @@ OPTIONS:
                       what it has when it is reached (default 8 GiB)
   --keep-temp         keep the intermediate CFR video and the frame spool
   --audio             record what the page plays (Web Audio, <audio>, <video>)
-                      and mux it into the take as AAC. Not with --slowmo, whose
-                      warped clock would have to warp the sound with it
+                      and mux it into the take as AAC. Under --slowmo each sound
+                      starts on the frame that caused it, at its own speed
+
+SOUND (docs/audio.md):
+  --tts <engine>      what speaks a say op: piper (default; local, free), none
+                      (silence as long as the line, for CI), openai, elevenlabs,
+                      cloudflare (your own key). kaviri voices lists them
+  --voice <name>      the voice a say op without its own uses
+  --voiceover <file>  a recorded track (wav, mp3, m4a) laid under the take from
+                      its first frame
+  --music <file>      a music bed, looped to the take's length and faded at both
+                      ends; ducked under narration and voiceover
+  --music-volume <dB> the bed's level before ducking (default -18)
+  --music-fade <ms>   fade at each end of the bed (default 1500)
+  --music-loop <on|off>  loop a bed shorter than the take (default on)
+  --duck <on|off>     pull the bed down under speech (default on)
+  --page-gain <dB>    level of the page's sound (default 0)
+  --narration-gain <dB>  level of say and voice clips (default 0)
+  --voiceover-gain <dB>  level of --voiceover (default 0)
+  --loudness <LUFS>   EBU R128 target for the mix, or off (default -16)
+  --captions <mode>   auto (an .srt and .vtt when the take says something), off,
+                      file, or burn (the sidecars, and drawn into the video)
+  --caption-style <s> pill, bold or plain (default pill)
   --version, -V       print the version and exit
 
 OPS (one JSON object per line):
@@ -120,6 +145,8 @@ OPS (one JSON object per line):
   {\"op\":\"scroll\",\"y\":600,\"smooth\":true}
   {\"op\":\"wait\",\"ms\":800}  or  {\"op\":\"wait\",\"selector\":\"css\"[,\"timeout_ms\":20000]}
   {\"op\":\"mark\",\"label\":\"checkout\"}
+  {\"op\":\"say\",\"text\":\"…\"[,\"voice\":\"…\"][,\"wait\":true]}   (narration; a later wait stretches to it)
+  {\"op\":\"voice\",\"file\":\"clip.m4a\"[,\"text\":\"…\"]}  (a recorded clip, here)
   {\"op\":\"inspect\"[,\"all\":true][,\"limit\":150]}  (what can be clicked, and its selector)
   {\"op\":\"stop_recording\"}
 
@@ -248,6 +275,10 @@ struct Args {
     audio: bool,
     spool_dir: Option<PathBuf>,
     max_spool_bytes: Option<u64>,
+    /// Narration, voiceover, music, loudness and captions.
+    sound: soundtrack::Cfg,
+    /// `doctor --fix`: install what is missing.
+    fix: bool,
 }
 
 /// What the command line asked for.
@@ -289,6 +320,14 @@ fn ratio(flag: &str, raw: &str, lo: f64, hi: f64) -> Result<f64, String> {
         return Err(format!("{flag} must be between {lo} and {hi}, got {raw}"));
     }
     Ok(v)
+}
+
+fn on_off(flag: &str, raw: &str) -> Result<bool, String> {
+    match raw {
+        "on" | "true" | "yes" => Ok(true),
+        "off" | "false" | "no" => Ok(false),
+        _ => Err(format!("{flag} must be on or off, got {raw}")),
+    }
 }
 
 fn positive_u64(flag: &str, raw: &str) -> Result<u64, String> {
@@ -334,6 +373,12 @@ fn parse_argv_from<I: Iterator<Item = String>>(mut argv: I) -> Result<Parsed, St
         return Ok(Parsed::Help(format!(
             "Frames (--frame):\n{}\n\nUse one with: kaviri record --frame ios ...",
             device::help()
+        )));
+    }
+    if mode == "--voices" || mode == "voices" {
+        return Ok(Parsed::Help(format!(
+            "{}\n\nUse one with: kaviri record --tts piper --voice <name> ...",
+            tts::help()
         )));
     }
     if mode == "--backgrounds" || mode == "backgrounds" {
@@ -394,7 +439,11 @@ fn parse_argv_from<I: Iterator<Item = String>>(mut argv: I) -> Result<Parsed, St
         audio: false,
         spool_dir: None,
         max_spool_bytes: None,
+        sound: soundtrack::Cfg::default(),
+        fix: false,
     };
+    let mut captions = "auto".to_string();
+    let mut caption_style = "pill".to_string();
     while let Some(flag) = argv.next() {
         let mut val = |name: &str| -> Result<String, String> {
             argv.next().ok_or_else(|| format!("{name} needs a value"))
@@ -494,20 +543,52 @@ fn parse_argv_from<I: Iterator<Item = String>>(mut argv: I) -> Result<Parsed, St
             }
             "--keep-temp" => a.keep_temp = true,
             "--audio" => a.audio = true,
+            "--fix" => a.fix = true,
+            "--tts" => a.sound.tts = val("--tts")?,
+            "--voice" => a.sound.voice = Some(val("--voice")?),
+            "--voiceover" => a.sound.voiceover = Some(PathBuf::from(val("--voiceover")?)),
+            "--music" => a.sound.music = Some(PathBuf::from(val("--music")?)),
+            "--music-volume" => {
+                a.sound.music_volume =
+                    ratio("--music-volume", &val("--music-volume")?, -60.0, 12.0)?
+            }
+            "--music-fade" => {
+                a.sound.music_fade =
+                    ratio("--music-fade", &val("--music-fade")?, 0.0, 20000.0)? / 1000.0
+            }
+            "--music-loop" => a.sound.music_loop = on_off("--music-loop", &val("--music-loop")?)?,
+            "--duck" => a.sound.duck = on_off("--duck", &val("--duck")?)?,
+            "--page-gain" => {
+                a.sound.page_gain = ratio("--page-gain", &val("--page-gain")?, -60.0, 24.0)?
+            }
+            "--narration-gain" => {
+                a.sound.narration_gain =
+                    ratio("--narration-gain", &val("--narration-gain")?, -60.0, 24.0)?
+            }
+            "--voiceover-gain" => {
+                a.sound.voiceover_gain =
+                    ratio("--voiceover-gain", &val("--voiceover-gain")?, -60.0, 24.0)?
+            }
+            "--loudness" => {
+                let raw = val("--loudness")?;
+                a.sound.loudness = if raw == "off" {
+                    None
+                } else {
+                    Some(ratio("--loudness", &raw, -40.0, -5.0)?)
+                };
+            }
+            "--captions" => captions = val("--captions")?,
+            "--caption-style" => caption_style = val("--caption-style")?,
             "--help" | "-h" => return Ok(Parsed::Help(USAGE.to_string())),
             "--version" | "-V" => return Ok(Parsed::Help(version_line())),
             other => return Err(format!("unknown flag: {other}\n\n{USAGE}")),
         }
     }
     a.background = backdrop::parse_choice(&background)?;
-    /*
-     * Under --slowmo the page runs k times slower but its audio hardware clock does not, so
-     * the sound would be heard at the wrong moments, and slowing it to match would drop its
-     * pitch. Refused out loud rather than delivered wrong.
-     */
-    if a.audio && a.slowmo > 1.0 {
-        eprintln!("kaviri: --audio does not work with --slowmo; recording without sound");
-        a.audio = false;
+    a.sound.captions = captions::Mode::parse(&captions)?;
+    a.sound.caption_style = captions::Style::parse(&caption_style)?;
+    if a.fix && a.mode != "doctor" {
+        return Err("--fix belongs to kaviri doctor".into());
     }
     let opts = device::FrameOpts {
         platform: frame,
@@ -583,11 +664,65 @@ fn run_doctor(a: &Args) -> Result<(), String> {
         "spool limit: {} MiB (--max-spool-bytes)",
         a.max_spool_bytes.unwrap_or(cdp::SPOOL_DEFAULT_MAX_BYTES) / (1024 * 1024)
     );
+    doctor_speech(a);
 
     if ok {
         Ok(())
     } else {
         Err("one or more dependencies are missing".into())
+    }
+}
+
+/// What would speak a `say` op, and, under `--fix`, install Piper and a voice.
+///
+/// Speech is optional, so nothing here fails the doctor unless `--fix` was asked to fix it.
+fn doctor_speech(a: &Args) {
+    if a.fix {
+        let mut want: Vec<&str> = vec![tts::DEFAULT_VOICE];
+        if let Some(v) = a.sound.voice.as_deref() {
+            if v != tts::DEFAULT_VOICE && !v.ends_with(".onnx") {
+                want.push(v);
+            }
+        }
+        match tts::install(&want) {
+            Ok(done) if done.is_empty() => println!("speech: nothing to install"),
+            Ok(done) => {
+                for d in done {
+                    println!("installed: {d}");
+                }
+            }
+            Err(e) => println!("speech: --fix failed\n  {e}"),
+        }
+    }
+    println!("speech cache: {}", tts::cache_root().display());
+    match tts::find_piper() {
+        Some(p) => println!("piper: {}", p.display()),
+        None => println!(
+            "piper: not installed (kaviri doctor --fix installs it; --tts none needs nothing)"
+        ),
+    }
+    let installed: Vec<&str> = tts::VOICES
+        .iter()
+        .filter(|v| tts::voices_dir().join(format!("{}.onnx", v.name)).is_file())
+        .map(|v| v.name)
+        .collect();
+    println!(
+        "voices: {}",
+        if installed.is_empty() {
+            "none installed".to_string()
+        } else {
+            installed.join(", ")
+        }
+    );
+    println!("--tts default: {}", a.sound.tts);
+    for (var, who) in [
+        ("OPENAI_API_KEY", "openai"),
+        ("ELEVENLABS_API_KEY", "elevenlabs"),
+        ("CLOUDFLARE_API_TOKEN", "cloudflare"),
+    ] {
+        if std::env::var_os(var).is_some() {
+            println!("  {var} is set, so --tts {who} is available (off unless named)");
+        }
     }
 }
 
@@ -717,6 +852,7 @@ fn run_record(a: &Args) -> Result<(), String> {
     if env::is_set("DEBUG") {
         eprintln!("kaviri[debug]: ffmpeg at {ffmpeg}");
     }
+    ops::prepare_lines(&a.sound, &ops_list)?;
 
     eprintln!(
         "kaviri {}: launching browser ({}x{}@{}x) ...",
@@ -736,6 +872,7 @@ fn run_record(a: &Args) -> Result<(), String> {
         a.audio,
     )?;
     s.out_path = Some(a.out.clone());
+    s.sound = a.sound.clone();
     s.background = a.background.clone();
     s.set_frame(a.frame.clone())?;
     s.frame_fixed = a.frame.is_some();
@@ -1111,6 +1248,7 @@ fn launch_session(a: &Args) -> Result<Session, String> {
         a.audio,
     )?;
     sess.out_path = Some(a.out.clone());
+    sess.sound = a.sound.clone();
     sess.background = a.background.clone();
     sess.set_frame(a.frame.clone())?;
     sess.frame_fixed = a.frame.is_some();

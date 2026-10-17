@@ -50,6 +50,11 @@ done, then call preview to see the moments the camera landed on.
 (click, type, hover, press, scroll, wait, mark), and stop, which renders the MP4. One browser \
 is kept across calls.
 
+Narration: a say op ({\"op\":\"say\",\"text\":\"...\"}) speaks at that point in the take and \
+the next wait stretches until the line is said, so actions land after the words that introduce \
+them. record_demo takes music, voiceover and captions (burn draws them in; captions are also \
+written as .srt and .vtt). tts none makes timing-only silence for a dry run.
+
 Rules that save a take: start recording only after a wait that proves the page is ready; end \
 with a wait of at least 1600 ms so the last zoom lands; if click says a selector is covered, \
 the page is not in the state you think (dismiss the overlay); zoom_events: 0 in the result \
@@ -68,6 +73,26 @@ pub const OP_TOOLS: &[(&str, &str)] = &[
     ("mark", "mark"),
     ("frame", "frame"),
     ("inspect", "inspect"),
+    ("say", "say"),
+    ("voice", "voice"),
+];
+
+/// The soundtrack flags, which `open` and `record_demo` both take.
+const SOUND_FLAGS: &[(&str, &str)] = &[
+    ("tts", "--tts"),
+    ("voice", "--voice"),
+    ("voiceover", "--voiceover"),
+    ("voiceover_gain", "--voiceover-gain"),
+    ("music", "--music"),
+    ("music_volume", "--music-volume"),
+    ("music_fade", "--music-fade"),
+    ("music_loop", "--music-loop"),
+    ("duck", "--duck"),
+    ("page_gain", "--page-gain"),
+    ("narration_gain", "--narration-gain"),
+    ("loudness", "--loudness"),
+    ("captions", "--captions"),
+    ("caption_style", "--caption-style"),
 ];
 
 /// The flags `open` accepts, by field name. The values are checked by the same parser the
@@ -153,8 +178,12 @@ pub fn flags_from(
         if skip.contains(&k.as_str()) || v.is_null() {
             continue;
         }
-        let Some((_, flag)) = table.iter().find(|(f, _)| f == k) else {
-            let mut known: Vec<&str> = table.iter().map(|(f, _)| *f).collect();
+        let Some((_, flag)) = table.iter().chain(SOUND_FLAGS.iter()).find(|(f, _)| f == k) else {
+            let mut known: Vec<&str> = table
+                .iter()
+                .chain(SOUND_FLAGS.iter())
+                .map(|(f, _)| *f)
+                .collect();
             known.extend_from_slice(skip);
             return Err(format!(
                 "{tool}: no field \"{k}\"; it takes {}",
@@ -171,7 +200,12 @@ pub fn flags_from(
             continue;
         }
         argv.push(flag.to_string());
-        argv.push(flag_value(k, v).map_err(|e| format!("{tool}: {e}"))?);
+        // An on/off flag takes a JSON boolean too, which is what an agent will send.
+        let value = match v {
+            Value::Bool(b) => (if *b { "on" } else { "off" }).to_string(),
+            v => flag_value(k, v).map_err(|e| format!("{tool}: {e}"))?,
+        };
+        argv.push(value);
     }
     Ok(argv)
 }
@@ -468,7 +502,14 @@ impl Takes {
             "marks": t.marks,
         });
         if let Some(r) = &t.rendered {
-            for k in ["duration", "zoom_events", "frames", "audio", "warning"] {
+            for k in [
+                "duration",
+                "zoom_events",
+                "frames",
+                "audio",
+                "soundtrack",
+                "warning",
+            ] {
                 if !r[k].is_null() {
                     v[k] = r[k].clone();
                 }
@@ -1160,7 +1201,21 @@ pub fn tools() -> Vec<Tool> {
             "background": {"type": "string", "description": "backdrop name, auto, none, or an image path"},
             "cursor": {"type": "string", "description": "auto, arrow, hand, text, touch or none"},
             "slowmo": {"type": "number", "description": "1 to 16; for canvas-heavy pages that film choppy"},
-            "audio": {"type": "boolean", "description": "record what the page plays"}
+            "audio": {"type": "boolean", "description": "record what the page plays"},
+            "tts": {"type": "string", "description": "piper (local, default), none (silent timing only), openai, elevenlabs, cloudflare"},
+            "voice": {"type": "string", "description": "default voice for say"},
+            "voiceover": {"type": "string", "description": "audio file laid under the take"},
+            "voiceover_gain": {"type": "number"},
+            "music": {"type": "string", "description": "music bed file, looped, faded, ducked under speech"},
+            "music_volume": {"type": "number", "description": "dB, default -18"},
+            "music_fade": {"type": "number", "description": "ms, default 1500"},
+            "music_loop": {"type": "boolean"},
+            "duck": {"type": "boolean"},
+            "page_gain": {"type": "number"},
+            "narration_gain": {"type": "number"},
+            "loudness": {"type": ["number", "string"], "description": "LUFS target, default -16, or off"},
+            "captions": {"type": "string", "description": "auto, off, file (.srt and .vtt) or burn"},
+            "caption_style": {"type": "string", "description": "pill, bold or plain"}
          }), &[])),
         ("navigate", "Load a URL and wait for it. A bare path becomes a file:// URL.",
          schema(json!({"url": {"type": "string"},
@@ -1207,6 +1262,22 @@ pub fn tools() -> Vec<Tool> {
          "Film the take on a device. Must come before start. A phone platform also switches \
           the browser to that phone's viewport and user agent unless open set a size.",
          schema(Value::Object(frame_props), &["platform"])),
+        ("say",
+         "Say a line of narration at this point in the take. It returns once the line is \
+          synthesised; the next wait stretches until it has been said, so the action after it \
+          lands after the words. wait: true holds here until it is said. Returns secs and \
+          until (the take time it ends). Under captions it becomes caption cues.",
+         schema(json!({"text": {"type": "string"},
+                       "voice": {"type": "string", "description": "engine voice; default the server's"},
+                       "wait": {"type": "boolean"},
+                       "pad_ms": ms("extra pause after the line when wait is true, default 150"),
+                       "gain_db": {"type": "number", "description": "-60 to 24"}}), &["text"])),
+        ("voice",
+         "Drop a pre-recorded clip (wav, mp3, m4a) into the take at this point. text, if given, \
+          is what it says, for captions.",
+         schema(json!({"file": {"type": "string"}, "text": {"type": "string"},
+                       "wait": {"type": "boolean"},
+                       "gain_db": {"type": "number", "description": "-60 to 24"}}), &["file"])),
         ("stop",
          "Stop filming and render the MP4. Returns path, duration, zoom_events (0 means nothing \
           was framed: a broken script), the marks and the take id for preview.",
@@ -1216,7 +1287,7 @@ pub fn tools() -> Vec<Tool> {
          "Film a whole script in the background and return a take id at once. script_jsonl is \
           one op per line, as for kaviri record: {\"op\":\"navigate\",\"url\":\"...\"}, \
           {\"op\":\"wait\",\"selector\":\"#app\"}, {\"op\":\"start_recording\"}, click, type, \
-          hover, press, scroll, mark, and a final {\"op\":\"wait\",\"ms\":1600}. A first line \
+          hover, press, scroll, mark, say (narration), and a final {\"op\":\"wait\",\"ms\":1600}. A first line \
           {\"op\":\"frame\",\"platform\":\"ios\"} films it on a device. Poll get_take. Takes run \
           one at a time; later ones queue.",
          schema(json!({
@@ -1227,6 +1298,20 @@ pub fn tools() -> Vec<Tool> {
             "background": {"type": "string"},
             "slowmo": {"type": "number"},
             "audio": {"type": "boolean"},
+            "tts": {"type": "string", "description": "piper (local, default), none (silent timing only), openai, elevenlabs, cloudflare"},
+            "voice": {"type": "string", "description": "default voice for say"},
+            "voiceover": {"type": "string", "description": "audio file laid under the take"},
+            "voiceover_gain": {"type": "number"},
+            "music": {"type": "string", "description": "music bed file, looped, faded, ducked under speech"},
+            "music_volume": {"type": "number", "description": "dB, default -18"},
+            "music_fade": {"type": "number", "description": "ms, default 1500"},
+            "music_loop": {"type": "boolean"},
+            "duck": {"type": "boolean"},
+            "page_gain": {"type": "number"},
+            "narration_gain": {"type": "number"},
+            "loudness": {"type": ["number", "string"], "description": "LUFS target, default -16, or off"},
+            "captions": {"type": "string", "description": "auto, off, file (.srt and .vtt) or burn"},
+            "caption_style": {"type": "string", "description": "pill, bold or plain"},
             "out": {"type": "string", "description": "MP4 path; default kaviri-takes/<id>.mp4"}
          }), &["script_jsonl"])),
         ("get_take",
@@ -1466,6 +1551,41 @@ mod tests {
         assert!(check_script("# nothing\n\n").is_err());
         assert!(route("record_demo", &json!({})).is_err());
         assert!(route("record_demo", &json!({"script_jsonl": ok, "port": 9})).is_err());
+    }
+
+    #[test]
+    fn record_demo_takes_the_soundtrack_as_the_same_flags_record_does() {
+        let a = route(
+            "record_demo",
+            &json!({"script_jsonl": "{\"op\":\"say\",\"text\":\"hi\"}",
+                    "tts": "none", "music": "bed.mp3", "music_volume": -20,
+                    "duck": false, "captions": "burn", "loudness": "off"}),
+        )
+        .unwrap();
+        let Action::RecordDemo { argv, .. } = a else {
+            panic!("not a record_demo")
+        };
+        let pairs: Vec<&str> = argv.iter().map(String::as_str).collect();
+        for want in [
+            ["--tts", "none"],
+            ["--music", "bed.mp3"],
+            ["--music-volume", "-20"],
+            ["--duck", "off"],
+            ["--captions", "burn"],
+            ["--loudness", "off"],
+        ] {
+            assert!(pairs.windows(2).any(|w| w == want), "{want:?} in {pairs:?}");
+        }
+        let parsed = args_from(&[], argv).unwrap();
+        assert_eq!(parsed.sound.tts, "none");
+        assert!(!parsed.sound.duck);
+        assert_eq!(parsed.sound.loudness, None);
+        assert_eq!(parsed.sound.captions, crate::captions::Mode::Burn);
+        let a = route("say", &json!({"text": "Watch this", "wait": true})).unwrap();
+        assert_eq!(
+            a,
+            Action::Op(json!({"op": "say", "text": "Watch this", "wait": true}))
+        );
     }
 
     #[test]

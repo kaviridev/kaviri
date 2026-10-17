@@ -69,8 +69,43 @@ dated `[0.1.0]` heading, when the tag is cut.
   PipeWire, and works headless on a CI runner. Each context is anchored to the recording clock
   once and then placed by sample count, so the sound is gapless and lands within a frame or
   two of the click that caused it. Under `--audio` the browser's autoplay policy no longer
-  waits for a gesture. Off under `--slowmo`, which says so. The `recording_rendered` result
-  carries `"audio": true|false` when `--audio` was given.
+  waits for a gesture. The `recording_rendered` result carries `"audio": true|false` when
+  `--audio` was given.
+- **`--audio` under `--slowmo`.** It used to record nothing there. Each burst of sound now starts
+  at the page-time moment it began and plays at its own speed and pitch, so a click or a chime
+  lands on the frame that caused it. A long sound kept in step with the picture drifts, and the
+  docs say so.
+- **Narration.** A `say` op (`{"op":"say","text":"...","voice":"..."}`) synthesises a line and
+  places it on the take's clock where the op ran. The next `wait` stretches until the line has
+  been said, so actions line up with what is said; its result carries `stretched_from`, and
+  `"stretch": false` opts out. `{"op":"wait","speech":true}` waits exactly to the end of the line,
+  and `stop_recording` lets a line in flight finish. Speech engines sit behind one trait,
+  chosen with `--tts`: `piper` (the default; local and free), `none` (silence as long as each
+  line, for tests and CI), and `openai`, `elevenlabs` and `cloudflare` with the user's own key,
+  never used unless named. Lines are cached in `~/.cache/kaviri/tts`; under `record` every line
+  is synthesised before the browser starts, and under `serve` and `mcp` synthesis runs while
+  the frame pump keeps going. `--voice` sets the default voice; `kaviri voices` lists them.
+- **`kaviri doctor --fix`.** Installs the Piper release and a voice into `~/.cache/kaviri`, each
+  checked against a pinned SHA-256. `kaviri doctor` now also reports the speech engine, the
+  installed voices and which cloud keys are set. Five Piper voices are listed, each trained on
+  public-domain recordings and none descended from `lessac`; Piper itself carries espeak-ng (GPL-3.0) and is never
+  bundled.
+- **A `voice` op and `--voiceover`.** `{"op":"voice","file":"clip.m4a"}` drops a recorded clip at
+  that moment; `--voiceover <file>` lays a recorded track under the whole take.
+- **A music bed.** `--music <file>` loops to the take's length (`--music-loop off`), fades in and
+  out (`--music-fade`), sits at `--music-volume` (-18 dB) and is ducked under narration and
+  voiceover by a sidechain compressor (`--duck off`).
+- **One mix at a set loudness.** Page sound, narration, voiceover and music are mixed into one
+  AAC track, normalised to -16 LUFS by two-pass EBU R128 `loudnorm` (`--loudness <LUFS>` or
+  `off`), with `--page-gain`, `--narration-gain` and `--voiceover-gain`. The
+  `recording_rendered` result carries a `soundtrack` object.
+- **Captions.** Cues timed to the narration's words, written as `.srt` and `.vtt` beside the MP4
+  (`--captions auto`, the default, when the take says something), and drawn into the video by
+  the browser with `--captions burn`, in `--caption-style pill`, `bold` or `plain`, inside the
+  safe area of a 9:16 video.
+- **MCP.** `say` and `voice` tools for the interactive session, and the soundtrack fields on
+  `open` and `record_demo`.
+- `docs/audio.md`, and `examples/narrated.jsonl`, a narrated take of the bundled page.
 - **Device frames.** `--frame macos|windows|linux|android|ios|android-emulator|ios-simulator`
   draws the take inside that system's window or handset. Desktop frames default to a browser
   window carrying the page's own favicon, title and URL (`--frame-style app` for a bare title

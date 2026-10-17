@@ -6,7 +6,8 @@ require to travel with the software.
 
 It also states what kaviri does **not** bundle, which is the half that decides
 whether a build can be sold or shipped inside a closed product. See
-[Not bundled: ffmpeg and Chromium](#not-bundled-ffmpeg-and-chromium).
+[Not bundled: ffmpeg and Chromium](#not-bundled-ffmpeg-and-chromium) and
+[Not bundled: speech engines and voices](#not-bundled-speech-engines-and-voices).
 
 kaviri's own licence is a separate question and is settled: the recorder is
 Apache-2.0, unconditionally. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
@@ -57,6 +58,7 @@ The crates named in `Cargo.toml`.
 | `base64` | 0.22.1 | MIT | MIT OR Apache-2.0 |
 | `signal-hook` | 0.3.18 | MIT | Apache-2.0 OR MIT |
 | `libc` | 0.2.189 | MIT | MIT OR Apache-2.0 |
+| `sha2` | 0.10.9 | MIT | MIT OR Apache-2.0 |
 
 ## Transitive dependencies, linked into the binary
 
@@ -167,6 +169,9 @@ serde_derive           Copyright (c) Erick Tryzelaar and David Tolnay
 serde_json             Copyright (c) Erick Tryzelaar and David Tolnay
 sha1                   Copyright (c) 2006-2009 Graydon Hoare
                        Copyright (c) 2016 Artyom Pavlov and RustCrypto Developers
+sha2                   Copyright (c) 2006-2009 Graydon Hoare
+                       Copyright (c) 2009-2013 Mozilla Foundation
+                       Copyright (c) 2016 Artyom Pavlov
 signal-hook            Copyright (c) 2017 tokio-jsonrpc developers
 signal-hook-registry   Copyright (c) 2017 tokio-jsonrpc developers
 syn                    Copyright (c) David Tolnay
@@ -314,6 +319,78 @@ So:
 - **Do** tell users of H.264 output that libx264 and AVC carry patent
   considerations in some jurisdictions, and that the encoder and the
   distribution decision are theirs, not kaviri's.
+
+## Not bundled: speech engines and voices
+
+The `say` op needs a text-to-speech engine. kaviri contains none, links none,
+and ships no voice. Like ffmpeg, the engine is a separate program run as a
+child process, and the voices are data files that program reads.
+
+`kaviri doctor --fix` is the only thing that downloads them, and only when run.
+It fetches into the user's cache (`~/.cache/kaviri`, or `$KAVIRI_CACHE`), from
+the projects' own release locations, and checks every file against a SHA-256
+pinned in `src/tts.rs` before using it. Nothing it fetches may be added to a
+kaviri release archive, installer or container image.
+
+### The engine
+
+| Component | Version | Licence | Fetched from |
+|---|---|---|---|
+| Piper (`piper`, `libpiper_phonemize`) | 2023.11.14-2 | MIT | github.com/rhasspy/piper releases |
+| espeak-ng (`libespeak-ng`, `espeak-ng-data`), inside the Piper release | 1.52 | **GPL-3.0-or-later** | same archive |
+| ONNX Runtime (`libonnxruntime`), inside the Piper release | 1.14.1 | MIT | same archive |
+
+**espeak-ng is GPL-3.0.** It is Piper's phonemiser (text into phonemes), and the
+release archive carries it as a shared library and a data directory. This is
+why Piper is fetched on request rather than bundled: kaviri is Apache-2.0 and a
+binary that contained or linked espeak-ng would carry the GPL with it. Run as a
+separate process the user installed, it stands where ffmpeg stands, at arm's
+length. The same rules apply: do not vendor it, do not link it, do not replace
+the subprocess with a binding.
+
+`$KAVIRI_PIPER` points kaviri at a Piper the user built or installed
+themselves, under whatever terms they got it.
+
+### The voices
+
+`kaviri doctor --fix` fetches only voices whose licence has been read, from
+`huggingface.co/rhasspy/piper-voices` at revision
+`c10ece1aade47bb51c153c893d14e5bf8e5b7117`. The repository is MIT. Each voice's
+own model card names its training data:
+
+| Voice | Training data | Data licence | Commercial use |
+|---|---|---|---|
+| `en_US-ljspeech-medium` (default) | LJ Speech | public domain | yes |
+| `en_US-kristin-medium` | LibriVox recordings | public domain | yes |
+| `en_US-norman-medium` | LibriVox recordings | public domain | yes |
+| `en_US-john-medium` | LibriVox recordings (fine-tuned from kristin) | public domain | yes |
+| `en_GB-cori-medium` | LibriVox recordings | public domain | yes |
+
+None of the five descends from Piper's `lessac` voice: four were trained from
+scratch by Bryce Beattie, and `john` was fine-tuned from `kristin`.
+
+Deliberately **not** listed, though a user can still point `--voice` at them by
+path, at which point their licence is the user's to honour:
+
+- every voice fine-tuned from `en_US-lessac` (`amy`, `alba`, `libritts_r`,
+  `joe` and most others): the Blizzard 2013 Lessac data under that checkpoint is
+  licensed for non-commercial research;
+- `en_US-ryan` and `en_US-hfc_*`: CC BY-NC-SA 4.0 data.
+
+### Cloud engines
+
+`--tts openai`, `elevenlabs` and `cloudflare` send the line's text to that
+service with the user's own key, under the user's own agreement with it. kaviri
+includes no SDK for any of them; it runs `curl`. Workers AI's MeloTTS model is
+MIT; the OpenAI and ElevenLabs voices are governed by those services' terms.
+None is used unless named.
+
+### Evaluated, not used
+
+Kokoro-82M (Apache-2.0 weights and voices) was evaluated. Every way to run it
+outside Python phonemises with espeak-ng (GPL-3.0), so it carries the same
+constraint as Piper and would be added the same way: a separate process,
+fetched on request.
 
 ## Keeping this file honest
 

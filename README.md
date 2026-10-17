@@ -102,6 +102,35 @@ moments the camera landed on, as an image the agent can actually look at.
 [`docs/MCP.md`](docs/MCP.md) has the tools, the `.mcp.json` form and the
 details. It all runs locally, like everything else here.
 
+## Sound
+
+```sh
+kaviri doctor --fix     # once: the local speech engine and a voice, into ~/.cache/kaviri
+kaviri record --script examples/narrated.jsonl --out narrated.mp4 \
+  --preset tiktok --music bed.mp3 --captions burn
+```
+
+A `say` op in the script speaks a line at that point in the take, and the
+`wait` after it stretches until the line has been said, so the click the line
+introduces lands after the words whatever the voice's pace:
+
+```jsonl
+{"op":"say","text":"One click, and the account exists."}
+{"op":"wait","ms":300}
+{"op":"click","selector":"#submit"}
+```
+
+The default voice is [Piper](https://github.com/rhasspy/piper), local and free,
+with voices trained on public-domain recordings; `--tts none` writes silence as
+long as each line, for CI, and `openai`, `elevenlabs` and `cloudflare` use your
+own key when named. A `voice` op drops a recorded clip at a moment,
+`--voiceover` lays a recorded track under the whole take, and `--music` adds a
+bed that loops, fades and ducks under the speech. Page sound (`--audio`),
+narration, voiceover and music are mixed to one AAC track at -16 LUFS. Captions
+come from the narration: an `.srt` and `.vtt` beside the MP4, and drawn into the
+video with `--captions burn`, clear of the platform's buttons on a vertical
+video. [`docs/audio.md`](docs/audio.md) has all of it.
+
 ## The op protocol
 
 One JSON object per line, in and out.
@@ -475,8 +504,11 @@ enough.
   (Web Audio and every `<audio>` and `<video>`) inside the browser, so it needs
   no sound card, PipeWire or Pulse, and works on a CI runner. It does not hear
   a cross-origin media file served without CORS, plugins, or anything outside
-  the page, and it is off under `--slowmo`. Narration still goes on in an
-  editor afterwards.
+  the page. Under `--slowmo` each sound starts on the frame that caused it at
+  its own speed, so a long sound kept in step with the picture drifts.
+- **Narration is synthesised, or yours.** The local voices are Piper's medium
+  quality, clear rather than expressive. A cloud engine with your own key, or a
+  recorded `voice` clip or `--voiceover`, is the way to a better read.
 - **Takes are not reproducible frame for frame.** The whole timeline comes from
   a wall clock, so the same script on the same commit gives you the same film,
   not the same file.
@@ -518,12 +550,18 @@ enough.
   a unique selector for each control.
 - `src/mcp.rs` is `kaviri mcp`: the tool table, the take registry, the preview
   sheet and the stdio server.
+- `src/audio.rs` taps what the page plays; `src/tts.rs` is the speech engines,
+  the voice list and the line cache; `src/soundtrack.rs` places narration on the
+  take's clock and builds the mix; `src/captions.rs` times, writes and draws the
+  captions.
 - `src/main.rs` is the CLI.
 
 `cargo test` runs the suite, including two tests that shell out to a real ffmpeg
 to validate the generated filter graph and the hand-written PNG. They fail
 loudly rather than skipping when no ffmpeg is present; set
 `KAVIRI_SKIP_FFMPEG_TESTS=1` if you genuinely want them skipped.
+`cargo test --test audio_take -- --ignored` films a narrated take with the
+`none` speech engine, and needs Chromium.
 
 ## Licence
 

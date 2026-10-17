@@ -67,12 +67,18 @@ the agent thinks, so the take is one continuous video rather than a set of clips
 | `inspect` | the visible actionable elements: role, accessible name, a unique CSS selector, box |
 | `start` | `start_recording`; returns the take id and the MP4 path (`out` to choose it) |
 | `click`, `type`, `hover`, `press`, `scroll`, `wait`, `mark` | the op of the same name, same fields |
+| `say`, `voice` | narration at this moment, and a recorded clip; see [audio.md](audio.md) |
 | `frame` | the `frame` op; before `start` |
 | `stop` | `stop_recording`; renders, returns path, duration, `zoom_events`, marks, take id |
 | `close` | close the browser, rendering any open take first |
-| `record_demo` | `script_jsonl` plus optional `preset`, `frame`, `frame_style`, `background`, `slowmo`, `audio`, `out`; returns a take id |
+| `record_demo` | `script_jsonl` plus optional `preset`, `frame`, `frame_style`, `background`, `slowmo`, `audio`, the sound fields below, `out`; returns a take id |
 | `get_take` | status (`queued`, `running`, `done`, `failed`), path, duration, `zoom_events`, marks; no id lists every take |
 | `preview` | a contact sheet of keyframes and a poster, as images |
+
+`open` and `record_demo` also take the soundtrack, as the flags of the same name: `tts`,
+`voice`, `voiceover`, `voiceover_gain`, `music`, `music_volume`, `music_fade`, `music_loop`,
+`duck`, `page_gain`, `narration_gain`, `loudness`, `captions`, `caption_style`. `get_take`
+reports the take's `soundtrack`.
 
 Every tool answers with the same envelope the NDJSON protocol uses, as the text of the result:
 `{"ok":true,"result":{…}}`, or `{"ok":false,"error":"…"}` with the result marked as an error.

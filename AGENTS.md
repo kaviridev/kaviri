@@ -149,7 +149,9 @@ want the address bar to show.
 ## What it will not do
 
 It will not record a native application, a terminal, or anything outside the browser it starts.
-It records sound only when asked: `--audio` lays what the page plays under the take. It will not find the interesting part of your app for you: the
+It records sound only when asked: `--audio` lays what the page plays under the take, and a
+`{"op":"say","text":"..."}` op narrates (the `wait` after it stretches until the line is said,
+`--music` adds a ducked bed, `--captions burn` draws captions; `docs/audio.md`). It will not find the interesting part of your app for you: the
 script is the storyboard, and a bad storyboard films perfectly.
 
 ## Determinism

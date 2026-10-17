@@ -484,6 +484,74 @@ A take interrupted the first way reports `interrupted` and still renders what it
 
 ---
 
+## Narration and sound
+
+### Piper is not installed
+
+```
+kaviri: error: Piper is not installed; run kaviri doctor --fix, set KAVIRI_PIPER, or record with --tts none
+```
+
+A `say` op needs a speech engine, and the default one is fetched rather than bundled (it carries
+espeak-ng, which is GPL). `kaviri doctor --fix` installs it and the default voice into
+`~/.cache/kaviri`. `--tts none` records the take with silent narration of the right length,
+which is enough to check timing and captions. Under `record` this is checked before the browser
+starts.
+
+### The voice is not installed
+
+```
+kaviri: error: the voice en_US-norman-medium is not installed; run kaviri doctor --fix --voice en_US-norman-medium
+```
+
+`kaviri voices` lists the voices kaviri can fetch. Any other Piper voice works as a path to its
+`.onnx`, with the `.onnx.json` beside it.
+
+### A download did not match its checksum
+
+```
+... did not match its pinned checksum (got ..., want ...); not installed
+```
+
+Every file `doctor --fix` fetches is checked against a SHA-256 in `src/tts.rs`, and a mismatch
+is deleted rather than used. Usually a proxy or a captive portal answered instead of the real
+host. Try again on a clean connection; if it persists upstream changed a file at a pinned URL,
+and that is worth an issue.
+
+### A cloud engine needs its key
+
+```
+kaviri: error: --tts elevenlabs needs your key in ELEVENLABS_API_KEY; nothing is sent without one
+```
+
+Cloud engines are never chosen unless named, and read their key only from the environment. An
+answer that is not 2xx is reported with the first of what the service said:
+`https://api.openai.com/v1/audio/speech answered 401: ...`.
+
+### No sound in the take
+
+`stop_recording`'s result has a `soundtrack` field listing its `sources`. If narration is listed
+and you hear nothing, the take was made with `--tts none`. If `measured_lufs` is missing, the mix
+was silent all the way through and was left alone rather than amplified. A `--voiceover` or
+`--music` that does not exist fails with `--music: no file at ...`: under `record` before the
+browser starts, and under `serve` when the take renders, with the silent MP4 left in place.
+
+### ffmpeg could not lay the soundtrack under the take
+
+The full ffmpeg error follows. `--keep-temp` keeps the parts (the narration WAV, the caption
+PNGs and `graph.txt`, the filter graph that was run) and says where. A music file ffmpeg cannot
+decode is the usual cause; convert it to WAV and try again.
+
+### Captions are in the wrong place, or missing
+
+There are captions only for `say` ops and for `voice` ops that give `text`. The `.srt` and `.vtt`
+are written whenever there are any; `--captions burn` also draws them. On a vertical video they
+sit 24% of the height up, above the platform's own caption and buttons. Cue timing follows the
+engine's word timings where it has them and is spread by word length where it does not, so a
+cue can lead or trail the voice by a word on a long sentence.
+
+---
+
 ## Things that are not bugs
 
 - **Two runs of the same script are not frame-identical.** Marks and frame times come from a wall
@@ -496,8 +564,13 @@ A take interrupted the first way reports `interrupted` and still renders what it
   with `createMediaElementSource`, and the browser feeds that silence for a cross-origin file
   served without CORS headers. Serve the file from the app's own origin, or with
   `Access-Control-Allow-Origin` and `crossorigin` on the element.
-- **`--audio` with `--slowmo` records no sound.** The page's clock is warped and its audio clock
-  is not, so the sound would land at the wrong moments. kaviri says so and records video only.
+- **Under `--audio --slowmo` a page's music drifts from its picture.** Each sound starts on the
+  frame that caused it and plays at its own speed, which is right for a click or a chime. A long
+  sound kept in step with the visuals runs on in real time while the picture runs k times slower.
+  Film those without `--slowmo`. See [audio.md](audio.md#the-pages-own-sound---audio).
+- **A `wait` lasted longer than its `ms`.** A line of narration was still being said, and a wait
+  stretches until it has been, so the next action lands after the words. Its result says
+  `"stretched_from"`. `"stretch": false` on the wait opts out.
 - **The filmed app runs slower than it does unrecorded.** Each screenshot is a full compositor
   pass plus a JPEG encode inside the browser that is running the app. `--scale 1` is the way out.
 - **No telemetry sidecar was written.** It is off by default. `--keep-temp` puts it at
