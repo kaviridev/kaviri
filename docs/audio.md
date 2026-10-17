@@ -66,7 +66,7 @@ browser starts, so a missing voice or a bad key fails in a second, and the take 
 already made. Under `serve` and `kaviri mcp`, synthesis runs on its own thread while the frame
 pump keeps going.
 
-**Lines are cached** by engine, voice and text in `~/.cache/kaviri/tts` (or `$KAVIRI_CACHE`,
+**Lines are cached** by engine (and model), voice and text in `~/.cache/kaviri/tts` (or `$KAVIRI_CACHE`,
 or `$XDG_CACHE_HOME/kaviri`). The second take of a script costs nothing, and with a cloud engine
 it is not billed twice.
 

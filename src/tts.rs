@@ -58,6 +58,11 @@ pub struct Raw {
 pub trait Engine: Send + Sync {
     fn name(&self) -> &'static str;
     fn default_voice(&self) -> String;
+    /// What the cache keys a line by, besides voice and text: the engine, and the model
+    /// where one can be chosen, so a line made by another model is not handed back.
+    fn cache_tag(&self) -> String {
+        self.name().to_string()
+    }
     /// Synthesise `text` into a file inside `dir`.
     fn synth(&self, text: &str, voice: &str, dir: &Path) -> Result<Raw, String>;
 }
@@ -556,9 +561,10 @@ pub fn to_clip_wav(input: &Path, out: &Path) -> Result<(), String> {
 // ---------------------------------------------------------------------------------------
 
 /// Synthesise a line, or find it already synthesised. The second take of a script costs
-/// nothing: lines are kept by engine, voice and text in `~/.cache/kaviri/tts`.
+/// nothing: lines are kept by engine (and model), voice and text in `~/.cache/kaviri/tts`.
 pub fn speak(engine: &dyn Engine, text: &str, voice: &str) -> Result<Speech, String> {
-    let key = sha256_hex(format!("{CACHE_VERSION}\n{}\n{voice}\n{text}", engine.name()).as_bytes());
+    let key =
+        sha256_hex(format!("{CACHE_VERSION}\n{}\n{voice}\n{text}", engine.cache_tag()).as_bytes());
     let dir = cache_root().join("tts");
     std::fs::create_dir_all(&dir).map_err(|e| format!("{}: {e}", dir.display()))?;
     let wav = dir.join(format!("{}.wav", &key[..32]));
@@ -851,6 +857,9 @@ impl Engine for OpenAi {
     fn name(&self) -> &'static str {
         "openai"
     }
+    fn cache_tag(&self) -> String {
+        format!("{}/{}", self.name(), self.model)
+    }
     fn default_voice(&self) -> String {
         "alloy".into()
     }
@@ -912,6 +921,9 @@ pub fn words_from_chars(chars: &[String], starts: &[f64], ends: &[f64]) -> Vec<W
 impl Engine for ElevenLabs {
     fn name(&self) -> &'static str {
         "elevenlabs"
+    }
+    fn cache_tag(&self) -> String {
+        format!("{}/{}", self.name(), self.model)
     }
     fn default_voice(&self) -> String {
         // "Rachel", one of the premade voices every account has.
@@ -1059,6 +1071,12 @@ mod tests {
             assert_eq!(select(n, &keys).unwrap().name(), n);
         }
         assert!(select("espeak", &keys).is_err());
+        // A line is cached per model, so changing the model does not hand back the old one.
+        assert_eq!(
+            select("openai", &keys).unwrap().cache_tag(),
+            "openai/gpt-4o-mini-tts"
+        );
+        assert_eq!(select("piper", &none).unwrap().cache_tag(), "piper");
     }
 
     #[test]

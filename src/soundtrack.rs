@@ -246,7 +246,13 @@ pub fn audio_graph(inp: &Inputs, cfg: &Cfg, dur: f64, loud: &Loud) -> Option<Str
             "[speech]".into()
         };
         if duck {
-            g.push(format!("{joined}asplit=2[said][key]"));
+            // The key is padded with silence to the take's length: sidechaincompress stops
+            // at the end of either input, so a voiceover shorter than the take would
+            // otherwise cut the bed off where the voiceover ends. Every pad in the graph is
+            // bounded; two unbounded ones spin ffmpeg forever after the last sample.
+            g.push(format!(
+                "{joined}asplit=2[said][k];[k]apad=whole_dur={dur:.3}[key]"
+            ));
             bus.push("[said]".into());
         } else {
             bus.push(joined);
@@ -296,7 +302,7 @@ pub fn audio_graph(inp: &Inputs, cfg: &Cfg, dur: f64, loud: &Loud) -> Option<Str
     }
     // loudnorm works at 192 kHz; back to the take's rate, then exactly the video's length.
     tail.push_str(&format!(
-        ",aresample=48000,apad,atrim=0:{dur:.3},asetpts=PTS-STARTPTS[aout]"
+        ",aresample=48000,apad=whole_dur={dur:.3},atrim=0:{dur:.3},asetpts=PTS-STARTPTS[aout]"
     ));
     g.push(tail);
     Some(g.join(";"))
@@ -624,7 +630,7 @@ mod tests {
         assert!(g.contains("volume=0dB[narr]"), "{g}");
         assert!(g.contains("[narr]anull,loudnorm=I=-16:TP=-1.5:LRA=11:print_format=json"));
         assert!(
-            g.ends_with("apad,atrim=0:12.500,asetpts=PTS-STARTPTS[aout]"),
+            g.ends_with("apad=whole_dur=12.500,atrim=0:12.500,asetpts=PTS-STARTPTS[aout]"),
             "{g}"
         );
         assert!(!g.contains("sidechaincompress"));
@@ -647,7 +653,10 @@ mod tests {
             "{g}"
         );
         assert!(g.contains("[narr][vo]amix=inputs=2:duration=longest:normalize=0[speech]"));
-        assert!(g.contains("[speech]asplit=2[said][key]"), "{g}");
+        assert!(
+            g.contains("[speech]asplit=2[said][k];[k]apad=whole_dur=30.000[key]"),
+            "{g}"
+        );
         assert!(g.contains("[4:a]"), "{g}");
         assert!(g.contains("atrim=0:30.000"), "{g}");
         assert!(
@@ -664,6 +673,24 @@ mod tests {
             "{g}"
         );
         assert!(g.contains("[page][speech][music]amix=inputs=3"), "{g}");
+    }
+
+    #[test]
+    fn a_voiceover_shorter_than_the_take_does_not_cut_the_bed_off() {
+        // sidechaincompress ends with its shorter input, so the key must last the take.
+        let inp = Inputs {
+            voiceover: Some(1),
+            music: Some(2),
+            ..Inputs::default()
+        };
+        let g = audio_graph(&inp, &cfg(), 20.0, &Loud::Off).unwrap();
+        assert!(
+            g.contains("[vo]asplit=2[said][k];[k]apad=whole_dur=20.000[key]"),
+            "{g}"
+        );
+        assert!(g.contains("[bed][key]sidechaincompress="), "{g}");
+        // No pad in the graph is unbounded.
+        assert!(!g.contains("apad,") && !g.contains("apad["), "{g}");
     }
 
     #[test]
