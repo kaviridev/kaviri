@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy · kaviri</title>
+<meta name="description" content="What kaviri and kaviri.dev collect, and what they do not.">
+<link rel="canonical" href="https://kaviri.dev/privacy/">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/brand/tokens.css">
+<link rel="stylesheet" href="/style.css">
+<link rel="stylesheet" href="/docs.css">
+</head>
+<body>
+<header class="site-head wrap">
+  <a class="wordmark" href="/"><svg class="mark" viewBox="0 0 100 100" width="26" height="26" aria-hidden="true"><rect x="8" y="8" width="62" height="62" rx="13" fill="none" stroke="#3ddc97" stroke-width="6" opacity="0.5"/><rect x="30" y="30" width="62" height="62" rx="13" fill="#3ddc97"/><path d="M53 48L53 74L75 61Z" fill="#0e1013" stroke="#0e1013" stroke-width="3" stroke-linejoin="round"/></svg>kaviri</a>
+  <nav>
+    <a href="/docs/">Docs</a>
+    <a href="/play/">Playground</a>
+    <a href="https://github.com/thisisisheanesu/kaviri">GitHub</a>
+  </nav>
+</header>
+<main class="wrap legal">
+  <p class="eyebrow">Privacy</p>
+  <h1>Privacy</h1>
+  <p class="muted">Last updated 13 November 2026</p>
+  <p class="lede">The short version: the recorder sends us nothing, the site keeps no cookies and no IP addresses, and the only personal data we hold is the email address you give the waitlist.</p>
+
+  <h2>Who is responsible</h2>
+  <p>ISHE CO HOLDINGS LIMITED (company 16846136, Office 9667, 182-184 High Street North, East Ham, London E6 2JA, United Kingdom) is the controller of the personal data described here. Write to <a href="mailto:hello@kaviri.dev">hello@kaviri.dev</a> about anything on this page.</p>
+
+  <h2>The recorder</h2>
+  <p>The open-source recorder runs on your machine or in your CI. It sends nothing to us: no telemetry, no usage pings, no crash reports. The only network requests it makes are to the pages your script tells it to film and, if you run <code>kaviri doctor --fix</code> for narration, a one-time download of the Piper speech engine from GitHub and its voices from Hugging Face, each checked against a fixed hash.</p>
+
+  <h2>This website</h2>
+  <p>kaviri.dev sets no cookies and loads no third-party scripts, fonts or trackers. To count visitors, the server keeps a daily count of page views per path, and one row per visitor per day holding their country, the site that referred them, whether they were on a phone, and a hash of their IP address and browser made with a random salt that is replaced every day and deleted after two days. The IP address and the full browser string are never stored, and nobody, including us, can follow a visitor from one day to the next.</p>
+
+  <h2>The waitlist and its emails</h2>
+  <p>If you join the waitlist we store your email address, when you joined, where on the site you signed up, and which emails in the short welcome sequence have been sent to you. We use it to send that sequence (five emails about using the free recorder) and to tell you when the hosted service opens. Every email has a one-click unsubscribe, which stops all of it. The lawful basis is your consent, which you can withdraw at any time.</p>
+  <p>Emails are sent through Resend, our email provider. We keep your address until you unsubscribe or ask us to delete it.</p>
+
+  <h2>The hosted service</h2>
+  <p>When you use the paid hosted service we also hold your account details, the scripts you submit and the videos rendered from them, so that we can render and serve them. Payments are handled by Stripe, which receives your card details directly; we never see or store them. Stripe tells us the outcome of payments, which we keep as accounting records for as long as UK law requires (currently six years).</p>
+
+  <h2>Who processes data for us</h2>
+  <ul>
+    <li><b>Cloudflare</b> hosts the site and its database.</li>
+    <li><b>Resend</b> sends the waitlist emails.</li>
+    <li><b>Stripe</b> takes payments for the hosted service.</li>
+    <li><b>Supabase</b> stores accounts and take records for the hosted service.</li>
+  </ul>
+  <p>Some of these providers process data outside the UK. Where they do, they rely on the UK's adequacy regulations or the International Data Transfer Addendum.</p>
+
+  <h2>Your rights</h2>
+  <p>Under UK GDPR you can ask for a copy of your data, have it corrected or deleted, object to its use, or ask for it to be moved. Email <a href="mailto:hello@kaviri.dev">hello@kaviri.dev</a> and we will answer within a month. If you are unhappy with how we handle it, you can complain to the Information Commissioner's Office at <a href="https://ico.org.uk/make-a-complaint/">ico.org.uk</a>.</p>
+
+  <h2>Changes</h2>
+  <p>If this page changes in a way that matters, the date at the top changes and waitlist members are told by email.</p>
+</main>
+<footer class="site-foot wrap">
+  <p class="pron">kaviri <span class="muted">/ka-VEE-ree/</span></p>
+  <p>kaviri is a product of ISHE CO HOLDINGS LIMITED, company number 16846136, registered in England and Wales.</p>
+  <div class="foot-links">
+    <a href="/">Home</a>
+    <a href="/company/">Company</a>
+    <a href="/privacy/">Privacy</a>
+    <a href="/terms/">Terms</a>
+    <a href="mailto:hello@kaviri.dev">hello@kaviri.dev</a>
+  </div>
+</footer>
+</body>
+</html>

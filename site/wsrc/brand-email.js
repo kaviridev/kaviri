@@ -31,8 +31,8 @@ const TOKENS = {
   "--kv-n-200": "#dfdfdb",
   "--kv-n-400": "#8a8a85",
   "--kv-n-500": "#5a5a57",
-  "--kv-accent-500": "#c7361a",
-  "--kv-accent-wash": "#f7e9e3",
+  "--kv-accent-600": "#0e7a4f",
+  "--kv-accent-wash": "#e3f7ee",
   "--kv-white": "#ffffff",
 };
 
@@ -44,7 +44,7 @@ const C = {
   wash: TOKENS["--kv-n-100"],
   muted: TOKENS["--kv-n-500"],
   faint: TOKENS["--kv-n-400"],
-  accent: TOKENS["--kv-accent-500"],
+  accent: TOKENS["--kv-accent-600"],
   accentWash: TOKENS["--kv-accent-wash"],
 };
 
@@ -204,7 +204,7 @@ export function render({ preheader, blocks, unsubscribeUrl, reason }) {
     .kv-page { background: #0b0b0c !important; }
     .kv-card { background: #141416 !important; border-color: #26262a !important; }
     .kv-card p, .kv-card td, .kv-card span, .kv-card h2 { color: #f2f2ef !important; }
-    .kv-card a { color: #ff6b3d !important; }
+    .kv-card a { color: #3ddc97 !important; }
     .kv-card code { background: #1f1f22 !important; color: #f2f2ef !important; }
   }
   @media only screen and (max-width: 620px) {

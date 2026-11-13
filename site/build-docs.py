@@ -55,7 +55,7 @@ SHELL = """<!doctype html>
 </head>
 <body>
 <header class="site-head wrap">
-  <a class="wordmark" href="/">kaviri<span class="dot">.</span>dev</a>
+  <a class="wordmark" href="/"><svg class="mark" viewBox="0 0 100 100" width="26" height="26" aria-hidden="true"><rect x="8" y="8" width="62" height="62" rx="13" fill="none" stroke="#3ddc97" stroke-width="6" opacity="0.5"/><rect x="30" y="30" width="62" height="62" rx="13" fill="#3ddc97"/><path d="M53 48L53 74L75 61Z" fill="#0e1013" stroke="#0e1013" stroke-width="3" stroke-linejoin="round"/></svg>kaviri</a>
   <nav>
     <a href="/docs/">Docs</a>
     <a href="/play/">Playground</a>
@@ -91,6 +91,10 @@ SHELL = """<!doctype html>
     <a href="https://github.com/thisisisheanesu/kaviri">GitHub</a>
     <a href="mailto:hello@kaviri.dev">hello@kaviri.dev</a>
   </div>
+  <p class="muted legal-line">
+    A product of ISHE CO HOLDINGS LIMITED, registered in England and Wales, no. 16846136 &middot;
+    <a href="/company/">Company</a> &middot; <a href="/privacy/">Privacy</a> &middot; <a href="/terms/">Terms</a>
+  </p>
 </footer>
 </body>
 </html>

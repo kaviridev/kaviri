@@ -331,3 +331,10 @@ because a hand-written notices file goes stale on the first `cargo update`:
    wired into CI, so that a future dependency carrying a copyleft or
    source-available licence fails the build rather than being found by a
    customer's lawyer.
+
+## Fonts shipped with the site and brand assets
+
+`brand/fonts/space-grotesk.woff2` (and its copy under `site/brand/fonts/`) is
+Space Grotesk, copyright 2020 The Space Grotesk Project Authors, under the SIL
+Open Font License 1.1. The licence is beside it in `OFL.txt`. It is not part of
+the recorder binary.

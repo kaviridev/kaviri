@@ -49,7 +49,7 @@ create index if not exists visits_day on visits(d);
 `;
 
 /** Paths that are machinery rather than reading. Counting them flatters the numbers. */
-const IGNORED = /^\/(admin|api|stripe|unsubscribe|favicon\.svg|robots\.txt)/;
+const IGNORED = /^\/(admin|api|stripe|unsubscribe|favicon\.(svg|ico)|apple-touch-icon\.png|og\.png|robots\.txt)/;
 
 /**
  * Crawlers, kept out of the human numbers.

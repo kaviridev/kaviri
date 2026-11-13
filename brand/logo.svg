@@ -1,25 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 156 38" width="156" height="38" role="img" aria-label="kaviri">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 362 100" width="362" height="100" role="img" aria-label="kaviri">
   <title>kaviri</title>
-  <!-- Mark, then wordmark. Geometric lowercase, drawn as strokes on a 5 unit
-       pen so the letterforms are the same weight as the mark. -->
-  <g transform="translate(-2.14 0.86) scale(1.069)">
-    <rect x="2" y="2" width="18" height="18" rx="2" fill="#0f0f10"/>
-    <rect x="11.5" y="11.5" width="18" height="18" rx="2" fill="none" stroke="#c7361a" stroke-width="3"/>
+  <!-- The mark, then the wordmark set in Space Grotesk Bold at -0.035em and outlined, so the
+       lockup renders the same with no font installed. -->
+  <g>
+    <rect x="8" y="8" width="62" height="62" rx="13" fill="none" stroke="#3ddc97" stroke-width="5" opacity="0.45"/>
+    <rect x="30" y="30" width="62" height="62" rx="13" fill="#3ddc97"/>
+    <path d="M53 48L53 74L75 61Z" fill="#0e1013" stroke="#0e1013" stroke-width="3" stroke-linejoin="round"/>
   </g>
-  <g transform="translate(35 0)">
-    <g fill="none" stroke="#0f0f10" stroke-width="4.6" stroke-linecap="butt" stroke-linejoin="miter">
-      <path d="M10 3V34"/>
-      <path d="M27 13L13.5 25.5"/>
-      <path d="M18 21L27.5 34"/>
-      <path d="M57 12V34"/>
-      <path d="M57 14A11 11 0 1 0 57 32"/>
-      <path d="M65 12L74 34L83 12"/>
-      <path d="M91 12V34"/>
-      <path d="M100 12V34"/>
-      <path d="M100 19C100 14.5 104 12 109.5 12"/>
-      <path d="M116 12V34"/>
-    </g>
-    <circle cx="91" cy="5.5" r="2.3" fill="#0f0f10"/>
-    <circle cx="116" cy="5.5" r="2.3" fill="#0f0f10"/>
-  </g>
+  <path transform="translate(115 85) scale(0.1)" fill="#0e1013" d="M70 0V-700H196V-313H214L378 -496H542L313 -256L550 0H388L214 -197H196V0Z M753.0 14Q700.0 14 658.0 -4.5Q616.0 -23 591.5 -58.5Q567.0 -94 567.0 -145Q567.0 -196 591.5 -230.5Q616.0 -265 659.5 -282.5Q703.0 -300 759.0 -300H895.0V-328Q895.0 -363 873.0 -385.5Q851.0 -408 803.0 -408Q756.0 -408 733.0 -386.5Q710.0 -365 703.0 -331L587.0 -370Q599.0 -408 625.5 -439.5Q652.0 -471 696.5 -490.5Q741.0 -510 805.0 -510Q903.0 -510 960.0 -461.0Q1017.0 -412 1017.0 -319V-134Q1017.0 -104 1045.0 -104H1085.0V0H1001.0Q964.0 0 940.0 -18.0Q916.0 -36 916.0 -66V-67H897.0Q893.0 -55 879.0 -35.5Q865.0 -16 835.0 -1.0Q805.0 14 753.0 14ZM775.0 -88Q828.0 -88 861.5 -117.5Q895.0 -147 895.0 -196V-206H768.0Q733.0 -206 713.0 -191.0Q693.0 -176 693.0 -149Q693.0 -122 714.0 -105.0Q735.0 -88 775.0 -88Z M1246.0 0 1088.0 -496H1222.0L1337.0 -92H1355.0L1470.0 -496H1604.0L1446.0 0Z M1655.0 0V-496H1781.0V0ZM1718.0 -554Q1684.0 -554 1660.5 -576.0Q1637.0 -598 1637.0 -634Q1637.0 -670 1660.5 -692.0Q1684.0 -714 1718.0 -714Q1753.0 -714 1776.0 -692.0Q1799.0 -670 1799.0 -634Q1799.0 -598 1776.0 -576.0Q1753.0 -554 1718.0 -554Z M1886.0 0V-496H2010.0V-440H2028.0Q2039.0 -470 2064.5 -484.0Q2090.0 -498 2124.0 -498H2184.0V-386H2122.0Q2074.0 -386 2043.0 -360.5Q2012.0 -335 2012.0 -282V0Z M2247.0 0V-496H2373.0V0ZM2310.0 -554Q2276.0 -554 2252.5 -576.0Q2229.0 -598 2229.0 -634Q2229.0 -670 2252.5 -692.0Q2276.0 -714 2310.0 -714Q2345.0 -714 2368.0 -692.0Q2391.0 -670 2391.0 -634Q2391.0 -598 2368.0 -576.0Q2345.0 -554 2310.0 -554Z"/>
 </svg>

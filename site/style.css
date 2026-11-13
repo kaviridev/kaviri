@@ -9,7 +9,7 @@
   --k-ink: #16181d;
   --k-muted: #5d636e;
   --k-line: #e3e5ea;
-  --k-accent: #ff5c1a;
+  --k-accent: #0e7a4f;
   --k-accent-ink: #ffffff;
   --k-surface: #f7f8fa;
   --k-code-bg: #14161b;
@@ -38,8 +38,8 @@
     --k-ink: #eceef2;
     --k-muted: #9aa1ad;
     --k-line: #262a31;
-    --k-accent: #ff6b2c;
-    --k-accent-ink: #14161b;
+    --k-accent: #3ddc97;
+    --k-accent-ink: #0e1013;
     --k-surface: #16191e;
     --k-code-bg: #070809;
     --k-code-ink: #dfe2e9;
@@ -101,8 +101,11 @@ h1, h2, h3 {
   font-weight: 640;
 }
 
-h1 { font-size: clamp(2.3rem, 7.2vw, 4.1rem); letter-spacing: -0.032em; }
-h2 { font-size: clamp(1.6rem, 4vw, 2.2rem); }
+/* Display type is Space Grotesk, the face the logo and the social kit are set in. h3 and below
+   stay in the body face, so only the two largest sizes change voice. */
+h1, h2 { font-family: var(--font-display, var(--k-sans)); font-weight: var(--weight-display, 700); }
+h1 { font-size: clamp(2.3rem, 7.2vw, 4.1rem); letter-spacing: -0.035em; }
+h2 { font-size: clamp(1.6rem, 4vw, 2.2rem); letter-spacing: -0.025em; }
 h3 { font-size: 1.02rem; font-weight: 620; letter-spacing: 0; }
 
 p { margin: 0 0 var(--k-space-2); max-width: var(--k-measure); }
@@ -134,14 +137,17 @@ a:hover { text-decoration-color: var(--accent, var(--k-accent)); }
 }
 
 .wordmark {
-  font-family: var(--k-mono);
-  font-weight: 620;
-  font-size: 1.02rem;
-  letter-spacing: -0.01em;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-family: var(--font-display, var(--k-sans));
+  font-weight: 700;
+  font-size: 1.32rem;
+  letter-spacing: -0.035em;
   text-decoration: none;
 }
 
-.wordmark .dot { color: var(--accent, var(--k-accent)); }
+.wordmark .mark { flex: none; display: block; }
 
 .site-head nav {
   display: flex;
@@ -512,3 +518,15 @@ p code, li code {
   color: var(--muted, var(--k-muted));
   vertical-align: middle;
 }
+
+/* Company, privacy and terms. Prose pages, so they take the narrow measure. */
+.legal { max-width: var(--max-width-prose, 720px); padding-top: var(--k-space-4); padding-bottom: var(--k-space-5); }
+.legal h2 { margin-top: var(--k-space-4); font-size: clamp(1.3rem, 3vw, 1.6rem); }
+.legal ul { padding-left: 1.2em; max-width: var(--k-measure); }
+.legal li { margin-bottom: var(--k-space-1); }
+.legal a { text-decoration-color: var(--accent, var(--k-accent)); }
+.facts { display: grid; grid-template-columns: max-content 1fr; gap: 10px 24px; margin: var(--k-space-3) 0; }
+.facts dt { color: var(--muted, var(--k-muted)); }
+.facts dd { margin: 0; }
+@media (max-width: 560px) { .facts { grid-template-columns: 1fr; gap: 2px; } .facts dd { margin-bottom: 12px; } }
+.legal-line { font-size: 0.86rem; margin-top: var(--k-space-2); }
