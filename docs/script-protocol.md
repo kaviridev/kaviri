@@ -451,6 +451,13 @@ you interact with after the scroll.
 | `timeout_ms` | number | `20000` | selector waits only |
 | `visible` | bool | `true` | selector waits only |
 
+| `speech` | bool | `false` | with neither of the above: wait exactly until the narration in flight has been said |
+| `stretch` | bool | `true` | `ms` waits only: `false` keeps the wait from stretching to narration |
+
+**A `wait` with `ms` stretches to the end of a `say` line still being said**, so the action
+after it lands after the words. Its result then carries `"stretched_from"` with the `ms` asked
+for. See [audio.md](audio.md#narration-say).
+
 **`ms` and `selector` together is an error**, not a combination:
 
 ```
@@ -496,6 +503,76 @@ prepared to wait.
 A named point on the recording clock. No box, so no zoom. It exists for the telemetry sidecar
 and for you, when you are working out which second of a two-minute take to look at.
 
+## `say`
+
+```jsonc
+{"op":"say","text":"Signing up takes two fields."}
+{"op":"say","text":"Now the export.","voice":"en_US-norman-medium","wait":true}
+```
+
+| field | type | default |
+|---|---|---|
+| `text` | string | required |
+| `voice` | string | `--voice`, else the engine's default |
+| `wait` | bool | `false` |
+| `pad_ms` | number | `150` |
+| `gain_db` | number | `0` |
+
+Synthesises a line with the `--tts` engine and places it on the take's clock at this moment. It
+returns at once (the script keeps going while the line is said); the next `wait` stretches until
+it has been said. The result is a mark with `kind: "say"`, plus `secs`, `until` (the take time
+the line ends), `voice` and `timed_words`. [audio.md](audio.md) has the engines, voices, mixing
+and captions.
+
+## `voice`
+
+```jsonc
+{"op":"voice","file":"intro.m4a","text":"Welcome to the dashboard."}
+```
+
+| field | type | default |
+|---|---|---|
+| `file` | string | required |
+| `text` | string | none, for captions |
+| `wait` | bool | `false` |
+| `gain_db` | number | `0` |
+
+A recorded clip placed at this moment, the way `say` places a line.
+
+## `inspect`
+
+```jsonc
+{"op":"inspect"}
+{"op":"inspect","all":true,"limit":400}
+```
+
+| field | type | default |
+|---|---|---|
+| `all` | bool | `false`: only elements at least partly in the viewport |
+| `limit` | whole number, 1 to 1000 | `150` |
+
+A question about the page rather than an action on it: no mark, no camera move, and safe in
+the middle of a take. It answers with the controls a script can act on, read from the
+browser's accessibility tree (buttons, links, text fields, checkboxes, tabs, options and the
+other interactive roles), each with:
+
+| field | meaning |
+|---|---|
+| `role` | the accessibility role, so a `<div role="button">` is a `button` |
+| `name` | the accessible name: the label, the text, the `aria-label` |
+| `selector` | a CSS selector that matches this element and no other; an id, test id, `name`, `aria-label` or `placeholder` when one is unique, a structural path when not |
+| `box` | `[x, y, w, h]` in CSS pixels, the same coordinates as a mark's `box` |
+| `in_view` | whether any of it is inside the viewport |
+| `covered` | present when another element sits on its centre, named; `click` would refuse it |
+| `disabled`, `value` | present when the element has them |
+
+`offscreen` counts the controls left out because they are scrolled out of view, and
+`truncated` is `true` when `limit` cut the list short. The result also carries the page's
+`url` and the `viewport`. Elements with no layout (`display:none`, a zero-size box) are never
+listed.
+
+`kaviri mcp` exposes this as the `inspect` tool; see [the MCP server](MCP.md).
+
 ## `stop_recording`
 
 ```jsonc
@@ -523,6 +600,10 @@ On success:
   "spooled_bytes":14238711
 }}
 ```
+
+A take with sound adds `"audio"` (with `--audio`, whether the page played anything) and
+`"soundtrack"`: the `sources` mixed, the `loudness` target and `measured_lufs`, and the
+`captions` written. See [audio.md](audio.md#the-mix).
 
 `duration` is the rendered length in seconds, which includes any tail padding the last
 interaction needed (see [camera.md](camera.md#the-tail)). `zoom_events` is how many camera moves

@@ -5,13 +5,21 @@
 //! connection to an `AudioContext`'s destination through a tap, and hooks each `<audio>` and
 //! `<video>` into the same tap when it starts playing. The tap hands PCM to kaviri through a
 //! CDP binding, stamped with the wall-clock moment it plays, and `AudioTrack` mixes it onto
-//! the recording clock. After the video is rendered, `mux` lays the mix under it as AAC.
+//! the recording clock. After the video is rendered, `crate::soundtrack` lays the mix under
+//! it, with any narration and music, as AAC.
+//!
+//! Under `--slowmo` the page's clock runs k times slower than the wall clock but its audio
+//! does not: a context plays at the sound card's rate whatever the page thinks the time is.
+//! Placing every chunk by the wall clock would put a sound k times too late, and squeezing
+//! it onto the page clock would play it k times too fast. So each burst of sound (a run of
+//! chunks with no silence between them) starts at the page-time moment it began, and plays
+//! from there at its own speed and pitch. A click lands on the frame that caused it and
+//! sounds like a click; a long continuous sound runs on in real time.
 
 use base64::Engine;
 use serde_json::Value;
 use std::collections::HashMap;
 use std::path::Path;
-use std::process::{Command, Stdio};
 
 /// The name the page calls with each chunk of PCM.
 pub const BINDING: &str = "__kaviri_audio";
@@ -138,6 +146,12 @@ pub const AUDIO_JS: &str = r##"
 struct Anchor {
     /// Wall-clock seconds at sample zero of the context.
     wall0: f64,
+    /// Under --slowmo, the burst in progress: its first sample, and where that sample sits
+    /// on the take's clock.
+    burst_at: f64,
+    burst_pos: f64,
+    /// The sample the next chunk starts on if the burst goes on without a gap.
+    next_at: f64,
 }
 
 /// The take's sound, mixed onto the recording clock at `RATE`, interleaved stereo.
@@ -146,11 +160,20 @@ pub struct AudioTrack {
     buf: Vec<f32>,
     anchors: HashMap<String, Anchor>,
     chunks: usize,
+    /// How many times slower than the wall clock the take's clock runs (`--slowmo`).
+    slowmo: f64,
 }
 
 impl AudioTrack {
     pub fn new() -> AudioTrack {
-        AudioTrack::default()
+        AudioTrack {
+            slowmo: 1.0,
+            ..AudioTrack::default()
+        }
+    }
+
+    pub fn set_slowmo(&mut self, k: f64) {
+        self.slowmo = if k.is_finite() && k >= 1.0 { k } else { 1.0 };
     }
 
     /// Start a new take.
@@ -194,10 +217,25 @@ impl AudioTrack {
         if pcm.len() < 2 {
             return;
         }
+        let k = self.slowmo.max(1.0);
         let anchor = self.anchors.entry(id.to_string()).or_insert(Anchor {
             wall0: wall / 1000.0 - at / rate,
+            burst_at: f64::NAN,
+            burst_pos: 0.0,
+            next_at: f64::NAN,
         });
-        let pos = anchor.wall0 + at / rate - rec_wall;
+        let pos = if k <= 1.0 {
+            anchor.wall0 + at / rate - rec_wall
+        } else {
+            // A chunk that does not follow on from the last one starts a new burst. A few
+            // samples of slack, since `at` is rounded in the page.
+            if anchor.next_at.is_nan() || (at - anchor.next_at).abs() > 8.0 {
+                anchor.burst_at = at;
+                anchor.burst_pos = (anchor.wall0 + at / rate - rec_wall) / k;
+            }
+            anchor.burst_pos + (at - anchor.burst_at) / rate
+        };
+        anchor.next_at = at + (pcm.len() / 2) as f64;
         self.mix(&pcm, rate, pos);
     }
 
@@ -234,7 +272,7 @@ impl AudioTrack {
     }
 
     /// The mix as a 16-bit stereo WAV exactly `secs` long, padded or cut to match the video.
-    fn wav(&self, secs: f64) -> Vec<u8> {
+    pub fn wav(&self, secs: f64) -> Vec<u8> {
         let frames = (secs.max(0.0) * RATE as f64).round() as usize;
         let data_len = frames * 4;
         let mut out = Vec::with_capacity(44 + data_len);
@@ -258,58 +296,9 @@ impl AudioTrack {
     }
 }
 
-/// Lay the take's sound under the rendered video at `out_path`, which is `secs` long.
-///
-/// The video stream is copied, not re-encoded, so this costs about as long as writing the file.
-pub fn mux(out_path: &str, track: &AudioTrack, secs: f64, keep_temp: bool) -> Result<(), String> {
-    let ffmpeg = crate::zoom::find_ffmpeg()?;
-    let dir = crate::cdp::session_dir()?;
-    let wav = dir.join(format!("audio-{}.wav", std::process::id()));
-    std::fs::write(&wav, track.wav(secs)).map_err(|e| format!("write audio: {e}"))?;
-    let out = Path::new(out_path);
-    let staged = out.with_file_name(format!(
-        ".{}.audio.mp4",
-        out.file_name().and_then(|n| n.to_str()).unwrap_or("kaviri")
-    ));
-    let staged_s = staged.display().to_string();
-    let done = Command::new(&ffmpeg)
-        .args(["-y", "-hide_banner", "-loglevel", "error", "-i"])
-        .arg(crate::zoom::arg_path(out_path))
-        .arg("-i")
-        .arg(crate::zoom::arg_path(&wav.display().to_string()))
-        .args([
-            "-map",
-            "0:v:0",
-            "-map",
-            "1:a:0",
-            "-c:v",
-            "copy",
-            "-c:a",
-            "aac",
-            "-b:a",
-            "192k",
-            "-movflags",
-            "+faststart",
-        ])
-        .arg(crate::zoom::arg_path(&staged_s))
-        .stdin(Stdio::null())
-        .stderr(Stdio::piped())
-        .output()
-        .map_err(|e| format!("spawn ffmpeg: {e}"))?;
-    if !keep_temp {
-        let _ = std::fs::remove_file(&wav);
-    } else {
-        eprintln!("kaviri: kept the take's audio at {}", wav.display());
-    }
-    if !done.status.success() {
-        let _ = std::fs::remove_file(&staged);
-        return Err(format!(
-            "ffmpeg audio mux failed, exit {}:\n{}",
-            done.status,
-            crate::zoom::stderr_tail(&done.stderr)
-        ));
-    }
-    std::fs::rename(&staged, out).map_err(|e| format!("move muxed take into place: {e}"))
+/// Write the mix as a WAV exactly `secs` long, for the soundtrack to lay under the take.
+pub fn write_wav(track: &AudioTrack, path: &Path, secs: f64) -> Result<(), String> {
+    std::fs::write(path, track.wav(secs)).map_err(|e| format!("write audio: {e}"))
 }
 
 #[cfg(test)]
@@ -361,6 +350,32 @@ mod tests {
         t.push("not json", 1000.0);
         t.push(&chunk("b", 1.0, 0.0, 1_001_000.0, 480, 1000), 1000.0);
         assert!(t.is_silent());
+    }
+
+    #[test]
+    fn under_slowmo_a_burst_starts_on_the_page_clock_and_plays_at_its_own_speed() {
+        let mut t = AudioTrack::new();
+        t.set_slowmo(4.0);
+        // Heard 8 real seconds into the take, which is 2 seconds of page time.
+        t.push(&chunk("a", 48000.0, 0.0, 1_008_000.0, 4800, 1000), 1000.0);
+        // The next chunk follows on without a gap: same burst, natural speed.
+        t.push(
+            &chunk("a", 48000.0, 4800.0, 1_008_100.0, 4800, 1000),
+            1000.0,
+        );
+        // After a silence the page skipped, a new burst at its own page-time onset: 12 real
+        // seconds in is 3 page seconds.
+        t.push(
+            &chunk("a", 48000.0, 192_000.0, 1_012_000.0, 480, 1000),
+            1000.0,
+        );
+        let loud: Vec<usize> = (0..t.buf.len() / 2)
+            .filter(|i| t.buf[i * 2] != 0.0)
+            .collect();
+        assert_eq!(loud[0], 96_000);
+        // Two chunks of 4800 back to back, not squeezed by 4.
+        assert_eq!(loud[9599], 96_000 + 9599);
+        assert_eq!(loud[9600], 144_000);
     }
 
     #[test]

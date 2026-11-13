@@ -100,6 +100,15 @@ loopback port. The first line of a connection must be `{"op":"hello","token":"â€
 token printed on stderr at startup, and that is the only thing standing between a visited page
 and your filesystem. Prefer stdin, where the ops come from the process you started.
 
+## If you speak MCP
+
+If you are running inside an MCP client, `kaviri mcp` gives you all of this as tools
+(`claude mcp add kaviri -- kaviri mcp`), plus three you cannot get from a pipe: `inspect`
+lists what on the page can be acted on and the selector that reaches it, `record_demo` films
+a whole script in the background and returns a take id for `get_take`, and `preview` hands
+back a contact sheet of the moments the camera landed on, as an image you can look at.
+Check the sheet before you hand a take on. `docs/MCP.md` has the rest.
+
 ## Reading the result
 
 ```json
@@ -140,7 +149,9 @@ want the address bar to show.
 ## What it will not do
 
 It will not record a native application, a terminal, or anything outside the browser it starts.
-It records sound only when asked: `--audio` lays what the page plays under the take. It will not find the interesting part of your app for you: the
+It records sound only when asked: `--audio` lays what the page plays under the take, and a
+`{"op":"say","text":"..."}` op narrates (the `wait` after it stretches until the line is said,
+`--music` adds a ducked bed, `--captions burn` draws captions; `docs/audio.md`). It will not find the interesting part of your app for you: the
 script is the storyboard, and a bad storyboard films perfectly.
 
 ## Determinism

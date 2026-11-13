@@ -1,0 +1,19 @@
+# kaviri demo with narration: local page, no network. Each say speaks at that point in the
+# take, and the wait after it stretches until the line has been said.
+#   kaviri record --script examples/narrated.jsonl --out narrated.mp4 --captions burn
+#   kaviri record --script examples/narrated.jsonl --out dry.mp4 --tts none   (no engine needed)
+{"op":"navigate","url":"examples/demo.html"}
+{"op":"wait","selector":"#name"}
+{"op":"start_recording"}
+{"op":"say","text":"Signing up takes two fields."}
+{"op":"wait","ms":300}
+{"op":"click","selector":"#name"}
+{"op":"type","selector":"#name","text":"Ada Lovelace","typewriter_ms":60}
+{"op":"say","text":"A name, then an email."}
+{"op":"type","selector":"#email","text":"ada@analytical.engine","typewriter_ms":45}
+{"op":"wait","ms":300}
+{"op":"say","text":"One click, and the account exists."}
+{"op":"click","selector":"#submit"}
+{"op":"wait","selector":"#done"}
+{"op":"wait","ms":1600}
+{"op":"stop_recording"}

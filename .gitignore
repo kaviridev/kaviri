@@ -18,6 +18,9 @@
 # output, so the pattern has to match the suffixed form as well as the bare name.
 .kaviri-tmp*
 
+# Where `kaviri mcp` puts takes, their scripts and preview sheets by default.
+kaviri-takes/
+
 # Editor and OS droppings.
 .DS_Store
 *.swp

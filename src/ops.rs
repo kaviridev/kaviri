@@ -7,6 +7,7 @@
 use crate::backdrop::Choice;
 use crate::cdp::Cdp;
 use serde_json::{json, Value};
+use std::path::Path;
 use std::time::Duration;
 
 pub struct Mark {
@@ -65,6 +66,14 @@ pub struct Session {
     pub rendered: Option<(f64, usize)>,
     /// Where the page last saw the mouse, so a hover glides from there instead of teleporting.
     pub pointer: Option<(f64, f64)>,
+    /// Narration, voiceover, music, loudness and captions; see `crate::soundtrack`.
+    pub sound: crate::soundtrack::Cfg,
+    /// The take's `say` and `voice` clips, on the recording clock.
+    pub clips: Vec<crate::soundtrack::Clip>,
+    /// When the speech in flight ends, on the recording clock. A `wait` stretches to it.
+    pub speech_until: f64,
+    /// The speech engine, chosen the first time a line is said.
+    engine: Option<std::sync::Arc<dyn crate::tts::Engine>>,
 }
 
 /// The pointer shapes kaviri can draw, in the macOS idiom.
@@ -554,6 +563,50 @@ fn parse_chord(chord: &str) -> Result<(Vec<&'static str>, KeyDef), String> {
     Ok((mods, def))
 }
 
+/// Synthesise every line of a script before the browser starts, so a missing voice or a bad
+/// key fails in a second rather than halfway through a take, and the take itself finds each
+/// line already in the cache. Checks that every `voice` clip, the voiceover and the music
+/// exist, too. Returns how many lines there were.
+pub fn prepare_lines(cfg: &crate::soundtrack::Cfg, ops: &[Value]) -> Result<usize, String> {
+    for (f, flag) in [(&cfg.voiceover, "--voiceover"), (&cfg.music, "--music")] {
+        if let Some(f) = f {
+            if !f.is_file() {
+                return Err(format!("{flag}: no file at {}", f.display()));
+            }
+        }
+    }
+    for op in ops.iter().filter(|o| o["op"] == "voice") {
+        let f = op["file"].as_str().unwrap_or("");
+        if !Path::new(f).is_file() {
+            return Err(format!("voice: no clip at {f:?}"));
+        }
+    }
+    let lines: Vec<&Value> = ops.iter().filter(|o| o["op"] == "say").collect();
+    if lines.is_empty() {
+        return Ok(0);
+    }
+    let e = crate::tts::select(&cfg.tts, &crate::tts::env_lookup)?;
+    for (i, op) in lines.iter().enumerate() {
+        let text = op["text"]
+            .as_str()
+            .map(str::trim)
+            .filter(|t| !t.is_empty())
+            .ok_or_else(|| format!("say {} has no text", i + 1))?;
+        let voice = op["voice"]
+            .as_str()
+            .map(String::from)
+            .or_else(|| cfg.voice.clone())
+            .unwrap_or_else(|| e.default_voice());
+        crate::tts::speak(&*e, text, &voice)?;
+    }
+    eprintln!(
+        "kaviri: {} line(s) of narration ready ({})",
+        lines.len(),
+        e.name()
+    );
+    Ok(lines.len())
+}
+
 impl Session {
     #[allow(clippy::too_many_arguments)]
     pub fn launch(
@@ -611,7 +664,94 @@ impl Session {
             loop_tail: 0.0,
             rendered: None,
             pointer: None,
+            sound: crate::soundtrack::Cfg::default(),
+            clips: Vec::new(),
+            speech_until: f64::NEG_INFINITY,
+            engine: None,
         })
+    }
+
+    /// The engine `--tts` names, chosen once.
+    fn engine(&mut self) -> Result<std::sync::Arc<dyn crate::tts::Engine>, String> {
+        if let Some(e) = &self.engine {
+            return Ok(e.clone());
+        }
+        let e = crate::tts::select(&self.sound.tts, &crate::tts::env_lookup)?;
+        self.engine = Some(e.clone());
+        Ok(e)
+    }
+
+    /// Run `f` on its own thread while the frame pump keeps going, so a second of speech
+    /// synthesis is not a second of frozen video.
+    fn pumping<T: Send + 'static>(
+        &mut self,
+        f: impl FnOnce() -> Result<T, String> + Send + 'static,
+    ) -> Result<T, String> {
+        let h = std::thread::spawn(f);
+        while !h.is_finished() {
+            self.cdp.sleep_pump(25)?;
+        }
+        h.join()
+            .map_err(|_| "the speech thread panicked".to_string())?
+    }
+
+    fn line_of(&mut self, op: &Value) -> Result<(String, String), String> {
+        let text = op["text"]
+            .as_str()
+            .map(str::trim)
+            .filter(|t| !t.is_empty())
+            .ok_or("say needs text: what to say")?
+            .to_string();
+        let e = self.engine()?;
+        let voice = op["voice"]
+            .as_str()
+            .map(String::from)
+            .or_else(|| self.sound.voice.clone())
+            .unwrap_or_else(|| e.default_voice());
+        Ok((text, voice))
+    }
+
+    /// Put a clip on the take's clock at this moment, and wait it out if the op asks.
+    fn place(
+        &mut self,
+        kind: &str,
+        op: &Value,
+        speech: crate::tts::Speech,
+        text: Option<String>,
+    ) -> Result<Value, String> {
+        let gain_db = match op.get("gain_db") {
+            None | Some(Value::Null) => 0.0,
+            Some(v) => v
+                .as_f64()
+                .filter(|g| g.is_finite() && (-60.0..=24.0).contains(g))
+                .ok_or_else(|| {
+                    format!("{kind} gain_db must be a number from -60 to 24, got {v}")
+                })?,
+        };
+        let secs = speech.secs;
+        let timed = speech.timed;
+        let label = text
+            .clone()
+            .unwrap_or_else(|| op["file"].as_str().unwrap_or("").to_string());
+        let mut m = self.mark(kind, &label, None);
+        let at = self.cdp.now_rec();
+        if self.cdp.is_recording() {
+            self.clips.push(crate::soundtrack::Clip {
+                at,
+                speech,
+                gain_db,
+                text,
+            });
+            self.speech_until = self.speech_until.max(at + secs);
+        }
+        m["secs"] = json!((secs * 1000.0).round() / 1000.0);
+        m["until"] = json!(((at + secs) * 1000.0).round() / 1000.0);
+        m["timed_words"] = json!(timed);
+        if op["wait"].as_bool() == Some(true) {
+            let pad = duration_ms(op, "pad_ms", 150)?;
+            self.cdp.sleep_pump((secs * 1000.0).ceil() as u64 + pad)?;
+        }
+        Ok(m)
     }
 
     /// Frame the take as a device. A phone frame also makes the browser claim
@@ -735,6 +875,9 @@ impl Session {
     /// before the first navigate, so the warp is in place before any page script runs.
     pub fn set_slowmo(&mut self, k: f64) -> Result<(), String> {
         self.cdp.slowmo = k;
+        if let Some(track) = self.cdp.audio.as_mut() {
+            track.set_slowmo(k);
+        }
         if k > 1.0 {
             self.cdp.send(
                 "Page.addScriptToEvaluateOnNewDocument",
@@ -1303,10 +1446,28 @@ impl Session {
                                 use timeout_ms to bound a selector wait"
                         .into());
                 }
-                if has_ms {
-                    let ms = duration_ms(op, "ms", 0)?;
+                if op["speech"].as_bool() == Some(true) && !has_ms && !has_sel {
+                    // Exactly to the end of what is being said.
+                    let ms =
+                        crate::soundtrack::stretch_ms(0, self.cdp.now_rec(), self.speech_until);
                     self.cdp.sleep_pump(ms)?;
-                    Ok(self.mark("wait", &format!("{ms}ms"), None))
+                    return Ok(self.mark("wait", &format!("{ms}ms (speech)"), None));
+                }
+                if has_ms {
+                    let asked = duration_ms(op, "ms", 0)?;
+                    // A wait lasts until the line in flight is said, so the next action lands
+                    // after the words that introduce it. "stretch": false opts out.
+                    let ms = if op["stretch"].as_bool() == Some(false) {
+                        asked
+                    } else {
+                        crate::soundtrack::stretch_ms(asked, self.cdp.now_rec(), self.speech_until)
+                    };
+                    self.cdp.sleep_pump(ms)?;
+                    let mut m = self.mark("wait", &format!("{ms}ms"), None);
+                    if ms > asked {
+                        m["stretched_from"] = json!(asked);
+                    }
+                    Ok(m)
                 } else if has_sel {
                     let sel = op["selector"]
                         .as_str()
@@ -1356,8 +1517,29 @@ impl Session {
                     }
                     Ok(self.mark("wait", &sel, None))
                 } else {
-                    Err("wait needs ms or selector".into())
+                    Err("wait needs ms, selector, or speech: true".into())
                 }
+            }
+            "say" => {
+                let (text, voice) = self.line_of(op)?;
+                let e = self.engine()?;
+                let (t, v) = (text.clone(), voice.clone());
+                let speech = self.pumping(move || crate::tts::speak(&*e, &t, &v))?;
+                let mut m = self.place("say", op, speech, Some(text))?;
+                m["voice"] = json!(voice);
+                Ok(m)
+            }
+            "voice" => {
+                let file = op["file"]
+                    .as_str()
+                    .filter(|f| !f.is_empty())
+                    .ok_or("voice needs file: a recorded clip (wav, mp3, m4a)")?
+                    .to_string();
+                let text = op["text"].as_str().map(String::from);
+                let t = text.clone();
+                let speech = self
+                    .pumping(move || crate::tts::clip_from_file(Path::new(&file), t.as_deref()))?;
+                self.place("voice", op, speech, text)
             }
             "mark" => {
                 let label = op["label"].as_str().unwrap_or("").to_string();
@@ -1405,6 +1587,8 @@ impl Session {
                 // timestamped against the old rec_t0, so carrying them over would put
                 // zooms at times that belong to footage that no longer exists.
                 self.marks.clear();
+                self.clips.clear();
+                self.speech_until = f64::NEG_INFINITY;
                 self.rendered = None;
                 let max_w = (self.css_w as f64 * self.scale) as u32;
                 let max_h = (self.css_h as f64 * self.scale) as u32;
@@ -1419,6 +1603,15 @@ impl Session {
                 // disk by the time this runs, so a browser that died at second 55 of a
                 // sixty second recording still gets rendered, and the CDP failure is
                 // reported alongside the video rather than instead of it.
+                //
+                // A line still being said is let finish first, or the take cuts it off.
+                if self.cdp.is_recording() {
+                    let rest =
+                        crate::soundtrack::stretch_ms(0, self.cdp.now_rec(), self.speech_until);
+                    if rest > 0 {
+                        let _ = self.cdp.sleep_pump(rest + 300);
+                    }
+                }
                 let warning = self.cdp.stop_capture_best_effort();
                 let out = self
                     .out_path
@@ -1462,20 +1655,45 @@ impl Session {
                 self.cdp.frames_release();
                 let (dur, n_ev) = rendered?;
                 self.rendered = Some((dur, n_ev));
+                let mut page_wav = None;
                 let audio = match self.cdp.audio.as_ref() {
                     None => None,
                     Some(track) if track.is_silent() => {
                         eprintln!(
                             "kaviri: --audio heard nothing during the take, so the video has no \
-                             sound track"
+                             sound from the page"
                         );
                         Some(false)
                     }
                     Some(track) => {
-                        crate::audio::mux(&out, track, dur, self.keep_temp)?;
+                        let wav = crate::cdp::session_dir()?
+                            .join(format!("audio-{}.wav", std::process::id()));
+                        crate::audio::write_wav(track, &wav, dur)?;
+                        page_wav = Some(wav);
                         Some(true)
                     }
                 };
+                let parts = crate::soundtrack::Parts {
+                    out: &out,
+                    dur,
+                    page: page_wav.clone(),
+                    clips: &self.clips,
+                    cfg: &self.sound,
+                    size: self.out_size,
+                    keep_temp: self.keep_temp,
+                };
+                let cdp = &mut self.cdp;
+                let sound = crate::soundtrack::finish(&parts, &mut |html, w, h| {
+                    cdp.render_html_png(html, w, h)
+                });
+                if let Some(w) = page_wav {
+                    if self.keep_temp {
+                        eprintln!("kaviri: kept the take's audio at {}", w.display());
+                    } else {
+                        let _ = std::fs::remove_file(w);
+                    }
+                }
+                let sound = sound?;
                 let mut result = json!({
                     "event": "recording_rendered", "path": out,
                     "duration": dur, "zoom_events": n_ev,
@@ -1485,13 +1703,34 @@ impl Session {
                 if let Some(a) = audio {
                     result["audio"] = json!(a);
                 }
+                if !sound.is_null() {
+                    result["soundtrack"] = sound;
+                }
                 if let Some(w) = warning {
                     result["warning"] = json!(w);
                 }
                 Ok(result)
             }
+            // A question about the page, not an action on it: no mark, no camera, and
+            // safe to send in the middle of a take.
+            "inspect" => crate::inspect::run(&mut self.cdp, op, self.css_w, self.css_h),
             other => Err(format!("unknown op: {other}")),
         }
+    }
+
+    /// The marks of the take in flight (or the one just rendered), in the shape the op
+    /// results use, for a caller that wants them after the fact.
+    #[allow(dead_code)]
+    pub fn marks_json(&self) -> Value {
+        Value::Array(
+            self.marks
+                .iter()
+                .map(|m| {
+                    json!({"t": m.t, "kind": m.kind, "label": m.label,
+                           "box": m.bbox.map(|(x, y, w, h)| vec![x, y, w, h])})
+                })
+                .collect(),
+        )
     }
 }
 
