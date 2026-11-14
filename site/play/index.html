@@ -76,17 +76,15 @@
 {"op":"wait","ms":1800}
 {"op":"stop_recording"}</textarea>
     <div class="actions">
-      <button id="run" class="btn btn-primary" type="button">Run</button>
-      <button id="download" class="btn btn-secondary" type="button">Run and record</button>
+      <button id="run" class="btn btn-primary" type="button">Run and record</button>
       <button id="getscript" class="btn btn-secondary" type="button">Get the .jsonl</button>
       <button id="reset" class="btn btn-ghost" type="button">Reset</button>
     </div>
     <p class="muted small">
-      <b>Run and record</b> captures this tab while the script runs, then plays the result back
-      here so you can watch it before deciding whether you want the file. Your browser asks
-      first and shows its own recording indicator throughout. It is the camera, not the render:
-      the binary films at twice the resolution, draws the cursor and the backdrop, motion
-      interpolates a slow capture, and writes H.264.
+      Every run is recorded, with nothing to allow: the app and the camera are drawn into a
+      video as the script runs, and the take plays back here when it ends, with the file one
+      click away. It is the camera, not the render: the binary films at twice the resolution,
+      draws the cursor, the backdrop and the full device frame, and writes H.264.
     </p>
     <ul id="log" aria-live="polite"></ul>
   </div>

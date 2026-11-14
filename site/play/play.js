@@ -13,7 +13,8 @@
  */
 
 import { Camera } from "./camera.js";
-import { canRecord, startCapture, offerScript } from "./record.js";
+import { offerScript } from "./record.js";
+import { canRecord, startCanvasCapture } from "./canvas.js";
 import { PLATFORMS, platformOf, opFor, applyFrame, fit } from "./frames.js";
 
 const APPS = {
@@ -365,7 +366,7 @@ function startCamera(cam, target) {
   };
 }
 
-async function run(withCapture) {
+async function run() {
   if (running) return;
   els.log.innerHTML = "";
   const { ops, errors } = parseScript(els.script.value);
@@ -373,23 +374,7 @@ async function run(withCapture) {
     errors.forEach((e) => log("error", e, true));
     return;
   }
-  /*
-   * The capture is started before anything moves and after the script has been validated, so
-   * the browser's permission prompt is not sitting over the first second of the take and a
-   * broken script does not cost anyone a permission dialog.
-   */
-  let capture = null;
-  if (withCapture) {
-    try {
-      capture = await startCapture();
-    } catch (e) {
-      log("error", `capture was not allowed: ${e.message}`, true);
-      return;
-    }
-  }
-
   els.run.disabled = true;
-  els.download.disabled = true;
   els.run.textContent = "Running";
 
   /*
@@ -419,6 +404,21 @@ async function run(withCapture) {
     target = els.scene;
   } else {
     cam = new Camera({ w: els.frame.clientWidth, h: els.frame.clientHeight });
+  }
+  /*
+   * Every run is recorded, with no prompt: canvas.js draws the app and the camera into a
+   * canvas and records that. Started after the platform is applied, so it films the frame
+   * the run uses, and before the camera moves, so its geometry is measured at rest.
+   */
+  let capture = null;
+  if (canRecord()) {
+    try {
+      capture = startCanvasCapture(els, screen);
+    } catch (e) {
+      log("error", `could not start recording: ${e.message}`, true);
+    }
+  } else {
+    log("error", "this browser cannot record video, so this run is preview only", true);
   }
   const stopCam = startCamera(cam, target);
   const state = { recording: false, interactions: 0, screen };
@@ -453,8 +453,7 @@ async function run(withCapture) {
         }
       }
       els.run.disabled = false;
-      els.download.disabled = false;
-      els.run.textContent = "Run";
+      els.run.textContent = "Run and record";
       running = null;
     }, 2600);
   }
@@ -486,20 +485,15 @@ function setPlatform(id, writeScript) {
 }
 
 function boot() {
-  for (const id of ["script", "run", "download", "getscript", "frame", "stage", "log", "rec",
+  for (const id of ["script", "run", "getscript", "frame", "stage", "log", "rec",
                     "reset", "result", "resultvideo", "resultdl", "resultmeta", "resultclose",
                     "platform", "stagebg", "device", "dvtop", "dvbottom", "dvside", "dvover",
                     "viewport", "scene"]) {
     els[id] = document.getElementById(id);
   }
-  els.run.addEventListener("click", () => run(false));
-  els.download.addEventListener("click", () => run(true));
+  els.run.addEventListener("click", () => run());
   els.getscript.addEventListener("click", () => offerScript(els.script.value));
   els.resultclose.addEventListener("click", closeResult);
-  if (!canRecord()) {
-    els.download.disabled = true;
-    els.download.title = "This browser cannot capture a tab. Chrome and Edge can.";
-  }
   els.reset.addEventListener("click", () => {
     els.script.value = els.script.dataset.default;
     els.log.innerHTML = "";
