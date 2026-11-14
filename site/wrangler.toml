@@ -84,7 +84,7 @@ OWNER_EMAIL = "usekaviri@gmail.com"
 OUTBOUND_ENABLED = "1"
 OUTBOUND_START = "2026-11-16"
 OUTBOUND_MAX = "15"
-OUTBOUND_FROM = "Ishe at kaviri <ishe@trykaviri.com>"
+OUTBOUND_FROM = "Nigel at kaviri <nigel@trykaviri.com>"
 OUTBOUND_REPLY_TO = "hello@kaviri.dev"
 
 # Secrets, set with `npx wrangler secret put NAME`, never here:

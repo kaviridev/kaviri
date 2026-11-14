@@ -186,7 +186,7 @@ export async function outboundUnsubscribe(request, env, token) {
   return new Response(
     `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Unsubscribed</title>` +
       `<body style="font:16px/1.5 system-ui;max-width:32em;margin:15vh auto;padding:0 16px">` +
-      `<p>Done. You will not get another email from me.</p><p>Ishe, kaviri</p>`,
+      `<p>Done. You will not get another email from me.</p><p>Nigel, kaviri</p>`,
     { headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" } }
   );
 }
