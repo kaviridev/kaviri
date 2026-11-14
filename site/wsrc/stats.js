@@ -63,8 +63,6 @@ export async function collect(env, steps) {
     acqSources,
     campaigns,
     signupChannels,
-    humansPerDay,
-    networks,
   ] = await Promise.all([
     one(
       db,
@@ -139,77 +137,64 @@ export async function collect(env, steps) {
     rows(db, `select k, v, at from meta where k not like 'salt:%'`),
     one(
       db,
-      `select (select coalesce(sum(n),0) from views) views,
-              (select count(*) from visits) visitors,
-              (select coalesce(sum(n),0) from views where d >= date('now','-29 days')) views30,
-              (select count(*) from visits where d >= date('now','-29 days')) visitors30,
-              (select count(*) from visits where d = date('now')) today,
-              (select min(d) from visits) since`
+      `select (select coalesce(sum(n),0) from visits where js = 1) views,
+              (select count(*) from visits where js = 1) visitors,
+              (select coalesce(sum(n),0) from visits where js = 1 and d >= date('now','-29 days')) views30,
+              (select count(*) from visits where js = 1 and d >= date('now','-29 days')) visitors30,
+              (select count(*) from visits where js = 1 and d = date('now')) today,
+              (select min(d) from visits where js = 1) since`
     ),
     rows(
       db,
-      `select v.d d, coalesce(vw.n, 0) views, count(*) visitors
-         from visits v
-         left join (select d, sum(n) n from views group by d) vw on vw.d = v.d
-        where v.d >= date('now','-29 days') group by v.d order by v.d`
-    ),
-    rows(
-      db,
-      `select path k, sum(n) n from views where d >= date('now','-29 days')
-        group by k order by n desc limit 12`
-    ),
-    rows(
-      db,
-      `select coalesce(nullif(referrer,''),'direct') k, count(*) n from visits
-        where d >= date('now','-29 days') group by k order by n desc limit 12`
-    ),
-    rows(
-      db,
-      `select coalesce(nullif(country,''),'unknown') k, count(*) n from visits
-        where d >= date('now','-29 days') group by k order by n desc limit 12`
-    ),
-    rows(
-      db,
-      `select coalesce(nullif(device,''),'unknown') k, count(*) n from visits
-        where d >= date('now','-29 days') group by k order by n desc`
+      `select d, sum(n) views, count(*) visitors from visits
+        where js = 1 and d >= date('now','-29 days') group by d order by d`
     ),
     rows(
       db,
       `select coalesce(nullif(entry,''),'/') k, count(*) n from visits
-        where d >= date('now','-29 days') group by k order by n desc limit 8`
+        where js = 1 and d >= date('now','-29 days') group by k order by n desc limit 12`
+    ),
+    rows(
+      db,
+      `select coalesce(nullif(referrer,''),'direct') k, count(*) n from visits
+        where js = 1 and d >= date('now','-29 days') group by k order by n desc limit 12`
+    ),
+    rows(
+      db,
+      `select coalesce(nullif(country,''),'unknown') k, count(*) n from visits
+        where js = 1 and d >= date('now','-29 days') group by k order by n desc limit 12`
+    ),
+    rows(
+      db,
+      `select coalesce(nullif(device,''),'unknown') k, count(*) n from visits
+        where js = 1 and d >= date('now','-29 days') group by k order by n desc`
+    ),
+    rows(
+      db,
+      `select coalesce(nullif(entry,''),'/') k, count(*) n from visits
+        where js = 1 and d >= date('now','-29 days') group by k order by n desc limit 8`
     ),
     // Acquisition, last 30 days. Visits from before the source columns existed count as unknown.
     rows(
       db,
       `select coalesce(nullif(channel,''),'unknown') k, count(*) n from visits
-        where d >= date('now','-29 days') group by k order by n desc`
+        where js = 1 and d >= date('now','-29 days') group by k order by n desc`
     ),
     rows(
       db,
       `select coalesce(nullif(source,''),'unknown') k, count(*) n from visits
-        where d >= date('now','-29 days') group by k order by n desc limit 15`
+        where js = 1 and d >= date('now','-29 days') group by k order by n desc limit 15`
     ),
     rows(
       db,
       `select campaign k, count(*) n from visits
-        where d >= date('now','-29 days') and campaign is not null and campaign <> ''
+        where js = 1 and d >= date('now','-29 days') and campaign is not null and campaign <> ''
         group by k order by n desc limit 12`
     ),
     rows(
       db,
       `select case when instr(source, ':') > 0 then substr(source, 1, instr(source, ':') - 1) else 'unattributed' end k,
               count(*) n from waitlist where created_at >= datetime('now','-30 days') group by k order by n desc`
-    ),
-    rows(
-      db,
-      `select d, count(*) all_visitors, sum(case when js = 1 then 1 else 0 end) people
-         from visits where d >= date('now','-13 days') group by d order by d desc`
-    ),
-    rows(
-      db,
-      `select coalesce(nullif(network,''),'unknown') k, count(*) n,
-              sum(case when js = 1 then 1 else 0 end) people
-         from visits where d >= date('now','-6 days') group by k order by n desc limit 12`
     ),
   ]);
 
@@ -244,8 +229,6 @@ export async function collect(env, steps) {
     acqSources,
     campaigns,
     signupChannels,
-    humansPerDay,
-    networks,
     sender: env.RESEND_API_KEY ? "Resend" : env.SMTP_ENABLED === "1" && env.SMTP_HOST ? "SMTP" : null,
   };
 }
@@ -422,12 +405,7 @@ export function render(s) {
 <section class="panel">
   <h2>Visitors</h2>
   ${dayChart(s.perDayViews, "visitors", "visitors")}
-  <p class="muted small">Counted in the Worker, so this includes the people a beacon misses:
-  blockers, anyone who left before a script would have run, and every reader of the docs from
-  a terminal. Self-identifying crawlers are excluded, assets are not counted as pages, and
-  nothing is stored that can be joined to a person: no IP, no cookie, and a per-day hash whose
-  salt is deleted after two days. That is also why there is no returning-visitor figure. It
-  cannot be computed, on purpose.</p>
+  <p class="muted small">People only. A visitor counts when their browser also loads the page's script, which bots almost never do, so crawlers, scanners and uptime checkers are left out of every number on this page. Nothing stored can be joined to a person: no IP, no cookie, and a per-day hash whose salt is deleted after two days. Counted from 15 Nov 2026.</p>
   ${
     (tr.visitors || 0) === 0
       ? '<p class="muted small"><b>Nothing recorded yet.</b> Counting started at the deploy that added it, so this fills in from now rather than backwards.</p>'
@@ -436,25 +414,7 @@ export function render(s) {
 </section>
 
 <section class="panel cols2">
-  <div>
-    <h2>People vs everything <span class="muted small">(14 days)</span></h2>
-    <table><thead><tr><th>Day</th><th>All visitors</th><th>People</th></tr></thead><tbody>${(s.humansPerDay || [])
-      .map((r) => `<tr><td class="mono">${esc(r.d)}</td><td class="mono">${r.all_visitors}</td><td class="mono"><b>${r.people || 0}</b></td></tr>`)
-      .join("")}</tbody></table>
-    <p class="muted small">People = visitors whose browser also loaded the page's script. Most bots
-    fetch the HTML and stop, so this is the honest number. Counted from 15 Nov 2026.</p>
-  </div>
-  <div>
-    <h2>Networks <span class="muted small">(7 days)</span></h2>
-    <table><thead><tr><th>Network</th><th>Visitors</th><th>People</th></tr></thead><tbody>${(s.networks || [])
-      .map((r) => `<tr><td>${esc(r.k)}</td><td class="mono">${r.n}</td><td class="mono">${r.people || 0}</td></tr>`)
-      .join("")}</tbody></table>
-    <p class="muted small">Cloud hosts (Amazon, Google Cloud, Microsoft, DigitalOcean, Hetzner, OVH, Tencent, Alibaba) are almost always bots.</p>
-  </div>
-</section>
-
-<section class="panel cols2">
-  <div><h2>Pages</h2>${barList(s.paths, { empty: "No page views yet." })}</div>
+  <div><h2>Landing pages</h2>${barList(s.paths, { empty: "No page views yet." })}</div>
   <div><h2>Came from</h2>${barList(s.referrers, { empty: "No referrers yet." })}</div>
 </section>
 
