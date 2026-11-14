@@ -58,7 +58,7 @@ MARK = ('<svg class="mark" viewBox="0 0 100 100" width="26" height="26" aria-hid
         '<rect x="30" y="30" width="62" height="62" rx="13" fill="#3ddc97"/>'
         '<path d="M53 48L53 74L75 61Z" fill="#0e1013" stroke="#0e1013" stroke-width="3" stroke-linejoin="round"/></svg>')
 
-GITHUB = "https://github.com/thisisisheanesu/kaviri"
+GITHUB = "https://github.com/kaviridev/kaviri"
 GH_ICON = ('<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 '
            '6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 '
            '1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 '
@@ -168,7 +168,7 @@ SHELL = """<!doctype html>
   <nav>
     <a href="/docs/">Docs</a>
     <a href="/play/">Playground</a>
-    <a href="https://github.com/thisisisheanesu/kaviri">GitHub</a>
+    <a href="https://github.com/kaviridev/kaviri">GitHub</a>
   </nav>
 </header>
 <div class="wrap docs-shell">
@@ -197,7 +197,7 @@ SHELL = """<!doctype html>
     <a href="/">Home</a>
     <a href="/docs/">Docs</a>
     <a href="/play/">Playground</a>
-    <a href="https://github.com/thisisisheanesu/kaviri">GitHub</a>
+    <a href="https://github.com/kaviridev/kaviri">GitHub</a>
     <a href="mailto:hello@kaviri.dev">hello@kaviri.dev</a>
   </div>
   <p class="muted legal-line">

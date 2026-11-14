@@ -14,7 +14,7 @@ GitHub (a 2014 user account), so it is not worth chasing on the others.
 
 | Platform | Handle | Profile | Banner |
 | --- | --- | --- | --- |
-| GitHub org | `kaviridev` | `icon-512.png` | n/a |
+| GitHub org | `kaviridev` | `profile-800.png` (GitHub's cropper drops the transparent `icon-512.png`) | n/a |
 | X | `@kaviridev` | `profile-800.png` | `x-header-1500x500.png` |
 | Bluesky | `@kaviri.dev` (domain handle, DNS TXT) | `profile-800.png` | `x-header-1500x500.png` |
 | LinkedIn company page | `kaviridev` | `profile-800.png` | `linkedin-banner-1584x396.png` |
@@ -77,9 +77,8 @@ failing build, not the zoom (see `../README.md`, The one-liner).
 
 ## Order of setup
 
-1. GitHub org `kaviridev`, then transfer `kaviri` and `kaviri-cloud` into it. GitHub
-   redirects the old URLs, but update `uses: thisisisheanesu/kaviri@v1` in the docs and
-   the site in the same change.
+1. Done 14 Nov 2026: the GitHub org `kaviridev` exists (owned by the company), and
+   `kaviri` and `kaviri-cloud` live in it. The old URLs redirect.
 2. X, Bluesky, LinkedIn page, YouTube, TikTok, dev.to, each with the files above.
 3. Connect X, LinkedIn and YouTube to Buffer's free plan (3 channels) and load the
    calendar from 16 Nov 2026.

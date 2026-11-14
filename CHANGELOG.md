@@ -24,6 +24,9 @@ dated `[0.1.0]` heading, when the tag is cut.
 
 ### Changed
 
+- The repository moved to `github.com/kaviridev/kaviri`, owned by the kaviridev
+  organization. GitHub redirects the old `thisisisheanesu/kaviri` URLs, including
+  `uses: thisisisheanesu/kaviri@v1`, but new workflows should name `kaviridev/kaviri`.
 - The tool is called **kaviri**, not lensa. The old name collided with an
   existing product. The binary, the crate, the temp paths and every message
   carry the new name, and the repository moved to
@@ -265,4 +268,4 @@ dated `[0.1.0]` heading, when the tag is cut.
 - The Action cloned an unpinned `main` from a remote repository instead of
   building the tree it was invoked from.
 
-[Unreleased]: https://github.com/thisisisheanesu/kaviri/commits/main
+[Unreleased]: https://github.com/kaviridev/kaviri/commits/main

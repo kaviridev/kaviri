@@ -32,7 +32,7 @@ import { SCHEMA as META_SCHEMA } from "./stats.js";
 import { SCHEMA as VISIT_SCHEMA } from "./visits.js";
 
 const SITE = "https://kaviri.dev";
-const REPO = "https://github.com/thisisisheanesu/kaviri";
+const REPO = "https://github.com/kaviridev/kaviri";
 
 export const SCHEMA = `
 create table if not exists waitlist_sends (

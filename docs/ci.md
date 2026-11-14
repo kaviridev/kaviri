@@ -25,7 +25,7 @@ file exists. If you want the "the take filmed nothing" failure, copy the two che
     npm run build && npx serve -l 8099 dist &
     until curl -sf http://127.0.0.1:8099/ >/dev/null; do sleep 0.25; done
 
-- uses: thisisisheanesu/kaviri@v1
+- uses: kaviridev/kaviri@v1
   with:
     script: demos/checkout.jsonl
     out: checkout.mp4
@@ -198,7 +198,7 @@ The action does not run it for you and does not put the binary on PATH, so to ge
 you build kaviri yourself:
 
 ```yaml
-- run: cargo install --git https://github.com/thisisisheanesu/kaviri --locked kaviri
+- run: cargo install --git https://github.com/kaviridev/kaviri --locked kaviri
 - run: kaviri doctor
 ```
 

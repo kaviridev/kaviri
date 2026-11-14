@@ -164,7 +164,7 @@ function footer({ unsubscribeUrl, reason }) {
     <p style="margin:0;${small}">
       <a href="https://kaviri.dev" style="color:${C.faint};text-decoration:underline;">kaviri.dev</a>
       &nbsp;&middot;&nbsp;
-      <a href="https://github.com/thisisisheanesu/kaviri" style="color:${C.faint};text-decoration:underline;">source</a>
+      <a href="https://github.com/kaviridev/kaviri" style="color:${C.faint};text-decoration:underline;">source</a>
       ${unsubscribeUrl ? `&nbsp;&middot;&nbsp;<a href="${esc(unsubscribeUrl)}" style="color:${C.faint};text-decoration:underline;">unsubscribe</a>` : ""}
     </p>
   </td></tr>

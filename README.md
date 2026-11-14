@@ -30,7 +30,7 @@ Making your own takes about thirty seconds, below.
 Build it from source:
 
 ```sh
-git clone https://github.com/thisisisheanesu/kaviri
+git clone https://github.com/kaviridev/kaviri
 cd kaviri
 cargo build --release
 ```
@@ -299,7 +299,7 @@ to the code it films and the demo changes when the product does.
     npm run build && npx serve -l 8099 dist &
     until curl -sf http://127.0.0.1:8099/ >/dev/null; do sleep 0.25; done
 
-- uses: thisisisheanesu/kaviri@v1
+- uses: kaviridev/kaviri@v1
   with:
     script: demos/checkout.jsonl
     out: checkout.mp4
