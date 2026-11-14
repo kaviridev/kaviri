@@ -6,20 +6,34 @@
 <title>kaviri playground</title>
 <meta name="description" content="Write a kaviri script and watch the camera it produces, live in the browser.">
 <link rel="icon" href="/favicon.svg">
-<link rel="stylesheet" href="/brand/tokens.css">
-<link rel="stylesheet" href="/style.css">
-<link rel="stylesheet" href="play.css">
+<link rel="stylesheet" href="/brand/tokens.css?v=3">
+<link rel="stylesheet" href="/style.css?v=3">
+<link rel="stylesheet" href="play.css?v=3">
+<script src="/site.js?v=3"></script>
 </head>
 <body>
 
-<header class="site-head wrap">
-  <a class="wordmark" href="/"><svg class="mark" viewBox="0 0 100 100" width="26" height="26" aria-hidden="true"><rect x="8" y="8" width="62" height="62" rx="13" fill="none" stroke="#3ddc97" stroke-width="6" opacity="0.5"/><rect x="30" y="30" width="62" height="62" rx="13" fill="#3ddc97"/><path d="M53 48L53 74L75 61Z" fill="#0e1013" stroke="#0e1013" stroke-width="3" stroke-linejoin="round"/></svg>kaviri</a>
-  <nav>
-    <a href="/docs/">Docs</a>
-    <a href="/#how">How it works</a>
-    <a href="/docs/agents/">For agents</a>
-    <a href="https://github.com/thisisisheanesu/kaviri">GitHub</a>
-  </nav>
+<header class="site-head" data-nav="closed">
+  <div class="wrap head-in">
+    <a class="wordmark" href="/"><svg class="mark" viewBox="0 0 100 100" width="26" height="26" aria-hidden="true"><rect x="8" y="8" width="62" height="62" rx="13" fill="none" stroke="#3ddc97" stroke-width="6" opacity="0.5"/><rect x="30" y="30" width="62" height="62" rx="13" fill="#3ddc97"/><path d="M53 48L53 74L75 61Z" fill="#0e1013" stroke="#0e1013" stroke-width="3" stroke-linejoin="round"/></svg>kaviri</a>
+    <button class="nav-toggle" type="button" id="nav-toggle"
+            aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+      <span class="bars" aria-hidden="true"></span>
+    </button>
+    <nav id="site-nav" aria-label="Main">
+      <div class="nav-links">
+        <a href="/#features">Product</a>
+        <a href="/docs/">Docs</a>
+        <a href="/play/">Playground</a>
+        <a href="/docs/mcp/">For agents</a>
+        <a href="/#pricing">Pricing</a>
+        <span class="nav-cta">
+          <a class="btn btn-ghost btn-sm gh-stars" href="https://github.com/thisisisheanesu/kaviri"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>GitHub</a>
+          <a class="btn btn-primary btn-sm" href="/#waitlist">Join the beta</a>
+        </span>
+      </div>
+    </nav>
+  </div>
 </header>
 
 <section class="wrap play-intro">
@@ -93,7 +107,7 @@
      </div>
     </div>
     <figure class="result" id="result" hidden>
-      <video id="resultvideo" controls playsinline preload="metadata"></video>
+      <video id="resultvideo" data-player playsinline preload="metadata" aria-label="Your recorded take"></video>
       <figcaption>
         <span id="resultmeta"></span>
         <span class="result-acts">
@@ -141,21 +155,43 @@ kaviri record --script take.jsonl --out take.mp4</code></pre>
   </div>
 </section>
 
-<footer class="site-foot wrap">
-  <p class="pron">kaviri &middot; ka-VEE-ree</p>
-  <p>ChiShona for twice, a second time. The demo is not re-recorded. It is made again.</p>
-  <div class="foot-links">
-    <a href="/">Home</a>
-    <a href="/docs/">Docs</a>
-    <a href="/docs/agents/">For agents</a>
-    <a href="https://github.com/thisisisheanesu/kaviri">GitHub</a>
-    <a href="mailto:hello@kaviri.dev">hello@kaviri.dev</a>
+<footer class="site-foot">
+  <div class="wrap foot-grid">
+    <div class="foot-brand">
+      <a class="wordmark" href="/"><svg class="mark" viewBox="0 0 100 100" width="26" height="26" aria-hidden="true"><rect x="8" y="8" width="62" height="62" rx="13" fill="none" stroke="#3ddc97" stroke-width="6" opacity="0.5"/><rect x="30" y="30" width="62" height="62" rx="13" fill="#3ddc97"/><path d="M53 48L53 74L75 61Z" fill="#0e1013" stroke="#0e1013" stroke-width="3" stroke-linejoin="round"/></svg>kaviri</a>
+      <p>The open-source demo recorder for web apps that runs in your CI.</p>
+    </div>
+    <div class="foot-col">
+      <h4>Product</h4>
+      <a href="/#features">Features</a>
+      <a href="/play/">Playground</a>
+      <a href="/#pricing">Pricing</a>
+      <a href="/#waitlist">Hosted beta</a>
+    </div>
+    <div class="foot-col">
+      <h4>Developers</h4>
+      <a href="/docs/">Docs</a>
+      <a href="/docs/ci/">CI guide</a>
+      <a href="/docs/mcp/">MCP server</a>
+      <a href="/llms.txt">llms.txt</a>
+      <a href="https://github.com/thisisisheanesu/kaviri">GitHub</a>
+    </div>
+    <div class="foot-col">
+      <h4>Company</h4>
+      <a href="/company/">Company</a>
+      <a href="/privacy/">Privacy</a>
+      <a href="/terms/">Terms</a>
+      <a href="mailto:hello@kaviri.dev">hello@kaviri.dev</a>
+    </div>
   </div>
-  <p class="muted legal-line">
-    <a href="/company/">Company</a> &middot; <a href="/privacy/">Privacy</a> &middot; <a href="/terms/">Terms</a>
-  </p>
+  <div class="wrap foot-base">
+    <span>&copy; 2026 kaviri &middot; <a href="https://github.com/thisisisheanesu/kaviri/blob/main/LICENSE">Apache 2.0</a></span>
+    <span><span class="pron">ka-VEE-ree</span>: ChiShona for twice, a second time.</span>
+  </div>
 </footer>
 
-<script type="module" src="play.js"></script>
+<script src="/player.js?v=3"></script>
+<script type="module" src="play.js?v=3"></script>
+<script src="/nav.js?v=3"></script>
 </body>
 </html>

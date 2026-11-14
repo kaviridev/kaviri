@@ -65,7 +65,7 @@
    * Crossing back to desktop width with the menu open leaves aria-expanded="true" on a button
    * that is no longer visible, so the next phone-width open is announced as a close.
    */
-  var wide = window.matchMedia("(min-width: 600px)");
+  var wide = window.matchMedia("(min-width: 860px)");
   var onWide = function (e) { if (e.matches) set(false); };
   if (wide.addEventListener) wide.addEventListener("change", onWide);
   else if (wide.addListener) wide.addListener(onWide);

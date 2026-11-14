@@ -18,6 +18,15 @@
   font-display: swap;
 }
 
+/* Inter, variable 400 to 700, latin subset, self-hosted (SIL OFL 1.1). The body face. */
+@font-face {
+  font-family: "Inter";
+  src: url("fonts/inter.woff2") format("woff2");
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   /* ---- Palette: the raw ramp -------------------------------------------- */
   /* Warm neutrals, not blue-grey. Paper, not screen. */

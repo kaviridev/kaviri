@@ -322,6 +322,8 @@ function showResult(blob, mimeType) {
   if (els.result.dataset.url) URL.revokeObjectURL(els.result.dataset.url);
   const url = URL.createObjectURL(blob);
   els.result.dataset.url = url;
+  // player.js gives it the site's player; without that file, the browser's own controls.
+  if (!els.resultvideo.dataset.playerReady) els.resultvideo.controls = true;
   els.resultvideo.src = url;
   els.resultdl.href = url;
   els.resultdl.download = `kaviri-preview.${ext}`;

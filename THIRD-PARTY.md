@@ -415,3 +415,8 @@ because a hand-written notices file goes stale on the first `cargo update`:
 Space Grotesk, copyright 2020 The Space Grotesk Project Authors, under the SIL
 Open Font License 1.1. The licence is beside it in `OFL.txt`. It is not part of
 the recorder binary.
+
+`brand/fonts/inter.woff2` (and its copy under `site/brand/fonts/`) is Inter,
+variable 400 to 700, latin subset, copyright 2020 The Inter Project Authors,
+under the SIL Open Font License 1.1. The licence is beside it in
+`inter-OFL.txt`. It is not part of the recorder binary.

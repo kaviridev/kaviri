@@ -40,7 +40,9 @@ const MONTH = 2592000;
  *   and it is loose only for styles, which cannot exfiltrate on their own.
  * - img-src allows data: for inline SVG and favicons encoded into the HTML.
  * - media-src 'self' is what lets the demo MP4 play. Drop it and the <video>
- *   element goes black with no console error that names the cause.
+ *   element goes black with no console error that names the cause. blob: is
+ *   the playground's recorded take, which exists only as an object URL in the
+ *   tab; without it the preview fails with MEDIA_ERR_SRC_NOT_SUPPORTED.
  * - frame-ancestors 'self' stops another site framing the page, which is the modern
  *   X-Frame-Options and the reason this file does not send that header too.
  * - base-uri 'none' stops an injected <base> silently repointing every relative
@@ -55,7 +57,7 @@ const CSP = [
   "script-src 'self'",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data:",
-  "media-src 'self'",
+  "media-src 'self' blob:",
   "font-src 'self'",
   "connect-src 'self'",
   "object-src 'none'",

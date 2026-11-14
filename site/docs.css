@@ -14,7 +14,7 @@
   .docs-shell { grid-template-columns: 13rem minmax(0, 1fr); gap: var(--k-space-5); }
   /* Sticky only where there is a column for it to be sticky in. On a phone it is a short
      list at the top of the page and pinning it would eat the screen. */
-  .docs-side { position: sticky; top: var(--k-space-2); }
+  .docs-side { position: sticky; top: 88px; }
 }
 
 .docs-side ul { list-style: none; margin: 0; padding: 0; }
