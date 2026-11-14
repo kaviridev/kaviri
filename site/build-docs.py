@@ -94,7 +94,6 @@ SHELL = """<!doctype html>
     <a href="mailto:hello@kaviri.dev">hello@kaviri.dev</a>
   </div>
   <p class="muted legal-line">
-    A product of ISHE CO HOLDINGS LIMITED, registered in England and Wales, no. 16846136 &middot;
     <a href="/company/">Company</a> &middot; <a href="/privacy/">Privacy</a> &middot; <a href="/terms/">Terms</a>
   </p>
 </footer>

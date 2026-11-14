@@ -47,7 +47,7 @@ them is tied to a personal address.
 > rendering with no CI setup, stable video URLs, take history and pull request previews.
 >
 > kaviri (ka-VEE-ree) is ChiShona for "twice, a second time".
-> A product of ISHE CO HOLDINGS LIMITED. kaviri.dev
+> kaviri.dev
 
 **YouTube channel line:** New demo-craft Shorts weekly.
 
