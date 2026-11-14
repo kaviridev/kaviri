@@ -56,6 +56,10 @@ create index if not exists waitlist_sends_step on waitlist_sends(step, sent_at);
 const COLUMNS = [
   "alter table waitlist add column unsub_token text",
   "alter table waitlist add column unsubscribed_at text",
+  // Acquisition: where each visitor came from (first touch of the day). See visits.js.
+  "alter table visits add column source text",
+  "alter table visits add column channel text",
+  "alter table visits add column campaign text",
 ];
 
 /**

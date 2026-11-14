@@ -4,6 +4,7 @@
  * It used to be a mailto link, which is a waitlist in the sense that a shoebox is a filing
  * system. This stores the signup, tells the person it worked, and tells the owner it happened.
  */
+import { classify } from "./visits.js";
 
 import { sendMail, senderName, notifyOwner } from "./mail.js";
 import { compose, ensureSchemaOnce, newToken, unsubscribeUrl } from "./sequence.js";
@@ -46,6 +47,13 @@ const json = (body, status = 200, extra = {}) =>
     headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store", ...extra },
   });
 
+/** "channel:source" for a signup, from what the page saw when the visitor arrived. */
+function acquisition(body) {
+  const src = String(body.src || "").toLowerCase().replace(/[^a-z0-9._-]/g, "").slice(0, 30);
+  if (!src) return String(body.source || "site").slice(0, 40);
+  return `${classify(src, body.medium)}:${src}`.slice(0, 40);
+}
+
 export async function signup(request, env, ctx) {
   let body;
   try {
@@ -83,7 +91,7 @@ export async function signup(request, env, ctx) {
       email,
       key,
       note || null,
-      String(body.source || "site").slice(0, 40),
+      acquisition(body),
       request.cf?.country || null,
       newToken()
     )

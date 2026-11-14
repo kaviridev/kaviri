@@ -51,7 +51,7 @@ PAGES = [
 # pages are hand-written HTML, so rather than keep five copies in step by hand, build() writes
 # these blocks into each of them (and into every docs page) on every run. Change the nav here.
 
-V = "5"  # bumped with a redesign, so the hour-long CSS/JS cache does not show the old look
+V = "6"  # bumped with a redesign, so the hour-long CSS/JS cache does not show the old look
 
 MARK = ('<svg class="mark" viewBox="0 0 100 100" width="26" height="26" aria-hidden="true">'
         '<rect x="8" y="8" width="62" height="62" rx="13" fill="none" stroke="#3ddc97" stroke-width="6" opacity="0.5"/>'

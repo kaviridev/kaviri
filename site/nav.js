@@ -16,6 +16,24 @@
  *    label pointing at a hidden checkbox is announced as a checkbox, which it is not.
  */
 
+/*
+ * Where this visit came from, kept for the waitlist form so a signup can be attributed to the
+ * link that brought it. sessionStorage only: no cookie, gone when the tab closes, and nothing
+ * leaves the browser unless the person joins the waitlist.
+ */
+(function () {
+  try {
+    if (sessionStorage.getItem("kv_src")) return;
+    var q = new URLSearchParams(location.search);
+    var tag = q.get("utm_source") || q.get("ref") || q.get("source") || "";
+    var host = "";
+    try { host = document.referrer ? new URL(document.referrer).hostname.replace(/^www\./, "") : ""; } catch (e) {}
+    if (host === location.hostname.replace(/^www\./, "")) host = "";
+    sessionStorage.setItem("kv_src", (tag || host || "direct").toLowerCase().slice(0, 40));
+    sessionStorage.setItem("kv_medium", (q.get("utm_medium") || "").toLowerCase().slice(0, 20));
+  } catch (e) { /* storage blocked: the signup just has no source */ }
+})();
+
 (function () {
   var head = document.querySelector(".site-head");
   var button = document.getElementById("nav-toggle");

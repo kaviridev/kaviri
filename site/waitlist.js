@@ -56,6 +56,8 @@
           email,
           website: form.website.value,
           source: "site",
+          src: (function () { try { return sessionStorage.getItem("kv_src") || ""; } catch (e) { return ""; } })(),
+          medium: (function () { try { return sessionStorage.getItem("kv_medium") || ""; } catch (e) { return ""; } })(),
         }),
       });
       const j = await r.json().catch(() => ({}));

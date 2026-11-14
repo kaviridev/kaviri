@@ -12,7 +12,8 @@
  *
  * WHAT IS AND IS NOT STORED
  *
- * Not stored: the IP address, the full user agent, the query string, the path of anything
+ * Not stored: the IP address, the full user agent, the query string (except a link's own
+ * utm_source/ref, utm_medium and utm_campaign tags, which say which link brought them), the path of anything
  * outside this site, or anything joinable to a person.
  *
  * Stored: a per-day count of views by path, and one row per visitor per day holding a hash,
@@ -85,6 +86,41 @@ function referrer(raw, self) {
   }
 }
 
+/**
+ * Which channel a source belongs to.
+ *
+ * `src` is a utm_source or ref value from the link, or the referring hostname, or "direct".
+ * `medium` is utm_medium when the link carries one, and wins when it names a channel.
+ */
+const CHANNELS = [
+  ["search", /(^|\.)(google\.[a-z.]+|bing\.com|duckduckgo\.com|search\.yahoo\.com|ecosia\.org|kagi\.com|baidu\.com|yandex\.[a-z]+|search\.brave\.com)$|^(google|bing|duckduckgo)$/],
+  ["ai", /(^|\.)(chatgpt\.com|chat\.openai\.com|perplexity\.ai|claude\.ai|gemini\.google\.com|copilot\.microsoft\.com|phind\.com)$|^(chatgpt|perplexity|claude)$/],
+  ["social", /(^|\.)(t\.co|x\.com|twitter\.com|bsky\.app|linkedin\.com|lnkd\.in|youtube\.com|youtu\.be|tiktok\.com|facebook\.com|instagram\.com|threads\.net|reddit\.com|mastodon\.[a-z]+|fosstodon\.org|hachyderm\.io)$|^(x|twitter|bluesky|bsky|linkedin|youtube|tiktok|mastodon|reddit|threads|social)$/],
+  ["community", /(^|\.)(news\.ycombinator\.com|producthunt\.com|lobste\.rs|dev\.to|hashnode\.com|indiehackers\.com|discord\.com|slack\.com)$|^(hn|hackernews|producthunt|ph|devto|lobsters)$/],
+  ["email", /(^|\.)(trykaviri\.com|mail\.google\.com|outlook\.(live|office)\.com|mail\.yahoo\.com)$|^(email|newsletter|v|outbound|sequence)$/],
+  ["code", /(^|\.)(github\.com|gitlab\.com|npmjs\.com|crates\.io|pypi\.org)$|^(github|gitlab)$/],
+];
+
+export function classify(src, medium) {
+  const m = String(medium || "").toLowerCase();
+  if (/^(email|newsletter)$/.test(m)) return "email";
+  if (/^(social|social-media|organic-social)$/.test(m)) return "social";
+  if (/^(cpc|ppc|paid|paidsocial|display)$/.test(m)) return "paid";
+  const s = String(src || "").toLowerCase();
+  if (!s || s === "direct") return "direct";
+  for (const [ch, re] of CHANNELS) if (re.test(s)) return ch;
+  return "referral";
+}
+
+/** The source of this request: the link's own tag if it has one, else the referrer's host. */
+export function sourceOf(url, refHost) {
+  const q = url.searchParams;
+  const tag = (q.get("utm_source") || q.get("ref") || q.get("source") || "").toLowerCase().replace(/[^a-z0-9._-]/g, "").slice(0, 40);
+  const src = tag || refHost || "direct";
+  const campaign = (q.get("utm_campaign") || "").toLowerCase().replace(/[^a-z0-9._-]/g, "").slice(0, 60) || null;
+  return { source: src, channel: classify(src, q.get("utm_medium")), campaign };
+}
+
 /** Today's salt, made once and kept. See the note at the top for why it is not derived. */
 async function saltFor(db, day) {
   const key = `salt:${day}`;
@@ -143,6 +179,10 @@ export async function record(request, env, url) {
      * swallows its errors by design, so the counter read zero and looked like no traffic
      * rather than like a missing table.
      */
+    // First touch of the day wins: the conflict clause below only bumps the count, so a
+    // visitor's later pages never overwrite where they came from.
+    const ref = referrer(request.headers.get("referer"), url.hostname.replace(/^www\./, ""));
+    const acq = sourceOf(url, ref === "direct" ? null : ref);
     const write = async () => {
       const salt = await saltFor(db, day);
       const vid = await hash(`${salt}|${ip}|${ua}`);
@@ -152,17 +192,20 @@ export async function record(request, env, url) {
           .bind(day, path),
         db
           .prepare(
-            `insert into visits (d, vid, country, referrer, device, entry, n)
-                  values (?, ?, ?, ?, ?, ?, 1)
+            `insert into visits (d, vid, country, referrer, device, entry, source, channel, campaign, n)
+                  values (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
              on conflict(d, vid) do update set n = n + 1`
           )
           .bind(
             day,
             vid,
             request.cf?.country || null,
-            referrer(request.headers.get("referer"), url.hostname.replace(/^www\./, "")),
+            ref,
             device(ua),
-            path
+            path,
+            acq.source,
+            acq.channel,
+            acq.campaign
           ),
       ]);
     };

@@ -59,6 +59,10 @@ export async function collect(env, steps) {
     visitorCountries,
     devices,
     entries,
+    channels,
+    acqSources,
+    campaigns,
+    signupChannels,
   ] = await Promise.all([
     one(
       db,
@@ -172,6 +176,28 @@ export async function collect(env, steps) {
       `select coalesce(nullif(entry,''),'/') k, count(*) n from visits
         where d >= date('now','-29 days') group by k order by n desc limit 8`
     ),
+    // Acquisition, last 30 days. Visits from before the source columns existed count as unknown.
+    rows(
+      db,
+      `select coalesce(nullif(channel,''),'unknown') k, count(*) n from visits
+        where d >= date('now','-29 days') group by k order by n desc`
+    ),
+    rows(
+      db,
+      `select coalesce(nullif(source,''),'unknown') k, count(*) n from visits
+        where d >= date('now','-29 days') group by k order by n desc limit 15`
+    ),
+    rows(
+      db,
+      `select campaign k, count(*) n from visits
+        where d >= date('now','-29 days') and campaign is not null and campaign <> ''
+        group by k order by n desc limit 12`
+    ),
+    rows(
+      db,
+      `select case when instr(source, ':') > 0 then substr(source, 1, instr(source, ':') - 1) else 'unattributed' end k,
+              count(*) n from waitlist where created_at >= datetime('now','-30 days') group by k order by n desc`
+    ),
   ]);
 
   const meta = Object.fromEntries((heartbeats || []).map((r) => [r.k, { v: r.v, at: r.at }]));
@@ -201,6 +227,10 @@ export async function collect(env, steps) {
     visitorCountries,
     devices,
     entries,
+    channels,
+    acqSources,
+    campaigns,
+    signupChannels,
     sender: env.RESEND_API_KEY ? "Resend" : env.SMTP_ENABLED === "1" && env.SMTP_HOST ? "SMTP" : null,
   };
 }
@@ -249,6 +279,15 @@ const esc = (s) =>
 const pct = (a, b) => (b ? Math.round((a / b) * 100) : 0);
 
 /** A ranked list of bars. One measure, so one hue; the length is the encoding. */
+function conversion(visits, signups) {
+  if (!signups.length) return '<p class="muted">No signups in the last 30 days.</p>';
+  const v = Object.fromEntries((visits || []).map((r) => [r.k, r.n]));
+  return `<table><thead><tr><th>Channel</th><th>Visitors</th><th>Signups</th><th>Conversion</th></tr></thead><tbody>${signups
+    .map((r) => `<tr><td>${esc(r.k)}</td><td class="mono">${v[r.k] ?? "&mdash;"}</td><td class="mono">${r.n}</td>
+      <td class="mono">${v[r.k] ? ((r.n / v[r.k]) * 100).toFixed(1) + "%" : "&mdash;"}</td></tr>`)
+    .join("")}</tbody></table>`;
+}
+
 function barList(items, { empty = "Nothing yet." } = {}) {
   if (!items.length) return `<p class="muted">${esc(empty)}</p>`;
   const max = Math.max(...items.map((i) => i.n), 1);
@@ -384,6 +423,22 @@ export function render(s) {
 <section class="panel cols2">
   <div><h2>Pages</h2>${barList(s.paths, { empty: "No page views yet." })}</div>
   <div><h2>Came from</h2>${barList(s.referrers, { empty: "No referrers yet." })}</div>
+</section>
+
+<section class="panel cols2">
+  <div>
+    <h2>Channels <span class="muted small">(30 days)</span></h2>${barList(s.channels, { empty: "No visits with a source yet." })}
+    <h2 style="margin-top:var(--k-space-3)">Campaigns</h2>${barList(s.campaigns, { empty: "No tagged links yet. Add ?utm_campaign= to a link to see it here." })}
+  </div>
+  <div><h2>Sources</h2>${barList(s.acqSources, { empty: "No visits with a source yet." })}</div>
+</section>
+
+<section class="panel">
+  <h2>Signups by channel <span class="muted small">(30 days)</span></h2>
+  ${conversion(s.channels, s.signupChannels)}
+  <p class="muted small">Source is first touch: the link or site that brought the visitor, taken from
+  utm_source or ref when the link has one, otherwise the referring site. It is carried to the
+  waitlist form in the tab's session storage, with no cookie.</p>
 </section>
 
 <section class="panel cols2">
