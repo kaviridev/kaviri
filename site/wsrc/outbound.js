@@ -99,6 +99,12 @@ async function send(env, row, unsubUrl) {
  * (OUTBOUND_FEED_URL, a Worker secret). Rows already known by email are left alone, so the
  * feed can be re-read every hour.
  */
+function blocked(env, text) {
+  const words = String(env.OUTBOUND_BLOCKLIST || "").toLowerCase().split(",").map((w) => w.trim()).filter(Boolean);
+  const t = String(text).toLowerCase();
+  return words.some((w) => t.includes(w));
+}
+
 export async function pullFeed(env) {
   if (!env.OUTBOUND_FEED_URL) return { pulled: 0, skipped: "no feed" };
   const r = await fetch(env.OUTBOUND_FEED_URL, { headers: { Accept: "application/json" }, cf: { cacheTtl: 0 } });
@@ -108,6 +114,9 @@ export async function pullFeed(env) {
   let pulled = 0;
   for (const it of items) {
     if (!it || !it.email || !it.subject || !it.text || !it.token) continue;
+    // Names the owner never wants mentioned (OUTBOUND_BLOCKLIST, a comma-separated secret,
+    // so the names themselves are not in this public source): any item mentioning one is dropped.
+    if (blocked(env, JSON.stringify(it))) continue;
     const res = await env.kaviri_waitlist
       .prepare(
         `insert into outbound (email, company, subject, text_body, html_body, token)
