@@ -15,7 +15,8 @@
 import { notifyOwner } from "./mail.js";
 import { listCounts } from "./digest.js";
 
-export const PLAN_CRON = "0 7 * * 1";
+export const PLAN_DAY_UTC = 1; // Monday
+export const PLAN_HOUR_UTC = 7;
 
 export const SCHEMA = `
 create table if not exists plan_weeks (

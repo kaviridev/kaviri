@@ -11,8 +11,8 @@
 // Files that sit in the asset directory because they have to be next to the
 // page, but that must never be served. wrangler.toml carries the account ID.
 import { keepDatabaseAwake, retryUnconfirmed, signup } from "./wsrc/waitlist.js";
-import { DIGEST_CRON, sendDigest } from "./wsrc/digest.js";
-import { PLAN_CRON, sendPlan } from "./wsrc/plan.js";
+import { DIGEST_HOUR_UTC, sendDigest } from "./wsrc/digest.js";
+import { PLAN_DAY_UTC, PLAN_HOUR_UTC, sendPlan } from "./wsrc/plan.js";
 import { ensureSchema, runSequence, unsubscribe } from "./wsrc/sequence.js";
 import { beat } from "./wsrc/stats.js";
 import { forgetOldSalts, pruneVisits, record } from "./wsrc/visits.js";
@@ -207,24 +207,25 @@ export default {
    * people never heard back".
    */
   async scheduled(event, env, ctx) {
-    // The 08:00 UTC trigger is the owner's daily list count and nothing else; the hourly
-    // trigger below keeps doing the retries and the sequence.
-    // Monday 07:00 UTC: the weekly plan email, MRR against target and the week's actions.
-    if (event.cron === PLAN_CRON) {
-      ctx.waitUntil(
-        sendPlan(env)
-          .then((r) => beat(env, "last_plan", JSON.stringify(r)))
-          .catch((e) => beat(env, "last_plan", JSON.stringify({ error: String(e) })))
-      );
-      return;
-    }
-    if (event.cron === DIGEST_CRON) {
+    /*
+     * One hourly trigger does everything, because the free plan caps cron schedules per
+     * account. The owner's emails ride on it by the hour they fire in: the daily list count in
+     * the 08:xx UTC run, the weekly plan in Monday's 07:xx UTC run.
+     */
+    const at = new Date(event.scheduledTime || Date.now());
+    if (at.getUTCHours() === DIGEST_HOUR_UTC) {
       ctx.waitUntil(
         sendDigest(env)
           .then((r) => beat(env, "last_digest", JSON.stringify(r)))
           .catch((e) => beat(env, "last_digest", JSON.stringify({ error: String(e) })))
       );
-      return;
+    }
+    if (at.getUTCDay() === PLAN_DAY_UTC && at.getUTCHours() === PLAN_HOUR_UTC) {
+      ctx.waitUntil(
+        sendPlan(env)
+          .then((r) => beat(env, "last_plan", JSON.stringify(r)))
+          .catch((e) => beat(env, "last_plan", JSON.stringify({ error: String(e) })))
+      );
     }
     /*
      * Order matters and this is deliberately one awaited chain rather than three waitUntils.

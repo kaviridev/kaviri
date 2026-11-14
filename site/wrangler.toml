@@ -63,9 +63,9 @@ database_id = "1fab7a49-aba5-4bf3-b33b-886a86e3e70a"
 [triggers]
 # Retry any confirmation that did not go out. Hourly is often enough that nobody waits long and
 # rare enough that a provider outage is not hammered.
-# And once a day at 08:00 UTC, the owner's count of the email list (wsrc/digest.js).
-# Mondays at 07:00 UTC, the weekly plan email: MRR against target and the week's actions (wsrc/plan.js).
-crons = ["17 * * * *", "0 8 * * *", "0 7 * * 1"]
+# Only this one: the free plan caps cron schedules per ACCOUNT. worker.js also sends the owner's
+# daily list count in the 08:17 UTC run and the Monday plan email in the 07:17 UTC run.
+crons = ["17 * * * *"]
 
 # Cloudflare's own sender. It can only deliver to an address already verified on the account,
 # which rules it out for confirming a signup and makes it exactly right for telling the owner

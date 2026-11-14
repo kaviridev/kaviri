@@ -1,5 +1,5 @@
 /*
- * The owner's daily count of the email list, sent by the 08:00 UTC cron.
+ * The owner's daily count of the email list, sent by the hourly cron in its 08:xx UTC run.
  *
  * It goes through notifyOwner (Cloudflare's own sender, one verified address) rather than the
  * subscriber mail path, so it keeps arriving on a day the real sender is down, and it is sent
@@ -9,7 +9,7 @@
 
 import { notifyOwner } from "./mail.js";
 
-export const DIGEST_CRON = "0 8 * * *";
+export const DIGEST_HOUR_UTC = 8;
 
 export async function listCounts(env) {
   const row = await env.kaviri_waitlist
