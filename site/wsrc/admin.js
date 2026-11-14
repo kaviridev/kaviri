@@ -193,6 +193,44 @@ ${deep}
 <tbody>${body || '<tr><td colspan="7" class="muted">Nobody yet.</td></tr>'}</tbody></table></section>`);
 }
 
+/*
+ * Cloudflare Access in front of /admin (one-time code to the owner's email). When Access has
+ * let a request through it adds a signed JWT; if that verifies against the team's published
+ * keys, for this application's audience, the password step is skipped. Anything else falls
+ * back to the password, so a misconfigured Access never opens the page.
+ */
+let accessKeys = null;
+let accessKeysAt = 0;
+
+function b64url(s) {
+  s = s.replace(/-/g, "+").replace(/_/g, "/");
+  return Uint8Array.from(atob(s + "===".slice((s.length + 3) % 4)), (c) => c.charCodeAt(0));
+}
+
+async function accessValid(env, jwt) {
+  try {
+    if (!jwt || !env.ACCESS_TEAM_DOMAIN || !env.ACCESS_AUD) return false;
+    const [h, p, sig] = jwt.split(".");
+    const header = JSON.parse(new TextDecoder().decode(b64url(h)));
+    const claims = JSON.parse(new TextDecoder().decode(b64url(p)));
+    const now = Math.floor(Date.now() / 1000);
+    const aud = Array.isArray(claims.aud) ? claims.aud : [claims.aud];
+    if (header.alg !== "RS256" || !aud.includes(env.ACCESS_AUD) || !(claims.exp > now)) return false;
+    if (claims.iss !== `https://${env.ACCESS_TEAM_DOMAIN}`) return false;
+    if (!accessKeys || Date.now() - accessKeysAt > 3600_000) {
+      const r = await fetch(`https://${env.ACCESS_TEAM_DOMAIN}/cdn-cgi/access/certs`);
+      accessKeys = (await r.json()).keys || [];
+      accessKeysAt = Date.now();
+    }
+    const jwk = accessKeys.find((k) => k.kid === header.kid);
+    if (!jwk) return false;
+    const key = await crypto.subtle.importKey("jwk", jwk, { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, false, ["verify"]);
+    return await crypto.subtle.verify("RSASSA-PKCS1-v1_5", key, b64url(sig), enc.encode(`${h}.${p}`));
+  } catch {
+    return false;
+  }
+}
+
 export async function handle(request, env, url) {
   if (!env.ADMIN_PASSWORD) {
     return html(
@@ -203,7 +241,9 @@ export async function handle(request, env, url) {
     );
   }
 
-  const authed = await cookieValid(env, readCookie(request, COOKIE));
+  const authed =
+    (await accessValid(env, request.headers.get("cf-access-jwt-assertion"))) ||
+    (await cookieValid(env, readCookie(request, COOKIE)));
 
   if (url.pathname === "/admin/login" && request.method === "POST") {
     const form = await request.formData();

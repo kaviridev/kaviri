@@ -86,6 +86,9 @@ OUTBOUND_START = "2026-11-16"
 OUTBOUND_MAX = "15"
 OUTBOUND_FROM = "Nigel at kaviri <nigel@trykaviri.com>"
 OUTBOUND_REPLY_TO = "hello@kaviri.dev"
+# Cloudflare Access protects /admin (email one-time code); the Worker verifies its JWT.
+ACCESS_TEAM_DOMAIN = "misty-disk-5af2.cloudflareaccess.com"
+ACCESS_AUD = "63769ce7d7ee74bb0c22e317bc082241ae6e6b08638346d82cac48477fa279f2"
 
 # Secrets, set with `npx wrangler secret put NAME`, never here:
 #   ADMIN_PASSWORD   the one password for /admin. Until it is set, /admin answers 503.
