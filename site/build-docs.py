@@ -51,7 +51,7 @@ PAGES = [
 # pages are hand-written HTML, so rather than keep five copies in step by hand, build() writes
 # these blocks into each of them (and into every docs page) on every run. Change the nav here.
 
-V = "3"  # bumped with a redesign, so the hour-long CSS/JS cache does not show the old look
+V = "4"  # bumped with a redesign, so the hour-long CSS/JS cache does not show the old look
 
 MARK = ('<svg class="mark" viewBox="0 0 100 100" width="26" height="26" aria-hidden="true">'
         '<rect x="8" y="8" width="62" height="62" rx="13" fill="none" stroke="#3ddc97" stroke-width="6" opacity="0.5"/>'
@@ -144,10 +144,160 @@ def sync_static():
     for rel in STATIC_PAGES:
         path = os.path.join(ROOT, "site", rel)
         before = open(path, encoding="utf-8").read()
-        after = chrome(before)
+        after = seo(rel, chrome(before))
         if after != before:
             open(path, "w", encoding="utf-8").write(after)
             print(f"  /{rel.replace('index.html', '')}  header and footer synced")
+
+
+# ------------------------------------------------------------------------------- search
+#
+# What search engines and answer engines read. It is generated for the same reason the chrome
+# is: the FAQ structured data is built from the FAQ on the page, so the two cannot disagree,
+# and the sitemap is built from the page list, so a new doc is in it without anyone remembering.
+
+SITE = "https://kaviri.dev"
+VERSION = re.search(r'^version\s*=\s*"([^"]+)"', open(os.path.join(ROOT, "Cargo.toml"), encoding="utf-8").read(), re.M).group(1)
+
+ORG = {"@type": "Organization", "@id": SITE + "/#org", "name": "kaviri", "url": SITE + "/",
+       "logo": SITE + "/apple-touch-icon.png", "email": "hello@kaviri.dev",
+       "sameAs": [GITHUB, "https://github.com/kaviridev"]}
+WEBSITE = {"@type": "WebSite", "@id": SITE + "/#website", "name": "kaviri", "url": SITE + "/",
+           "inLanguage": "en", "publisher": {"@id": SITE + "/#org"}}
+SOFTWARE = {
+    "@type": "SoftwareApplication", "@id": SITE + "/#software", "name": "kaviri",
+    "alternateName": "kaviri recording browser",
+    "description": "An open-source recording browser that films product demos from a script in "
+                   "your repository, in CI, with the camera zooms derived from the interactions.",
+    "url": SITE + "/", "applicationCategory": "DeveloperApplication",
+    "applicationSubCategory": "Screen recording",
+    "operatingSystem": "Linux, macOS", "softwareVersion": VERSION,
+    "license": "https://www.apache.org/licenses/LICENSE-2.0",
+    "isAccessibleForFree": True, "codeRepository": GITHUB, "downloadUrl": GITHUB,
+    "screenshot": SITE + "/demo-poster.jpg",
+    "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+    "publisher": {"@id": SITE + "/#org"},
+}
+
+
+def jsonld(nodes) -> str:
+    import json
+    # </ cannot appear inside a script element, so the one way to end it early is escaped.
+    return json.dumps({"@context": "https://schema.org", "@graph": nodes},
+                      ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
+
+
+def strip_tags(s: str) -> str:
+    return html.unescape(re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", s))).strip()
+
+
+def faq(page: str):
+    return [{"@type": "Question", "name": strip_tags(q),
+             "acceptedAnswer": {"@type": "Answer", "text": strip_tags(a)}}
+            for q, a in re.findall(r"<summary>(.*?)</summary>\s*<p>(.*?)</p>", page, re.S)]
+
+
+# Per static page: the structured data it carries, and the title and description for the
+# social cards when the page does not already have its own.
+def videos(page: str):
+    """A VideoObject per <video> with a poster, so the take can surface in video results."""
+    import subprocess
+    out = []
+    for tag in re.findall(r"<video\b[^>]*>", page):
+        src, poster, label = (re.search(rf'{a}="([^"]*)"', tag) for a in ("src", "poster", "aria-label"))
+        if not (src and poster and label):
+            continue
+        node = {"@type": "VideoObject", "name": strip_tags(label.group(1)).split(":")[0],
+                "description": strip_tags(label.group(1)), "contentUrl": SITE + src.group(1),
+                "thumbnailUrl": SITE + poster.group(1), "publisher": {"@id": SITE + "/#org"}}
+        local = os.path.join(ROOT, "site", src.group(1).lstrip("/"))
+        try:
+            secs = float(subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration",
+                                         "-of", "csv=p=0", local], capture_output=True, text=True).stdout)
+            node["duration"] = f"PT{round(secs)}S"
+            stamp = subprocess.run(["git", "log", "-1", "--format=%cI", "--", local], cwd=ROOT,
+                                   capture_output=True, text=True).stdout.strip()
+            if not stamp:  # not committed yet: the file's own time is the honest answer
+                import datetime
+                stamp = datetime.datetime.fromtimestamp(os.path.getmtime(local), datetime.timezone.utc).isoformat(timespec="seconds")
+            node["uploadDate"] = stamp
+        except (OSError, ValueError):
+            pass
+        out.append(node)
+    return out
+
+
+def static_ld(rel: str, page: str):
+    url = SITE + "/" + rel.replace("index.html", "")
+    if rel == "index.html":
+        return [ORG, WEBSITE, SOFTWARE,
+                {"@type": "FAQPage", "@id": url + "#faq", "url": url, "mainEntity": faq(page)}] + videos(page)
+    name = strip_tags(re.search(r"<title>(.*?)</title>", page, re.S).group(1))
+    node = {"@type": "WebPage", "@id": url, "url": url, "name": name,
+            "isPartOf": {"@id": SITE + "/#website"}, "publisher": {"@id": SITE + "/#org"}}
+    if rel.startswith("play/"):
+        node["@type"] = ["WebPage", "WebApplication"]
+        node.update({"applicationCategory": "DeveloperApplication", "browserRequirements": "Requires JavaScript",
+                     "operatingSystem": "Any", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}})
+    if rel.startswith("company/"):
+        node["@type"] = "AboutPage"
+    return [ORG, node]
+
+
+def seo(rel: str, page: str) -> str:
+    """Canonical, social cards and structured data for one hand-written page, idempotently."""
+    url = SITE + "/" + rel.replace("index.html", "")
+    title = re.search(r"<title>(.*?)</title>", page, re.S).group(1)
+    m = re.search(r'<meta name="description" content="([^"]*)"', page)
+    desc = m.group(1) if m else ""
+    head = []
+    if 'rel="canonical"' not in page:
+        head.append(f'<link rel="canonical" href="{url}">')
+    if 'property="og:title"' not in page:
+        head += [f'<meta property="og:type" content="website">',
+                 f'<meta property="og:site_name" content="kaviri">',
+                 f'<meta property="og:url" content="{url}">',
+                 f'<meta property="og:title" content="{title}">',
+                 f'<meta property="og:description" content="{desc}">',
+                 f'<meta property="og:image" content="{SITE}/og.png">',
+                 '<meta name="twitter:card" content="summary_large_image">',
+                 f'<meta name="twitter:image" content="{SITE}/og.png">']
+    if 'rel="manifest"' not in page:
+        head.append('<link rel="manifest" href="/site.webmanifest">')
+    if head:
+        page = re.sub(r'(<meta name="description"[^>]*>|<title>.*?</title>)',
+                      lambda m: m.group(1) + "\n" + "\n".join(head), page, count=1, flags=re.S)
+    block = f'<script type="application/ld+json">{jsonld(static_ld(rel, page))}</script>'
+    if 'type="application/ld+json"' in page:
+        page = re.sub(r'<script type="application/ld\+json">.*?</script>', lambda m: block, page, count=1, flags=re.S)
+    else:
+        page = page.replace("</head>", block + "\n</head>", 1)
+    return page
+
+
+def write_search_files():
+    """sitemap.xml and robots.txt, from the same page lists the build already walks."""
+    import datetime, subprocess
+    def lastmod(path):
+        try:
+            out = subprocess.run(["git", "log", "-1", "--format=%cs", "--", path], cwd=ROOT,
+                                 capture_output=True, text=True).stdout.strip()
+        except OSError:
+            out = ""
+        return out or datetime.date.today().isoformat()
+    urls = [(SITE + "/" + rel.replace("index.html", ""), lastmod("site/" + rel)) for rel in STATIC_PAGES]
+    urls += [(SITE + ("/docs/" if slug == "index" else f"/docs/{slug}/"), lastmod(path))
+             for slug, path, _, _ in PAGES if os.path.exists(os.path.join(ROOT, path))]
+    body = "".join(f"  <url><loc>{u}</loc><lastmod>{d}</lastmod></url>\n" for u, d in urls)
+    open(os.path.join(ROOT, "site", "sitemap.xml"), "w", encoding="utf-8").write(
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + body + "</urlset>\n")
+    # Every crawler, search and AI alike, is welcome: the docs are written to be quoted, and an
+    # answer engine that cannot read them answers from a stale guess instead.
+    open(os.path.join(ROOT, "site", "robots.txt"), "w", encoding="utf-8").write(
+        "User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /api/\nDisallow: /unsubscribe\n\n"
+        f"Sitemap: {SITE}/sitemap.xml\n")
+    print(f"  sitemap.xml  {len(urls)} urls; robots.txt")
 
 
 SHELL = """<!doctype html>
@@ -157,7 +307,19 @@ SHELL = """<!doctype html>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title} &middot; kaviri docs</title>
 <meta name="description" content="{blurb}">
-<link rel="icon" href="/favicon.svg">
+<link rel="canonical" href="{url}">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="kaviri">
+<meta property="og:url" content="{url}">
+<meta property="og:title" content="{title} &middot; kaviri docs">
+<meta property="og:description" content="{blurb}">
+<meta property="og:image" content="{site}/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="{site}/og.png">
+<script type="application/ld+json">{ld}</script>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
 <link rel="stylesheet" href="/brand/tokens.css">
 <link rel="stylesheet" href="/style.css">
 <link rel="stylesheet" href="/docs.css">
@@ -245,7 +407,19 @@ def build():
             for s, _, t, _ in PAGES
         )
 
+        url = SITE + ("/docs/" if slug == "index" else f"/docs/{slug}/")
+        ld = jsonld([
+            {"@type": "TechArticle", "headline": title, "description": blurb, "url": url,
+             "inLanguage": "en", "isPartOf": {"@id": SITE + "/#website"},
+             "about": {"@id": SITE + "/#software"}, "publisher": {"@id": SITE + "/#org"}},
+            {"@type": "BreadcrumbList", "itemListElement": [
+                {"@type": "ListItem", "position": 1, "name": "kaviri", "item": SITE + "/"},
+                {"@type": "ListItem", "position": 2, "name": "Docs", "item": SITE + "/docs/"},
+            ] + ([] if slug == "index" else
+                 [{"@type": "ListItem", "position": 3, "name": title, "item": url}])},
+        ])
         page = chrome(SHELL.format(
+            url=url, site=SITE, ld=ld,
             title=html.escape(title),
             blurb=html.escape(blurb),
             side=side,
@@ -267,3 +441,4 @@ def build():
 if __name__ == "__main__":
     sync_static()
     build()
+    write_search_files()

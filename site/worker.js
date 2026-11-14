@@ -11,6 +11,7 @@
 // Files that sit in the asset directory because they have to be next to the
 // page, but that must never be served. wrangler.toml carries the account ID.
 import { keepDatabaseAwake, retryUnconfirmed, signup } from "./wsrc/waitlist.js";
+import { DIGEST_CRON, sendDigest } from "./wsrc/digest.js";
 import { ensureSchema, runSequence, unsubscribe } from "./wsrc/sequence.js";
 import { beat } from "./wsrc/stats.js";
 import { forgetOldSalts, pruneVisits, record } from "./wsrc/visits.js";
@@ -203,6 +204,16 @@ export default {
    * people never heard back".
    */
   async scheduled(event, env, ctx) {
+    // The 08:00 UTC trigger is the owner's daily list count and nothing else; the hourly
+    // trigger below keeps doing the retries and the sequence.
+    if (event.cron === DIGEST_CRON) {
+      ctx.waitUntil(
+        sendDigest(env)
+          .then((r) => beat(env, "last_digest", JSON.stringify(r)))
+          .catch((e) => beat(env, "last_digest", JSON.stringify({ error: String(e) })))
+      );
+      return;
+    }
     /*
      * Order matters and this is deliberately one awaited chain rather than three waitUntils.
      * ensureSchema creates the table runSequence reads, and retryUnconfirmed can move somebody

@@ -988,3 +988,58 @@ html.js .reveal-d3 { transition-delay: .24s; }
   *, *::before, *::after { animation: none !important; transition: none !important; }
   html.js .reveal { opacity: 1; transform: none; }
 }
+
+/* ------------------------------------------------------------------ phones band */
+
+.phone-band { display: grid; gap: 48px; align-items: center; }
+@media (min-width: 960px) { .phone-band { grid-template-columns: 1.1fr 0.9fr; gap: 72px; } }
+.phone-band ul { list-style: none; padding: 0; margin: 24px 0 0; }
+.phone-band li { position: relative; padding-left: 30px; margin-bottom: 12px; color: var(--muted); }
+.phone-band li::before {
+  content: ""; position: absolute; left: 0; top: 4px; width: 18px; height: 18px; border-radius: 50%;
+  background: var(--accent-wash, #e3f7ee) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M6 10.5l2.5 2.5L14 7.5' fill='none' stroke='%230e7a4f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/14px no-repeat;
+}
+.phone-band li b { color: var(--ink); font-weight: 600; }
+.phone-op {
+  display: inline-block; margin: 22px 0 0; padding: 12px 18px; border-radius: 12px;
+  background: var(--night); color: var(--night-ink); font-size: 0.82rem; max-width: 100%; overflow-x: auto;
+}
+.phone-demo { position: relative; margin: 0 auto; width: min(100%, 340px); }
+.phone-demo::before {
+  content: ""; position: absolute; inset: 10% -18% 6%; z-index: -1;
+  background: radial-gradient(ellipse at center, rgba(180,167,255,.42), rgba(61,220,151,.18) 45%, rgba(61,220,151,0) 72%);
+  filter: blur(44px);
+}
+.phone-demo .kp, .phone-demo > video {
+  display: block; width: 100%; height: auto; aspect-ratio: 9 / 16; border-radius: 28px; overflow: hidden;
+  box-shadow: 0 40px 90px -30px rgba(0,0,0,.55), 0 0 0 1px color-mix(in srgb, var(--ink) 8%, transparent);
+}
+.phone-demo video { object-fit: cover; }
+.phone-demo figcaption { margin-top: 18px; font-size: 0.86rem; color: var(--muted); text-align: center; }
+@media (min-width: 960px) { .phone-demo { width: min(100%, 380px); } }
+
+/* ------------------------------------------------------------------ phones */
+
+@media (max-width: 560px) {
+  /* Thumb-sized, full-width calls to action, the way an app's primary buttons sit. */
+  .hero .actions { flex-direction: column; align-items: stretch; gap: 10px; max-width: 22rem; margin-left: auto; margin-right: auto; }
+  .hero .actions .btn { justify-content: center; min-height: 50px; }
+  .hero h1 { font-size: clamp(2.3rem, 11vw, 3rem); }
+  /* The showcase goes edge to edge, so the video is as big as the screen allows. */
+  .showcase { margin: 44px -14px 0; }
+  .window { border-radius: 14px; padding: 4px; }
+  .window-bar .title { margin-right: 0; }
+  /* The email field gets the full width and the button sits under it. */
+  .wl-row { flex-direction: column; border-radius: 18px; padding: 8px; }
+  .waitlist input[type="email"] { height: 50px; text-align: center; }
+  .waitlist button { width: 100%; min-height: 50px; }
+  /* Code samples bleed to the edges and scroll inside, rather than clipping. */
+  .code { margin-left: -20px; margin-right: -20px; border-radius: 0; }
+  .code pre { font-size: 0.72rem; padding: 18px 20px; }
+  .code-tabs { scrollbar-width: none; }
+  .code-tabs::-webkit-scrollbar { display: none; }
+  .phone-op { font-size: 0.76rem; }
+  .phone-demo { width: min(86%, 320px); }
+  .cta { border-radius: 22px; }
+  section { padding-top: 64px; padding-bottom: 64px; }
+}
