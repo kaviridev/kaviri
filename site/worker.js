@@ -12,6 +12,7 @@
 // page, but that must never be served. wrangler.toml carries the account ID.
 import { keepDatabaseAwake, retryUnconfirmed, signup } from "./wsrc/waitlist.js";
 import { DIGEST_CRON, sendDigest } from "./wsrc/digest.js";
+import { PLAN_CRON, sendPlan } from "./wsrc/plan.js";
 import { ensureSchema, runSequence, unsubscribe } from "./wsrc/sequence.js";
 import { beat } from "./wsrc/stats.js";
 import { forgetOldSalts, pruneVisits, record } from "./wsrc/visits.js";
@@ -208,6 +209,15 @@ export default {
   async scheduled(event, env, ctx) {
     // The 08:00 UTC trigger is the owner's daily list count and nothing else; the hourly
     // trigger below keeps doing the retries and the sequence.
+    // Monday 07:00 UTC: the weekly plan email, MRR against target and the week's actions.
+    if (event.cron === PLAN_CRON) {
+      ctx.waitUntil(
+        sendPlan(env)
+          .then((r) => beat(env, "last_plan", JSON.stringify(r)))
+          .catch((e) => beat(env, "last_plan", JSON.stringify({ error: String(e) })))
+      );
+      return;
+    }
     if (event.cron === DIGEST_CRON) {
       ctx.waitUntil(
         sendDigest(env)

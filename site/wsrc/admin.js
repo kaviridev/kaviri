@@ -11,6 +11,7 @@
 
 import { pending } from "./stripe.js";
 import { retryUnconfirmed } from "./waitlist.js";
+import { sendPlan } from "./plan.js";
 import { STEPS, ensureSchema, ensureSchemaOnce, runSequence } from "./sequence.js";
 import * as stats from "./stats.js";
 import { beat } from "./stats.js";
@@ -169,6 +170,7 @@ async function dashboard(env) {
     <a class="btn btn-secondary" href="/admin/export.csv">Export CSV</a>
     <form method="POST" action="/admin/retry"><button class="btn btn-secondary" type="submit">Retry unsent</button></form>
     <form method="POST" action="/admin/sequence"><button class="btn btn-secondary" type="submit">Run sequence now</button></form>
+    <form method="POST" action="/admin/plan"><button class="btn btn-secondary" type="submit">Send plan email</button></form>
     <form method="POST" action="/admin/logout"><button class="btn btn-secondary" type="submit">Sign out</button></form>
   </div>
 </div>
@@ -261,6 +263,13 @@ export async function handle(request, env, url) {
     await ensureSchema(env).catch(() => {});
     const r = await runSequence(env);
     await beat(env, "last_sequence", JSON.stringify(r));
+    return new Response(null, { status: 303, headers: { Location: "/admin" } });
+  }
+
+  // The Monday plan email, on demand: for checking a change to the plan without waiting a week.
+  if (url.pathname === "/admin/plan" && request.method === "POST") {
+    const r = await sendPlan(env);
+    await beat(env, "last_plan", JSON.stringify(r));
     return new Response(null, { status: 303, headers: { Location: "/admin" } });
   }
 
