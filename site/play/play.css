@@ -185,6 +185,8 @@
 .device { width: 100%; position: relative; }
 .device[data-kind="ios"], .device[data-kind="android"] { width: auto; }
 .dv-row { display: flex; align-items: flex-start; gap: 20px; }
+/* Only the emulator frames fill the side rail; empty, it must not keep its 20px gap. */
+#dvside:empty { display: none; }
 .dv-body { flex: 1; min-width: 0; }
 .device[data-kind="desktop"] .dv-body {
   border-radius: 11px; overflow: hidden; box-shadow: 0 0 0 1px rgba(0,0,0,.14), 0 18px 40px rgba(0,0,0,.28);
