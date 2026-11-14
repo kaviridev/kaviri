@@ -293,7 +293,11 @@ a:hover { text-decoration-color: var(--accent); }
   html.js .nav-links > a:hover { background: none; }
   html.js .nav-cta { margin: 24px 0 0; flex-direction: column; align-items: stretch; }
   html.js .nav-cta .btn { height: 48px; font-size: 1rem; }
-  html.nav-open, html.nav-open body { overflow: hidden; }
+  /* Lock the page on <html> only. Hiding overflow on <body> as well stops body's overflow
+     propagating to the viewport, which makes body its own scroll container: the sticky header
+     then sticks to body instead of the screen, and a menu opened from low on the page opens
+     thousands of pixels above it, which reads as the page hanging. */
+  html.nav-open { overflow: hidden; }
 }
 
 /* ------------------------------------------------------------------ hero */
