@@ -18,6 +18,7 @@ import { beat } from "./wsrc/stats.js";
 import { forgetOldSalts, pruneVisits, record } from "./wsrc/visits.js";
 import * as admin from "./wsrc/admin.js";
 import * as stripe from "./wsrc/stripe.js";
+import { ensureOutboundSchema, outboundUnsubscribe, runOutbound } from "./wsrc/outbound.js";
 
 const SIGNATURE_SOURCE = "https://raw.githubusercontent.com/kaviridev/kaviri/main/site/email/signature.gif";
 
@@ -244,6 +245,11 @@ export default {
         await beat(env, "last_retry", JSON.stringify(retried));
         const sent = await runSequence(env).catch((e) => ({ error: String(e) }));
         await beat(env, "last_sequence", JSON.stringify(sent));
+        await ensureOutboundSchema(env).catch(() => {});
+        const out = await runOutbound(env, at).catch((e) => ({ error: String(e) }));
+        if (!out?.skipped || out.skipped.startsWith("paused") || out.skipped.startsWith("refusing")) {
+          await beat(env, "last_outbound", JSON.stringify(out));
+        }
         await beat(env, "last_cron", `retried ${retried?.retried ?? 0}, sequence sent ${sent?.sent ?? 0}`);
         await forgetOldSalts(env);
         await pruneVisits(env);
@@ -282,6 +288,10 @@ export default {
      * confirmation page or they do not show the control at all. Both are before the method
      * gate because the gate allows only GET and HEAD.
      */
+    // Outbound emails' unsubscribe (wsrc/outbound.js): one path segment, the row's token.
+    if (url.pathname.startsWith("/u/") && (request.method === "GET" || request.method === "POST")) {
+      return withSecurity(await outboundUnsubscribe(request, env, url.pathname.slice(3)));
+    }
     if (url.pathname === "/unsubscribe" && (request.method === "GET" || request.method === "POST")) {
       return withSecurity(await unsubscribe(request, env, url));
     }
