@@ -940,7 +940,8 @@ p code, li code, td code {
 
 .filename { font-family: var(--k-mono); font-size: 0.78rem; color: var(--muted); margin: 0 0 8px; }
 
-.cols { display: grid; gap: var(--k-space-3); grid-template-columns: 1fr; }
+.cols { display: grid; gap: var(--k-space-3); grid-template-columns: minmax(0, 1fr); }
+.cols > * { min-width: 0; }
 @media (min-width: 760px) { .cols { grid-template-columns: 1fr 1fr; gap: var(--k-space-4); } }
 
 .card { border: 1px solid var(--line); border-radius: var(--k-radius); padding: var(--k-space-3); background: var(--surface, var(--k-paper)); }
@@ -1042,4 +1043,30 @@ html.js .reveal-d3 { transition-delay: .24s; }
   .phone-demo { width: min(86%, 320px); }
   .cta { border-radius: 22px; }
   section { padding-top: 64px; padding-bottom: 64px; }
+}
+
+/* The announcement pill: one line on a phone, never two. */
+.pill .pill-long { display: inline; }
+.pill .pill-short { display: none; }
+@media (max-width: 560px) {
+  .pill { font-size: 0.82rem; padding: 5px 12px 5px 5px; gap: 8px; max-width: 100%; white-space: nowrap; }
+  .pill .pill-long { display: none; }
+  .pill .pill-short { display: inline; }
+}
+
+/* The waitlist form: a labelled field, a big button, and the result shown in place of the form. */
+.waitlist .wl-label { display: block; margin: 0 0 10px; font-size: 0.86rem; font-weight: 600; color: var(--night-ink); text-align: left; }
+.waitlist input[type="email"] { font-size: 1rem; }
+.waitlist input[aria-invalid="true"] { box-shadow: inset 0 0 0 1px #ff8a80; }
+.wl-row:has(input[aria-invalid="true"]) { box-shadow: inset 0 0 0 1px #ff8a80; }
+.waitlist button[disabled] { opacity: .7; cursor: progress; }
+.waitlist.done .wl-row, .waitlist.done .wl-label, .waitlist.done .wl-note { display: none; }
+.waitlist.done .wl-msg { font-size: 1.05rem; font-weight: 600; padding: 18px; border-radius: 16px; background: rgba(61,220,151,.12); }
+@media (max-width: 560px) {
+  .waitlist .wl-label { text-align: center; }
+  .waitlist input[type="email"] { flex: none; height: 52px; text-align: left; padding: 0 18px; background: rgba(255,255,255,.08); border-radius: 12px; box-shadow: inset 0 0 0 1px var(--night-line); }
+  .wl-row { gap: 10px; background: transparent; box-shadow: none; padding: 0; }
+  .wl-row:focus-within { box-shadow: none; }
+  .waitlist input[type="email"]:focus { box-shadow: inset 0 0 0 1px var(--brand-green), 0 0 0 4px rgba(61,220,151,.15); }
+  .waitlist button { border-radius: 12px; }
 }

@@ -7,7 +7,8 @@
 
 .play {
   display: grid;
-  grid-template-columns: 1fr;
+  /* minmax(0, ...) so a long line in the editor scrolls inside it instead of widening the page. */
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--k-space-3);
   padding-top: 0;
   padding-bottom: var(--k-space-4);
@@ -249,3 +250,16 @@
 
 /* The notes under the playground are asides, not sections of a landing page. */
 .play ~ section h2, section:has(> .rule) h2 { font-size: clamp(1.3rem, 2.6vw, 1.6rem); letter-spacing: -0.02em; }
+
+/* On a phone the thing worth seeing comes first: the screen and its camera, then the script
+   that drives it, with the Run button right under the screen. */
+@media (max-width: 899px) {
+  .play-right { order: -1; }
+  .play-left, .play-right { min-width: 0; }
+  #script { min-height: 220px; font-size: 0.7rem; }
+  .play .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .play .actions .btn { width: 100%; justify-content: center; min-height: 46px; }
+  .platform-pick { display: flex; align-items: center; gap: 10px; }
+  .platform-pick select { flex: 1; min-width: 0; min-height: 40px; }
+  .stagebg { margin-left: -6px; margin-right: -6px; }
+}
