@@ -160,6 +160,10 @@ function footer({ unsubscribeUrl, reason }) {
   const small = `font-family:${SANS};font-size:12px;line-height:1.6;color:${C.faint};`;
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:8px;">
   <tr><td style="border-top:1px solid ${C.rule};padding-top:18px;">
+    <!-- Dogfooding: the animation is a kaviri take (examples/signature/), so the footer is a demo. -->
+    <a href="https://kaviri.dev/?utm_source=email&amp;utm_medium=footer" style="display:block;margin:0 0 16px;text-decoration:none;">
+      <img src="https://kaviri.dev/email/signature.gif" width="300" height="80" alt="kaviri: your demo video is a build artifact. This animation was filmed by kaviri." style="display:block;width:300px;max-width:100%;height:auto;border:0;">
+    </a>
     <p style="margin:0 0 6px;${small}">${esc(reason)}</p>
     <p style="margin:0;${small}">
       <a href="https://kaviri.dev" style="color:${C.faint};text-decoration:underline;">kaviri.dev</a>

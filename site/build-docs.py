@@ -378,6 +378,7 @@ def rewrite_links(body: str) -> str:
     same list the index is built from, so a new page is wired up by adding one line to PAGES
     rather than by remembering to also edit a regex.
     """
+    body = body.replace('src="docs/media/', 'src="/docs/media/')
     for slug, path, _, _ in PAGES:
         target = "/docs/" if slug == "index" else f"/docs/{slug}/"
         for spelling in (path, os.path.basename(path), "./" + path):
@@ -387,6 +388,12 @@ def rewrite_links(body: str) -> str:
 
 def build():
     os.makedirs(OUT, exist_ok=True)
+    # Images the Markdown points at (docs/media/...) are published next to the pages, so a
+    # README that renders on GitHub renders the same here.
+    media = os.path.join(ROOT, "docs", "media")
+    if os.path.isdir(media):
+        import shutil
+        shutil.copytree(media, os.path.join(OUT, "media"), dirs_exist_ok=True)
     md = markdown.Markdown(
         extensions=["fenced_code", "tables", "toc", "attr_list", "sane_lists"],
         output_format="html5",

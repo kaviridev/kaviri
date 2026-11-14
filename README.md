@@ -17,11 +17,26 @@ kaviri record --script demos/checkout.jsonl --out checkout.mp4
 
 ## The demo video
 
-There is no video embedded in this file yet, and the honest reason is that the
-one worth showing is the one CI makes. `.github/workflows/demo.yml` records
-`examples/demo.jsonl` on every push that touches `src/`, in two shapes (a wide
-README take and a 9:16 vertical one), and uploads each MP4 as a workflow
-artifact. The newest pair is on the Actions tab of this repo.
+<p align="center">
+  <img src="docs/media/demo.gif" width="720" alt="kaviri filming a web app: the camera zooms onto each field as it is typed into and onto each click.">
+</p>
+
+Every video in this repo is made by kaviri. The take above is `examples/demo.jsonl`, and
+`.github/workflows/demo.yml` records it again on every push that touches `src/`, in two shapes
+(a wide README take and a 9:16 vertical one), and uploads each MP4 as a workflow artifact. If a
+change breaks the recorder, that job goes red, so the demo cannot quietly rot.
+
+<table><tr>
+<td width="290"><img src="docs/media/github-ios.gif" width="270" alt="kaviri filming this repository on GitHub, framed as an iPhone: it opens Actions, the demo run, and the videos that run produced."></td>
+<td>
+
+**Phones too.** One line, `{"op":"frame","platform":"ios"}`, films the take at an iPhone's
+viewport, scale and user agent inside the bezel. This one is kaviri filming its own repo on
+GitHub, opening the demo run that recorded the video above. The script is
+[`examples/github-ios.jsonl`](examples/github-ios.jsonl).
+
+</td>
+</tr></table>
 
 Making your own takes about thirty seconds, below.
 

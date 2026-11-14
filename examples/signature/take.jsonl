@@ -1,0 +1,11 @@
+# The take inside the email signature: kaviri filming a tiny "record a demo" card.
+{"op":"navigate","url":"examples/signature/app.html"}
+{"op":"wait","selector":"#script"}
+{"op":"start_recording"}
+{"op":"wait","ms":700}
+{"op":"type","selector":"#script","text":"checkout.jsonl","typewriter_ms":55}
+{"op":"wait","ms":350}
+{"op":"click","selector":"#go"}
+{"op":"wait","selector":".out.on"}
+{"op":"wait","ms":1900}
+{"op":"stop_recording"}

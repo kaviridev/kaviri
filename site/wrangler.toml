@@ -71,13 +71,13 @@ crons = ["17 * * * *", "0 8 * * *"]
 # one happened. No API key, no third party, no monthly quota.
 [[send_email]]
 name = "OWNER_MAIL"
-destination_address = "inmisimail@gmail.com"
+destination_address = "usekaviri@gmail.com"
 
 [vars]
 # kaviri.dev is the verified sending domain in Resend. vambo.ai is not one, and a From on an
 # unverified domain is rejected by the API rather than merely landing in spam.
 MAIL_FROM = "kaviri <hello@kaviri.dev>"
-OWNER_EMAIL = "inmisimail@gmail.com"
+OWNER_EMAIL = "usekaviri@gmail.com"
 
 # Secrets, set with `npx wrangler secret put NAME`, never here:
 #   ADMIN_PASSWORD   the one password for /admin. Until it is set, /admin answers 503.

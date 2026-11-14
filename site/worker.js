@@ -347,6 +347,10 @@ export default {
     // less thing that depends on the asset store's defaults.
     headers.set("Accept-Ranges", "bytes");
 
+    // The email footer and signature images are meant to be shown by other origins: a mail
+    // client's own webview, and Gmail's image proxy. Everything else stays same-origin.
+    if (url.pathname.startsWith("/email/")) headers.set("Cross-Origin-Resource-Policy", "cross-origin");
+
     if (response.status === 404) {
       // The 404 page is generated from the same deploy as the site, so it can
       // be cached briefly, but never as long as a real page.
