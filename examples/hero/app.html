@@ -1,0 +1,79 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Relay · Deploys</title>
+<style>
+@font-face{font-family:Inter;src:url(../../brand/fonts/inter.woff2) format("woff2");font-weight:100 900}
+*{box-sizing:border-box}
+:root{--ink:#0e1013;--muted:#6b7280;--line:#e7e9ee;--bg:#f7f8fa;--acc:#4f46e5;--ok:#0e7a4f;--okbg:#e6f8ef}
+body{margin:0;font-family:Inter,system-ui,sans-serif;color:var(--ink);background:var(--bg);height:100vh;display:grid;grid-template-columns:220px 1fr}
+aside{background:#fff;border-right:1px solid var(--line);padding:18px 14px;display:flex;flex-direction:column;gap:4px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px;margin:0 6px 18px}
+.brand i{width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,#6366f1,#22d3ee)}
+aside a{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;color:#374151;text-decoration:none;font-size:13.5px}
+aside a.on{background:#eef2ff;color:var(--acc);font-weight:600}
+aside a span{width:16px;height:16px;border-radius:4px;background:currentColor;opacity:.25}
+.kbd{margin-top:auto;font-size:12px;color:var(--muted);padding:10px;border:1px dashed var(--line);border-radius:10px}
+.kbd b{font:600 11px ui-monospace,monospace;background:#f1f2f5;border:1px solid var(--line);border-radius:5px;padding:1px 5px;color:var(--ink)}
+main{padding:26px 32px;overflow:hidden}
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+h1{font-size:22px;margin:0;letter-spacing:-.01em}
+.sub{color:var(--muted);font-size:13px;margin-top:4px}
+button.new{border:0;border-radius:10px;background:var(--ink);color:#fff;font:600 13.5px Inter,sans-serif;padding:10px 14px;cursor:pointer}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.card small{color:var(--muted);font-size:12px}.card b{display:block;font-size:22px;margin-top:4px}
+.spark{display:flex;align-items:flex-end;gap:3px;height:28px;margin-top:6px}.spark i{flex:1;background:#c7d2fe;border-radius:2px}
+table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;font-size:13.5px}
+th{text-align:left;font-weight:600;color:var(--muted);font-size:12px;padding:10px 16px;border-bottom:1px solid var(--line);background:#fbfbfc}
+td{padding:12px 16px;border-bottom:1px solid var(--line)}tr:last-child td{border-bottom:0}
+.br{font:500 12.5px ui-monospace,monospace;background:#f3f4f6;border-radius:6px;padding:2px 7px}
+.st{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:12.5px;border-radius:999px;padding:3px 10px}
+.st.live{background:var(--okbg);color:var(--ok)}.st.build{background:#fff7e6;color:#b45309}
+.st.build::before{content:"";width:8px;height:8px;border-radius:50%;border:2px solid currentColor;border-right-color:transparent;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+tr.fresh{animation:in .5s ease both}@keyframes in{from{background:#eef2ff;opacity:0;transform:translateY(-6px)}}
+.ov{position:fixed;inset:0;background:rgba(14,16,19,.28);display:none;align-items:flex-start;justify-content:center;padding-top:90px}
+.ov.on{display:flex}
+.pal{width:520px;background:#fff;border-radius:16px;box-shadow:0 30px 80px rgba(0,0,0,.25);overflow:hidden;animation:pop .18s ease}
+@keyframes pop{from{transform:scale(.97);opacity:0}}
+.pal input{width:100%;border:0;border-bottom:1px solid var(--line);padding:16px 18px;font:500 16px Inter,sans-serif;outline:0}
+.pal ul{list-style:none;margin:0;padding:8px}.pal li{padding:10px 12px;border-radius:10px;font-size:14px;display:flex;justify-content:space-between}
+.pal li.sel{background:#eef2ff;color:var(--acc);font-weight:600}.pal li em{font-style:normal;color:var(--muted);font-size:12px}
+.toast{position:fixed;right:24px;bottom:24px;background:var(--ink);color:#fff;border-radius:12px;padding:12px 16px;font-size:13.5px;display:flex;gap:10px;align-items:center;transform:translateY(20px);opacity:0;transition:all .35s}
+.toast.on{transform:none;opacity:1}.toast i{width:18px;height:18px;border-radius:50%;background:#3ddc97}
+</style>
+<aside>
+  <div class="brand"><i></i>Relay</div>
+  <a class="on" href="#"><span></span>Deploys</a><a href="#"><span></span>Previews</a><a href="#"><span></span>Domains</a><a href="#"><span></span>Logs</a><a href="#"><span></span>Settings</a>
+  <div class="kbd">Press <b>&#8984;K</b> to do anything</div>
+</aside>
+<main>
+  <div class="top"><div><h1>Deploys</h1><div class="sub">acme/storefront &middot; production</div></div><button class="new" id="new">New deploy</button></div>
+  <div class="stats">
+    <div class="card"><small>Deploys this week</small><b id="count">41</b><div class="spark"><i style="height:40%"></i><i style="height:55%"></i><i style="height:35%"></i><i style="height:70%"></i><i style="height:60%"></i><i style="height:85%"></i><i style="height:75%" id="bar"></i></div></div>
+    <div class="card"><small>Median build</small><b>38s</b><div class="spark"><i style="height:60%"></i><i style="height:50%"></i><i style="height:45%"></i><i style="height:40%"></i><i style="height:42%"></i><i style="height:36%"></i><i style="height:34%"></i></div></div>
+    <div class="card"><small>Uptime</small><b>99.98%</b><div class="spark"><i style="height:90%"></i><i style="height:92%"></i><i style="height:91%"></i><i style="height:95%"></i><i style="height:93%"></i><i style="height:96%"></i><i style="height:97%"></i></div></div>
+  </div>
+  <table><thead><tr><th>Branch</th><th>Commit</th><th>Status</th><th>Age</th></tr></thead>
+  <tbody id="rows">
+    <tr><td><span class="br">main</span></td><td>Tighten checkout spacing</td><td><span class="st live">Live</span></td><td>12m</td></tr>
+    <tr><td><span class="br">feat/search</span></td><td>Instant search on products</td><td><span class="st live">Live</span></td><td>1h</td></tr>
+    <tr><td><span class="br">fix/cart</span></td><td>Cart total rounds correctly</td><td><span class="st live">Live</span></td><td>3h</td></tr>
+  </tbody></table>
+</main>
+<div class="ov" id="ov"><div class="pal"><input id="cmd" placeholder="Type a command or search..." autocomplete="off"><ul id="list"><li class="sel">Deploy a branch <em>&#8629;</em></li><li>Open preview</li><li>Roll back production</li><li>View logs</li></ul></div></div>
+<div class="toast" id="toast"><i></i><span id="tmsg">Preview is live</span></div>
+<script>
+const ov=document.getElementById('ov'),cmd=document.getElementById('cmd'),list=document.getElementById('list');
+const opts=['Deploy a branch','Open preview','Roll back production','View logs'];
+function open(){ov.classList.add('on');cmd.value='';render('');setTimeout(()=>cmd.focus(),20)}
+function render(q){const f=opts.filter(o=>!q||o.toLowerCase().includes(q.toLowerCase().split(' ')[0]));list.innerHTML=(f.length?f:['Deploy '+q]).map((o,i)=>`<li class="${i?'':'sel'}">${o}${i?'':' <em>&#8629;</em>'}</li>`).join('')}
+document.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();open()} if(e.key==='Escape')ov.classList.remove('on')});
+document.getElementById('new').onclick=open;
+cmd.addEventListener('input',()=>render(cmd.value));
+cmd.addEventListener('keydown',e=>{if(e.key!=='Enter')return;e.preventDefault();ov.classList.remove('on');
+  const br=(cmd.value.match(/[\w-]+\/[\w-]+/)||['feat/checkout'])[0];
+  const tr=document.createElement('tr');tr.className='fresh';tr.innerHTML=`<td><span class="br">${br}</span></td><td>New checkout flow</td><td><span class="st build" id="s">Building</span></td><td>now</td>`;
+  document.getElementById('rows').prepend(tr);
+  setTimeout(()=>{const s=document.getElementById('s');s.className='st live';s.textContent='Live';document.getElementById('count').textContent='42';document.getElementById('bar').style.height='100%';
+    document.getElementById('tmsg').textContent=br+' is live';document.getElementById('toast').classList.add('on')},1700);
+});
+</script>

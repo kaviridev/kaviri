@@ -1,0 +1,20 @@
+# The kaviri.dev homepage take: a deploy dashboard filmed in a macOS window on the desktop.
+# Command palette, typing, a live deploy and a toast, with the camera derived from each op.
+{"op":"frame","platform":"macos","desktop":"on","style":"app"}
+{"op":"navigate","url":"examples/hero/app.html"}
+{"op":"wait","selector":"#rows tr"}
+{"op":"start_recording"}
+{"op":"wait","ms":900}
+{"op":"hover","selector":"#new","ms":600}
+{"op":"press","key":"Meta+K"}
+{"op":"wait","selector":".ov.on"}
+{"op":"wait","ms":350}
+{"op":"type","selector":"#cmd","text":"deploy feat/checkout","typewriter_ms":40}
+{"op":"wait","ms":400}
+{"op":"press","key":"Enter"}
+{"op":"wait","selector":"tr.fresh"}
+{"op":"click","selector":"tr.fresh .br"}
+{"op":"wait","selector":".toast.on","timeout_ms":5000}
+{"op":"hover","selector":"#toast","ms":500}
+{"op":"wait","ms":1900}
+{"op":"stop_recording"}

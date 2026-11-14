@@ -18,10 +18,11 @@ kaviri record --script demos/checkout.jsonl --out checkout.mp4
 ## The demo video
 
 <p align="center">
-  <img src="docs/media/demo.gif" width="720" alt="kaviri filming a web app: the camera zooms onto each field as it is typed into and onto each click.">
+  <img src="docs/media/demo.gif" width="720" alt="kaviri filming a deploy dashboard in a macOS window: command palette, typing, a deploy going live.">
 </p>
 
-Every video in this repo is made by kaviri. The take above is `examples/demo.jsonl`, and
+Every video in this repo is made by kaviri. The take above is
+[`examples/hero/take.jsonl`](examples/hero/take.jsonl), filmed as a Mac with the desktop on, and
 `.github/workflows/demo.yml` records it again on every push that touches `src/`, in two shapes
 (a wide README take and a 9:16 vertical one), and uploads each MP4 as a workflow artifact. If a
 change breaks the recorder, that job goes red, so the demo cannot quietly rot.
