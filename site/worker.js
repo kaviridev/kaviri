@@ -311,11 +311,13 @@ export default {
     // The copy deployed with the site is the fallback if GitHub does not answer.
     if (url.pathname === "/email/signature.gif") {
       try {
-        const upstream = await fetch(SIGNATURE_SOURCE, { cf: { cacheTtl: 3600, cacheEverything: true } });
+        // The query string rides along so ?v=N is a fresh cache entry: bump it wherever the image is
+        // embedded (Gmail keeps its own copy per URL) and the new GIF is fetched, not the cached one.
+        const upstream = await fetch(SIGNATURE_SOURCE + url.search, { cf: { cacheTtl: 300, cacheEverything: true } });
         if (upstream.ok && (upstream.headers.get("Content-Type") || "").includes("gif")) {
           const headers = securityHeaders(new Headers({
             "Content-Type": "image/gif",
-            "Cache-Control": "public, max-age=3600",
+            "Cache-Control": "public, max-age=300",
           }));
           // After securityHeaders, which sets same-origin: mail clients embed this cross-origin.
           headers.set("Cross-Origin-Resource-Policy", "cross-origin");

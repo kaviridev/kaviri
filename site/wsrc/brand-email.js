@@ -162,7 +162,7 @@ function footer({ unsubscribeUrl, reason }) {
   <tr><td style="border-top:1px solid ${C.rule};padding-top:18px;">
     <!-- Dogfooding: the animation is a kaviri take (examples/signature/), so the footer is a demo. -->
     <a href="https://kaviri.dev/?utm_source=email&amp;utm_medium=footer" style="display:block;margin:0 0 16px;text-decoration:none;">
-      <img src="https://kaviri.dev/email/signature.gif" width="360" height="263" alt="kaviri: your demo video is a build artifact. This animation was filmed by kaviri." style="display:block;width:360px;max-width:100%;height:auto;border:0;">
+      <img src="https://kaviri.dev/email/signature.gif?v=3" width="360" alt="kaviri: your demo video is a build artifact. This animation was filmed by kaviri." style="display:block;width:360px;max-width:100%;height:auto;border:0;">
     </a>
     <p style="margin:0 0 6px;${small}">${esc(reason)}</p>
     <p style="margin:0;${small}">
