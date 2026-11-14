@@ -60,6 +60,9 @@ const COLUMNS = [
   "alter table visits add column source text",
   "alter table visits add column channel text",
   "alter table visits add column campaign text",
+  // Bot filtering: js = the browser loaded the page's script; network = the AS organisation.
+  "alter table visits add column js integer",
+  "alter table visits add column network text",
 ];
 
 /**

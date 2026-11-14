@@ -50,6 +50,8 @@ create index if not exists visits_day on visits(d);
 `;
 
 /** Paths that are machinery rather than reading. Counting them flatters the numbers. */
+const PROBE = /^\/(\.git|\.env|\.aws|\.ssh|\.DS_Store|wp-|wordpress|xmlrpc|phpmyadmin|cgi-bin|vendor\/|server-status)|\.(php|asp|aspx|jsp|bak|sql|ini)$|\/LICENSE$/i;
+const CONFIRMS = /^\/(nav|site|player|waitlist)\.js$/;
 const IGNORED = /^\/(admin|api|stripe|unsubscribe|favicon\.(svg|ico)|apple-touch-icon\.png|og\.png|robots\.txt)/;
 
 /**
@@ -158,9 +160,26 @@ export async function record(request, env, url) {
     const ua = request.headers.get("user-agent") || "";
     if (BOT.test(ua)) return;
 
+    const p = url.pathname;
+    // Vulnerability scanners looking for leaked files are not readers.
+    if (PROBE.test(p)) return;
+
+    /*
+     * A browser that loads the page's own script is almost certainly a person: most bots fetch
+     * the HTML and stop. The first such script request marks that visitor-day as confirmed,
+     * and the admin page counts confirmed visitors as the real number.
+     */
+    if (CONFIRMS.test(p)) {
+      const db = env.kaviri_waitlist;
+      const day = new Date().toISOString().slice(0, 10);
+      const salt = await saltFor(db, day);
+      const vid = await hash(`${salt}|${request.headers.get("cf-connecting-ip") || ""}|${ua}`);
+      await db.prepare("update visits set js = 1 where d = ? and vid = ? and js is null").bind(day, vid).run().catch(() => {});
+      return;
+    }
+
     // Only pages. An HTML page view is a visit; the stylesheet and the video that come with
     // it are not four more.
-    const p = url.pathname;
     const isPage = p.endsWith("/") || !/\.[a-z0-9]{2,5}$/i.test(p);
     if (!isPage) return;
 
@@ -192,8 +211,8 @@ export async function record(request, env, url) {
           .bind(day, path),
         db
           .prepare(
-            `insert into visits (d, vid, country, referrer, device, entry, source, channel, campaign, n)
-                  values (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+            `insert into visits (d, vid, country, referrer, device, entry, source, channel, campaign, network, n)
+                  values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
              on conflict(d, vid) do update set n = n + 1`
           )
           .bind(
@@ -205,7 +224,8 @@ export async function record(request, env, url) {
             path,
             acq.source,
             acq.channel,
-            acq.campaign
+            acq.campaign,
+            String(request.cf?.asOrganization || "").slice(0, 60) || null
           ),
       ]);
     };

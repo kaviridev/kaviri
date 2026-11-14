@@ -63,6 +63,8 @@ export async function collect(env, steps) {
     acqSources,
     campaigns,
     signupChannels,
+    humansPerDay,
+    networks,
   ] = await Promise.all([
     one(
       db,
@@ -198,6 +200,17 @@ export async function collect(env, steps) {
       `select case when instr(source, ':') > 0 then substr(source, 1, instr(source, ':') - 1) else 'unattributed' end k,
               count(*) n from waitlist where created_at >= datetime('now','-30 days') group by k order by n desc`
     ),
+    rows(
+      db,
+      `select d, count(*) all_visitors, sum(case when js = 1 then 1 else 0 end) people
+         from visits where d >= date('now','-13 days') group by d order by d desc`
+    ),
+    rows(
+      db,
+      `select coalesce(nullif(network,''),'unknown') k, count(*) n,
+              sum(case when js = 1 then 1 else 0 end) people
+         from visits where d >= date('now','-6 days') group by k order by n desc limit 12`
+    ),
   ]);
 
   const meta = Object.fromEntries((heartbeats || []).map((r) => [r.k, { v: r.v, at: r.at }]));
@@ -231,6 +244,8 @@ export async function collect(env, steps) {
     acqSources,
     campaigns,
     signupChannels,
+    humansPerDay,
+    networks,
     sender: env.RESEND_API_KEY ? "Resend" : env.SMTP_ENABLED === "1" && env.SMTP_HOST ? "SMTP" : null,
   };
 }
@@ -418,6 +433,24 @@ export function render(s) {
       ? '<p class="muted small"><b>Nothing recorded yet.</b> Counting started at the deploy that added it, so this fills in from now rather than backwards.</p>'
       : `<p class="muted small">${tr.views || 0} views and ${tr.visitors || 0} visitors all time, since ${esc(tr.since || "")}.</p>`
   }
+</section>
+
+<section class="panel cols2">
+  <div>
+    <h2>People vs everything <span class="muted small">(14 days)</span></h2>
+    <table><thead><tr><th>Day</th><th>All visitors</th><th>People</th></tr></thead><tbody>${(s.humansPerDay || [])
+      .map((r) => `<tr><td class="mono">${esc(r.d)}</td><td class="mono">${r.all_visitors}</td><td class="mono"><b>${r.people || 0}</b></td></tr>`)
+      .join("")}</tbody></table>
+    <p class="muted small">People = visitors whose browser also loaded the page's script. Most bots
+    fetch the HTML and stop, so this is the honest number. Counted from 15 Nov 2026.</p>
+  </div>
+  <div>
+    <h2>Networks <span class="muted small">(7 days)</span></h2>
+    <table><thead><tr><th>Network</th><th>Visitors</th><th>People</th></tr></thead><tbody>${(s.networks || [])
+      .map((r) => `<tr><td>${esc(r.k)}</td><td class="mono">${r.n}</td><td class="mono">${r.people || 0}</td></tr>`)
+      .join("")}</tbody></table>
+    <p class="muted small">Cloud hosts (Amazon, Google Cloud, Microsoft, DigitalOcean, Hetzner, OVH, Tencent, Alibaba) are almost always bots.</p>
+  </div>
 </section>
 
 <section class="panel cols2">
