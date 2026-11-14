@@ -1,0 +1,63 @@
+name: signature
+
+# The animated email footer and signature (site/email/signature.gif) is a kaviri take. This
+# re-records it whenever the recorder or the signature's own sources change, and commits the
+# new GIF. kaviri.dev serves /email/signature.gif from main, so every email footer and the
+# Gmail signature pick it up without a deploy.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - src/**
+      - Cargo.toml
+      - Cargo.lock
+      - brand/fonts/**
+      - examples/signature/**
+      - .github/workflows/signature.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: signature
+  cancel-in-progress: true
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      # The action installs ffmpeg and a browser, builds kaviri from this commit and films the
+      # take once, which doubles as a check that the signature script still runs at all.
+      - name: Build kaviri and film the take
+        uses: ./
+        with:
+          script: examples/signature/take.jsonl
+          out: /tmp/signature-check.mp4
+          upload: "false"
+
+      - name: Rebuild the GIF
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet --user pillow
+          sh examples/signature/build.sh
+          size=$(wc -c < site/email/signature.gif)
+          # A GIF this small is a blank strip, not a signature.
+          [ "$size" -gt 100000 ] || { echo "signature.gif is only $size bytes"; exit 1; }
+
+      # GITHUB_TOKEN pushes do not start workflows, so this commit cannot loop.
+      - name: Commit it
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- site/email/signature.gif; then
+            echo "signature unchanged"; exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add site/email/signature.gif
+          git commit -m "Re-record the email signature (${GITHUB_SHA::7})"
+          git pull --rebase --quiet origin main
+          git push --quiet origin HEAD:main

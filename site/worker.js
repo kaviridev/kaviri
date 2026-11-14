@@ -18,6 +18,8 @@ import { forgetOldSalts, pruneVisits, record } from "./wsrc/visits.js";
 import * as admin from "./wsrc/admin.js";
 import * as stripe from "./wsrc/stripe.js";
 
+const SIGNATURE_SOURCE = "https://raw.githubusercontent.com/kaviridev/kaviri/main/site/email/signature.gif";
+
 const PRIVATE_PATHS = new Set(["/worker.js", "/wrangler.toml", "/.assetsignore"]);
 
 // A build step that fingerprints a file puts the hash in the name, which is the
@@ -302,6 +304,26 @@ export default {
           })
         ),
       });
+    }
+
+    // The email signature is re-recorded by CI (.github/workflows/signature.yml) and committed
+    // to main, so it is served from there: every footer and signature updates without a deploy.
+    // The copy deployed with the site is the fallback if GitHub does not answer.
+    if (url.pathname === "/email/signature.gif") {
+      try {
+        const upstream = await fetch(SIGNATURE_SOURCE, { cf: { cacheTtl: 3600, cacheEverything: true } });
+        if (upstream.ok && (upstream.headers.get("Content-Type") || "").includes("gif")) {
+          const headers = securityHeaders(new Headers({
+            "Content-Type": "image/gif",
+            "Cache-Control": "public, max-age=3600",
+          }));
+          // After securityHeaders, which sets same-origin: mail clients embed this cross-origin.
+          headers.set("Cross-Origin-Resource-Policy", "cross-origin");
+          return new Response(upstream.body, { headers });
+        }
+      } catch (e) {
+        /* fall through to the deployed copy */
+      }
     }
 
     // Deployment metadata lives in this directory and must not be reachable.
