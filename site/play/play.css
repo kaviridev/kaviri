@@ -261,5 +261,7 @@
   .play .actions .btn { width: 100%; justify-content: center; min-height: 46px; }
   .platform-pick { display: flex; align-items: center; gap: 10px; }
   .platform-pick select { flex: 1; min-width: 0; min-height: 40px; }
-  .stagebg { margin-left: -6px; margin-right: -6px; }
+  /* The app inside lays itself out for a phone, so give it a phone-shaped window rather than a
+     900x540 letterbox that crops it to a strip. */
+  .viewport { aspect-ratio: 1 / 1; }
 }
