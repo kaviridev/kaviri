@@ -1,25 +1,26 @@
-# kaviri's own repo on GitHub, filmed as an iPhone: repo -> Actions -> the demo run -> the MP4s it made.
+# An open-source repo on GitHub, filmed as an iPhone on the brand-green wallpaper:
+# astral-sh/uv -> Pull requests -> the newest PR -> its discussion and checks.
+# (A tap on GitHub's multi-line list links does not navigate; Enter after it does.)
 {"op":"frame","platform":"ios"}
-{"op":"navigate","url":"https://github.com/kaviridev/kaviri","timeout_ms":60000}
+{"op":"navigate","url":"https://github.com/astral-sh/uv","timeout_ms":60000}
 {"op":"wait","selector":"a[data-testid=\"repo-name-link\"]","timeout_ms":30000}
 {"op":"wait","ms":800}
 {"op":"start_recording"}
 {"op":"wait","ms":1200}
-{"op":"scroll","y":330,"smooth":true}
+{"op":"scroll","y":360,"smooth":true}
 {"op":"wait","ms":1000}
 {"op":"scroll","y":0,"smooth":true}
 {"op":"wait","ms":500}
-{"op":"click","selector":"header nav button[aria-haspopup]"}
-{"op":"wait","ms":600}
-{"op":"click","x":281,"y":172}
-{"op":"wait","selector":"a[href=\"https://github.com/kaviridev/kaviri/actions/runs/43568117894\"]","timeout_ms":30000}
-{"op":"wait","ms":1000}
-{"op":"click","selector":"a[href=\"https://github.com/kaviridev/kaviri/actions/runs/43568117894\"]"}
+{"op":"click","selector":"a[href=\"/astral-sh/uv/pulls\"]"}
 {"op":"press","key":"Enter"}
-{"op":"wait","selector":"a[href=\"#artifacts\"]","visible":false,"timeout_ms":30000}
-{"op":"wait","ms":1200}
-{"op":"scroll","y":420,"smooth":true}
-{"op":"wait","ms":1400}
-{"op":"scroll","y":1320,"smooth":true}
-{"op":"wait","ms":2200}
+{"op":"wait","selector":"a[href*=\"/astral-sh/uv/pull/\"]","timeout_ms":30000}
+{"op":"wait","ms":1100}
+{"op":"click","selector":"a[href*=\"/astral-sh/uv/pull/\"]"}
+{"op":"press","key":"Enter"}
+{"op":"wait","selector":"h1","timeout_ms":30000}
+{"op":"wait","ms":1500}
+{"op":"scroll","y":900,"smooth":true}
+{"op":"wait","ms":1300}
+{"op":"scroll","y":2000,"smooth":true}
+{"op":"wait","ms":2000}
 {"op":"stop_recording"}

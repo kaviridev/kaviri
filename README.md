@@ -28,12 +28,12 @@ Every video in this repo is made by kaviri. The take above is
 change breaks the recorder, that job goes red, so the demo cannot quietly rot.
 
 <table><tr>
-<td width="290"><img src="docs/media/github-ios.gif" width="270" alt="kaviri filming this repository on GitHub, framed as an iPhone: it opens Actions, the demo run, and the videos that run produced."></td>
+<td width="290"><img src="docs/media/github-ios.gif" width="270" alt="kaviri filming the astral-sh/uv repository on GitHub as an iPhone: Pull requests, then the newest pull request."></td>
 <td>
 
 **Phones too.** One line, `{"op":"frame","platform":"ios"}`, films the take at an iPhone's
-viewport, scale and user agent inside the bezel. This one is kaviri filming its own repo on
-GitHub, opening the demo run that recorded the video above. The script is
+viewport, scale and user agent inside the bezel. This one films an open-source repo on GitHub,
+astral-sh/uv, from its pull request list to the newest PR. The script is
 [`examples/github-ios.jsonl`](examples/github-ios.jsonl).
 
 </td>
