@@ -81,7 +81,7 @@ MAIL_FROM = "kaviri <hello@kaviri.dev>"
 OWNER_EMAIL = "usekaviri@gmail.com"
 # Outbound (wsrc/outbound.js). Off until OUTBOUND_ENABLED is "1"; the ramp counts from
 # OUTBOUND_START. Never a kaviri.dev From. The key is the secret RESEND_TRYKAVIRI_KEY.
-OUTBOUND_ENABLED = "0"
+OUTBOUND_ENABLED = "1"
 OUTBOUND_START = "2026-11-16"
 OUTBOUND_MAX = "15"
 OUTBOUND_FROM = "Ishe at kaviri <ishe@trykaviri.com>"

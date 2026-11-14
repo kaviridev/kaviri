@@ -247,9 +247,7 @@ export default {
         await beat(env, "last_sequence", JSON.stringify(sent));
         await ensureOutboundSchema(env).catch(() => {});
         const out = await runOutbound(env, at).catch((e) => ({ error: String(e) }));
-        if (!out?.skipped || out.skipped.startsWith("paused") || out.skipped.startsWith("refusing")) {
-          await beat(env, "last_outbound", JSON.stringify(out));
-        }
+        await beat(env, "last_outbound", JSON.stringify(out));
         await beat(env, "last_cron", `retried ${retried?.retried ?? 0}, sequence sent ${sent?.sent ?? 0}`);
         await forgetOldSalts(env);
         await pruneVisits(env);

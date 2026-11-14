@@ -93,9 +93,37 @@ async function send(env, row, unsubUrl) {
   }
 }
 
+/**
+ * Pull finished emails from the content server. The feed is a JSON array of
+ * {email, company, subject, text, html?, token} at a URL that is itself the secret
+ * (OUTBOUND_FEED_URL, a Worker secret). Rows already known by email are left alone, so the
+ * feed can be re-read every hour.
+ */
+export async function pullFeed(env) {
+  if (!env.OUTBOUND_FEED_URL) return { pulled: 0, skipped: "no feed" };
+  const r = await fetch(env.OUTBOUND_FEED_URL, { headers: { Accept: "application/json" }, cf: { cacheTtl: 0 } });
+  if (!r.ok) return { pulled: 0, error: `feed ${r.status}` };
+  const items = await r.json();
+  if (!Array.isArray(items)) return { pulled: 0, error: "feed is not a list" };
+  let pulled = 0;
+  for (const it of items) {
+    if (!it || !it.email || !it.subject || !it.text || !it.token) continue;
+    const res = await env.kaviri_waitlist
+      .prepare(
+        `insert into outbound (email, company, subject, text_body, html_body, token)
+         values (?, ?, ?, ?, ?, ?) on conflict(email) do nothing`
+      )
+      .bind(String(it.email).toLowerCase(), it.company || null, it.subject, it.text, it.html || null, it.token)
+      .run();
+    pulled += res.meta?.changes || 0;
+  }
+  return { pulled, feed: items.length };
+}
+
 /** The hourly run's outbound step. Returns what it did, for the heartbeat. */
 export async function runOutbound(env, now = new Date()) {
-  if (env.OUTBOUND_ENABLED !== "1") return { skipped: "disabled" };
+  const feed = await pullFeed(env).catch((e) => ({ error: String(e) }));
+  if (env.OUTBOUND_ENABLED !== "1") return { skipped: "disabled", feed };
   if (now.getUTCHours() !== OUTBOUND_HOUR_UTC) return { skipped: "not the sending hour" };
   const dow = now.getUTCDay();
   if (dow === 0 || dow === 6) return { skipped: "weekend" };
