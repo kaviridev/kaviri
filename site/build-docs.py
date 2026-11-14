@@ -210,7 +210,7 @@ def videos(page: str):
         node = {"@type": "VideoObject", "name": strip_tags(label.group(1)).split(":")[0],
                 "description": strip_tags(label.group(1)), "contentUrl": SITE + src.group(1),
                 "thumbnailUrl": SITE + poster.group(1), "publisher": {"@id": SITE + "/#org"}}
-        local = os.path.join(ROOT, "site", src.group(1).lstrip("/"))
+        local = os.path.join(ROOT, "site", src.group(1).split("?")[0].lstrip("/"))
         try:
             secs = float(subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration",
                                          "-of", "csv=p=0", local], capture_output=True, text=True).stdout)

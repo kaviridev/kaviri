@@ -59,6 +59,8 @@ jobs:
           script: examples/demo.jsonl
           out: ${{ matrix.out }}
           preset: ${{ matrix.preset }}
+          # The brand-green backdrop, the same one the site, README and email signature use.
+          background: brand/backgrounds/take-green.png
           artifact-name: demo-${{ matrix.preset }}
 
       - name: Check it is a real video
