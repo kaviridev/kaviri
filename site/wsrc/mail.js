@@ -256,6 +256,33 @@ async function viaSmtp(env, { from, to, subject, text, html, replyTo, listUnsubs
 
 /* --------------------------------------------------- the owner's own mailbox */
 
+/** Base64 in 76-column lines, so long HTML never breaks the 998-octet SMTP line limit. */
+function b64Lines(s) {
+  return b64(s).replace(/.{1,76}/g, "$&\r\n").trimEnd();
+}
+
+/** The body part of an owner mail: plain text alone, or text then HTML as alternatives. */
+function ownerBody(text, html) {
+  const t = String(text).replace(/\r?\n/g, "\r\n");
+  if (!html) return ['Content-Type: text/plain; charset="utf-8"', "", t];
+  const bound = `kv-${crypto.randomUUID()}`;
+  return [
+    `Content-Type: multipart/alternative; boundary="${bound}"`,
+    "",
+    `--${bound}`,
+    'Content-Type: text/plain; charset="utf-8"',
+    "Content-Transfer-Encoding: base64",
+    "",
+    b64Lines(t),
+    `--${bound}`,
+    'Content-Type: text/html; charset="utf-8"',
+    "Content-Transfer-Encoding: base64",
+    "",
+    b64Lines(html),
+    `--${bound}--`,
+  ];
+}
+
 /**
  * Tell the owner something happened, through Cloudflare's send_email binding.
  *
@@ -263,7 +290,7 @@ async function viaSmtp(env, { from, to, subject, text, html, replyTo, listUnsubs
  * destination, needs no third party and no key, and therefore keeps working on the day the
  * real sender does not. Losing a confirmation is bad; not knowing anyone signed up is worse.
  */
-export async function notifyOwner(env, { subject, text }) {
+export async function notifyOwner(env, { subject, text, html }) {
   if (!env.OWNER_MAIL || !env.OWNER_EMAIL) return { sent: false, error: "no owner binding" };
   const { EmailMessage } = await import("cloudflare:email");
   const from = "waitlist@kaviri.dev";
@@ -273,9 +300,7 @@ export async function notifyOwner(env, { subject, text }) {
     `Subject: ${String(subject).replace(/[\r\n]+/g, " ")}`,
     `Message-ID: <${crypto.randomUUID()}@kaviri.dev>`,
     "MIME-Version: 1.0",
-    'Content-Type: text/plain; charset="utf-8"',
-    "",
-    String(text).replace(/\r?\n/g, "\r\n"),
+    ...ownerBody(text, html),
   ].join("\r\n");
   try {
     await env.OWNER_MAIL.send(new EmailMessage(from, env.OWNER_EMAIL, raw));

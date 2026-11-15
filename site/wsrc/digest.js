@@ -8,6 +8,7 @@
  */
 
 import { notifyOwner } from "./mail.js";
+import { render, h, stats, rows, note, button, status } from "./brand-email.js";
 
 export const DIGEST_HOUR_UTC = 8;
 
@@ -47,19 +48,30 @@ export async function sendDigest(env) {
   const c = await listCounts(env);
   const recent = c.newDay ? await recentSignups(env, 1) : [];
   const plus = (x) => (x > 0 ? `+${x}` : "no change");
-  const lines = [
-    `kaviri email list: ${c.active} subscribed`,
-    "",
-    `Last 24 hours: ${plus(c.newDay)}`,
-    `Last 7 days:   ${plus(c.newWeek)}${c.goneWeek ? `, ${c.goneWeek} unsubscribed` : ""}`,
-    `All time:      ${c.total} signed up, ${c.unsubscribed} unsubscribed`,
-  ];
-  if (c.unsent) lines.push("", `${c.unsent} welcome email(s) not sent yet. The hourly cron retries them.`);
-  if (recent.length) {
-    lines.push("", "New since yesterday:");
-    for (const r of recent) lines.push(`  ${r.email}${r.country ? ` (${r.country})` : ""}  ${r.created_at} UTC`);
-  }
-  lines.push("", "Full list and CSV: https://kaviri.dev/admin");
   const subject = `kaviri list: ${c.active} subscribed (${c.newDay ? `+${c.newDay} today` : "no change today"})`;
-  return { ...(await notifyOwner(env, { subject, text: lines.join("\n") })), ...c };
+  const blocks = [
+    status("Daily list count", c.newDay ? "good" : "neutral"),
+    stats([
+      { label: "Subscribed", value: String(c.active) },
+      { label: "24 hours", value: plus(c.newDay), subTone: c.newDay ? "good" : null },
+      { label: "7 days", value: plus(c.newWeek), sub: c.goneWeek ? `${c.goneWeek} unsubscribed` : null },
+    ]),
+    rows([
+      ["All time", `${c.total} signed up`],
+      ["Unsubscribed", String(c.unsubscribed)],
+    ]),
+  ];
+  if (c.unsent) blocks.push(note(`*${c.unsent} welcome email(s) not sent yet.* The hourly cron retries them.`));
+  if (recent.length) {
+    blocks.push(h("New since yesterday"));
+    blocks.push(rows(recent.map((r) => [`${r.created_at.slice(11, 16)} UTC`, `${r.email}${r.country ? ` (${r.country})` : ""}`])));
+  }
+  blocks.push(button("Open the list", "https://kaviri.dev/admin"));
+  const { html, text } = render({
+    preheader: `${c.active} subscribed, ${plus(c.newDay)} in the last 24 hours.`,
+    blocks,
+    reason: "Sent every day at 08:00 UTC to the kaviri owner, including days with no change.",
+    signature: false,
+  });
+  return { ...(await notifyOwner(env, { subject, text, html })), ...c };
 }

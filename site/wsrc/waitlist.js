@@ -7,6 +7,7 @@
 import { classify } from "./visits.js";
 
 import { sendMail, senderName, notifyOwner } from "./mail.js";
+import * as B from "./brand-email.js";
 import { compose, ensureSchemaOnce, newToken, unsubscribeUrl } from "./sequence.js";
 
 export const SCHEMA = `
@@ -157,10 +158,21 @@ async function confirm(env, email, key, note) {
    * sender, so it keeps working when there is no sender at all: every signup is known about
    * immediately even while the confirmations are piling up unsent.
    */
-  await notifyOwner(env, {
-    subject: `kaviri waitlist: ${email}`,
-    text: `${email}\n\n${note || "(no note)"}\n\n${r.sent ? `Confirmed via ${r.via}.` : `CONFIRMATION NOT SENT: ${r.error}`}\n\nhttps://kaviri.dev/admin`,
-  }).catch(() => {});
+  const owner = B.render({
+    preheader: note ? `"${String(note).slice(0, 80)}"` : `${email} joined the waitlist.`,
+    blocks: [
+      B.status(r.sent ? "New signup" : "Signup, welcome not sent", r.sent ? "good" : "bad"),
+      B.lead(`*${email}* joined the waitlist.`),
+      B.rows([
+        ["Note", note || "(none)"],
+        ["Welcome email", r.sent ? `sent via ${r.via}` : `NOT SENT: ${r.error}`],
+      ]),
+      B.button("Open the list", "https://kaviri.dev/admin"),
+    ],
+    reason: "Sent to the kaviri owner for every waitlist signup.",
+    signature: false,
+  });
+  await notifyOwner(env, { subject: `kaviri waitlist: ${email}`, ...owner }).catch(() => {});
 }
 
 /**

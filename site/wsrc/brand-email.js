@@ -73,6 +73,21 @@ export const link = (label, href) => ({ kind: "link", label, href });
 export const rule = () => ({ kind: "rule" });
 export const note = (text) => ({ kind: "note", text });
 
+/*
+ * Report blocks, for the owner's own mail (the daily list count, the Monday plan, a signup).
+ * Same shell as a subscriber mail so every kaviri email looks like one family.
+ */
+/** Big-number tiles in one row: [{ label, value, sub }]. Two to four read well on a phone. */
+export const stats = (items) => ({ kind: "stats", items });
+/** A label: value table: [[label, value], ...]. Values may use the inline markup. */
+export const rows = (items) => ({ kind: "rows", items });
+/** A bar from 0 to 1 with a caption under it. */
+export const progress = (fraction, caption) => ({ kind: "progress", fraction, caption });
+/** Unticked boxes, one per item. */
+export const checklist = (items) => ({ kind: "checklist", items });
+/** A coloured pill: tone is "good", "warn" or "bad". */
+export const status = (text, tone = "good") => ({ kind: "status", text, tone });
+
 /**
  * Inline markup, kept to the two things prose actually needs.
  *
@@ -114,6 +129,49 @@ function blockHtml(b) {
       return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="border-top:1px solid ${C.rule};font-size:0;line-height:0;height:1px;">&nbsp;</td></tr></table><div style="height:24px;line-height:24px;">&nbsp;</div>`;
     case "note":
       return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 16px;"><tr><td style="background:${C.accentWash};border-left:3px solid ${C.accent};padding:12px 16px;font-family:${SANS};font-size:14px;line-height:1.55;color:${C.ink};">${inline(b.text)}</td></tr></table>`;
+    case "stats": {
+      const w = Math.floor(100 / b.items.length);
+      const cells = b.items
+        .map(
+          (it, i) => `<td class="kv-tile" width="${w}%" valign="top" style="background:${C.page};border:1px solid ${C.rule};border-radius:8px;padding:14px 14px 12px;">
+  <div style="font-family:${SANS};font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:${C.muted};">${esc(it.label)}</div>
+  <div style="margin-top:6px;font-family:${SANS};font-size:26px;line-height:1.1;font-weight:700;letter-spacing:-0.02em;color:${C.ink};">${esc(it.value)}</div>
+  ${it.sub ? `<div style="margin-top:4px;font-family:${SANS};font-size:12px;line-height:1.4;color:${it.subTone === "good" ? C.accent : C.muted};">${esc(it.sub)}</div>` : ""}
+</td>${i < b.items.length - 1 ? '<td width="8" style="font-size:0;">&nbsp;</td>' : ""}`
+        )
+        .join("");
+      return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 20px;"><tr>${cells}</tr></table>`;
+    }
+    case "rows":
+      return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 20px;border-collapse:collapse;">${b.items
+        .map(
+          ([k, v], i) => `<tr><td style="padding:9px 12px 9px 0;${i ? `border-top:1px solid ${C.rule};` : ""}font-family:${SANS};font-size:13px;color:${C.muted};white-space:nowrap;vertical-align:top;">${esc(k)}</td><td style="padding:9px 0;${i ? `border-top:1px solid ${C.rule};` : ""}font-family:${SANS};font-size:14px;line-height:1.5;color:${C.ink};text-align:right;word-break:break-word;">${inline(v)}</td></tr>`
+        )
+        .join("")}</table>`;
+    case "progress": {
+      const pct = Math.max(0, Math.min(100, Math.round(Number(b.fraction || 0) * 100)));
+      // One row, two cells: the fill and the rest of the track. Rounded ends only where they are
+      // the end of the bar, so a partly filled bar reads as one track rather than two pills.
+      const cell = (w, bg, radius) =>
+        `<td ${w ? `width="${w}%" ` : ""}class="${bg === C.wash ? "kv-track" : ""}" style="background:${bg};height:10px;font-size:0;line-height:0;border-radius:${radius};">&nbsp;</td>`;
+      const shown = Math.max(pct, pct > 0 ? 2 : 0);
+      const parts =
+        shown === 0 ? cell(0, C.wash, "5px")
+        : shown >= 100 ? cell(100, C.accent, "5px")
+        : cell(shown, C.accent, "5px 0 0 5px") + cell(0, C.wash, "0 5px 5px 0");
+      return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 6px;"><tr>${parts}</tr></table>
+<p style="margin:0 0 20px;font-family:${SANS};font-size:12px;line-height:1.5;color:${C.muted};">${inline(b.caption || `${pct}%`)}</p>`;
+    }
+    case "checklist":
+      return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 20px;">${b.items
+        .map(
+          (t) => `<tr><td width="26" valign="top" style="padding:7px 0;"><div style="width:14px;height:14px;border:2px solid ${C.accent};border-radius:4px;font-size:0;line-height:0;">&nbsp;</div></td><td style="padding:6px 0;font-family:${SANS};font-size:14px;line-height:1.5;color:${C.ink};">${inline(t)}</td></tr>`
+        )
+        .join("")}</table>`;
+    case "status": {
+      const tone = { good: [C.accentWash, C.accent], warn: ["#fdf3dc", "#8a5a00"], bad: ["#fde4e1", "#b42318"] }[b.tone] || [C.wash, C.muted];
+      return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 16px;"><tr><td style="background:${tone[0]};border-radius:999px;padding:5px 12px;font-family:${SANS};font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:${tone[1]};">${esc(b.text)}</td></tr></table>`;
+    }
     default:
       return "";
   }
@@ -134,6 +192,16 @@ function blockText(b) {
       return `${b.label}: ${b.href}`;
     case "rule":
       return "-".repeat(56);
+    case "stats":
+      return b.items.map((it) => `${it.label}: ${it.value}${it.sub ? ` (${it.sub})` : ""}`).join("\n");
+    case "rows":
+      return b.items.map(([k, v]) => `${k}: ${plain(v)}`).join("\n");
+    case "progress":
+      return `[${"#".repeat(Math.round(Math.max(0, Math.min(1, b.fraction || 0)) * 20)).padEnd(20, ".")}] ${plain(b.caption || "")}`;
+    case "checklist":
+      return b.items.map((t) => `[ ] ${plain(t)}`).join("\n");
+    case "status":
+      return `[${String(b.text).toUpperCase()}]`;
     default:
       return "";
   }
@@ -156,14 +224,14 @@ function letterhead() {
 </table>`;
 }
 
-function footer({ unsubscribeUrl, reason }) {
+function footer({ unsubscribeUrl, reason, signature = true }) {
   const small = `font-family:${SANS};font-size:12px;line-height:1.6;color:${C.faint};`;
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:8px;">
   <tr><td style="border-top:1px solid ${C.rule};padding-top:18px;">
     <!-- Dogfooding: the animation is a kaviri take (examples/signature/), so the footer is a demo. -->
-    <a href="https://kaviri.dev/?utm_source=email&amp;utm_medium=footer" style="display:block;margin:0 0 16px;text-decoration:none;">
+    ${signature ? `<a href="https://kaviri.dev/?utm_source=email&amp;utm_medium=footer" style="display:block;margin:0 0 16px;text-decoration:none;">
       <img src="https://kaviri.dev/email/signature.gif?v=3" width="360" alt="kaviri: your demo video is a build artifact. This animation was filmed by kaviri." style="display:block;width:360px;max-width:100%;height:auto;border:0;">
-    </a>
+    </a>` : ""}
     <p style="margin:0 0 6px;${small}">${esc(reason)}</p>
     <p style="margin:0;${small}">
       <a href="https://kaviri.dev" style="color:${C.faint};text-decoration:underline;">kaviri.dev</a>
@@ -182,7 +250,7 @@ function footer({ unsubscribeUrl, reason }) {
  * courtesy, it is the difference between landing in the inbox and landing in spam, and it is
  * what a terminal mail client and a screen reader actually get.
  */
-export function render({ preheader, blocks, unsubscribeUrl, reason }) {
+export function render({ preheader, blocks, unsubscribeUrl, reason, signature = true }) {
   const body = blocks.map(blockHtml).join("\n");
 
   /*
@@ -210,23 +278,29 @@ export function render({ preheader, blocks, unsubscribeUrl, reason }) {
     .kv-card p, .kv-card td, .kv-card span, .kv-card h2 { color: #f2f2ef !important; }
     .kv-card a { color: #3ddc97 !important; }
     .kv-card code { background: #1f1f22 !important; color: #f2f2ef !important; }
+    .kv-tile, .kv-track { background: #1f1f22 !important; border-color: #2c2c30 !important; }
   }
   @media only screen and (max-width: 620px) {
-    .kv-card { padding: 24px 20px !important; }
+    .kv-outer { padding: 16px 10px !important; }
+    .kv-card { padding: 24px 18px !important; }
+    .kv-tile { padding: 12px 10px 10px !important; }
   }
 </style>
 </head>
 <body class="kv-page" style="margin:0;padding:0;background:${C.page};">
 ${hidden}
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="kv-page" style="background:${C.page};">
-  <tr><td align="center" style="padding:32px 16px;">
-    <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:100%;">
+  <tr><td align="center" class="kv-outer" style="padding:32px 16px;">
+    <!--[if mso]><table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->
+    <!-- Fluid up to 600px. A table with width="600" ignores max-width and pushes a phone sideways. -->
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;">
       <tr><td class="kv-card" style="background:${C.paper};border:1px solid ${C.rule};border-radius:10px;padding:32px 36px;">
 ${letterhead()}
 ${body}
-${footer({ unsubscribeUrl, reason })}
+${footer({ unsubscribeUrl, reason, signature })}
       </td></tr>
     </table>
+    <!--[if mso]></td></tr></table><![endif]-->
   </td></tr>
 </table>
 </body></html>`;

@@ -12,6 +12,7 @@
 import { pending } from "./stripe.js";
 import { retryUnconfirmed } from "./waitlist.js";
 import { sendPlan } from "./plan.js";
+import { sendDigest } from "./digest.js";
 import { STEPS, ensureSchema, ensureSchemaOnce, runSequence } from "./sequence.js";
 import * as stats from "./stats.js";
 import { beat } from "./stats.js";
@@ -170,6 +171,7 @@ async function dashboard(env) {
     <a class="btn btn-secondary" href="/admin/export.csv">Export CSV</a>
     <form method="POST" action="/admin/retry"><button class="btn btn-secondary" type="submit">Retry unsent</button></form>
     <form method="POST" action="/admin/sequence"><button class="btn btn-secondary" type="submit">Run sequence now</button></form>
+    <form method="POST" action="/admin/digest"><button class="btn btn-secondary" type="submit">Send list email</button></form>
     <form method="POST" action="/admin/plan"><button class="btn btn-secondary" type="submit">Send plan email</button></form>
     <form method="POST" action="/admin/logout"><button class="btn btn-secondary" type="submit">Sign out</button></form>
   </div>
@@ -310,6 +312,13 @@ export async function handle(request, env, url) {
   if (url.pathname === "/admin/plan" && request.method === "POST") {
     const r = await sendPlan(env);
     await beat(env, "last_plan", JSON.stringify(r));
+    return new Response(null, { status: 303, headers: { Location: "/admin" } });
+  }
+
+  // The daily list email, on demand, for the same reason.
+  if (url.pathname === "/admin/digest" && request.method === "POST") {
+    const r = await sendDigest(env);
+    await beat(env, "last_digest", JSON.stringify(r));
     return new Response(null, { status: 303, headers: { Location: "/admin" } });
   }
 

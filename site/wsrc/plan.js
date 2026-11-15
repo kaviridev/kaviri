@@ -14,6 +14,7 @@
 
 import { notifyOwner } from "./mail.js";
 import { listCounts } from "./digest.js";
+import { render, h, p, stats, rows, progress, checklist, status as pill, note, link } from "./brand-email.js";
 
 export const PLAN_DAY_UTC = 1; // Monday
 export const PLAN_HOUR_UTC = 7;
@@ -118,30 +119,39 @@ export async function sendPlan(env, now = new Date()) {
   const gap = live.cents - target;
   const status = live.cents >= target ? "ON TRACK" : live.cents >= target * 0.6 ? "SLIGHTLY BEHIND" : "BEHIND";
 
-  const bar = (cents, goal) => {
-    const n = Math.max(0, Math.min(20, Math.round((cents / goal) * 20)));
-    return "#".repeat(n) + ".".repeat(20 - n);
-  };
+  const goal = last.target_mrr * 100;
+  const tone = status === "ON TRACK" ? "good" : status === "SLIGHTLY BEHIND" ? "warn" : "bad";
+  const actions = String(current.actions).split("\n").filter(Boolean).map((a) => a.replace(/^[-*]\s*/, ""));
 
-  const lines = [
-    `Week ${current.week} of ${last.week} (from ${current.starts}): ${current.focus}`,
-    "",
-    `MRR        ${usd(live.cents)} from ${live.paying} paying   target this week ${usd(target)}   ${status}${gap < 0 ? ` (${usd(-gap)} short)` : ""}`,
-    `           [${bar(live.cents, last.target_mrr * 100)}] ${usd(live.cents)} of ${usd(last.target_mrr * 100)} by ${last.starts}`,
-    test.cents ? `           (test mode: ${usd(test.cents)} from ${test.paying}; not counted)` : null,
-    `List       ${list.active} subscribed, +${list.newWeek} this week`,
-    `Visitors   ${vis} unique in the last 7 days`,
-    st != null ? `Stars      ${st} on github.com/${REPO}` : null,
-    "",
-    "This week:",
-    ...String(current.actions).split("\n").filter(Boolean).map((a) => `  [ ] ${a.replace(/^[-*]\s*/, "")}`),
-  ].filter((l) => l !== null);
-  if (next) lines.push("", `Next week (${next.starts}): ${next.focus}`);
+  const blocks = [
+    pill(`Week ${current.week} of ${last.week} \u00b7 ${status.toLowerCase()}`, tone),
+    p(`*${current.focus}*`),
+    stats([
+      { label: "MRR", value: usd(live.cents), sub: `${live.paying} paying` },
+      { label: "Target", value: usd(target), sub: gap < 0 ? `${usd(-gap)} short` : "met", subTone: gap >= 0 ? "good" : null },
+      { label: "Goal", value: usd(goal), sub: `by ${last.starts}` },
+    ]),
+    progress(goal ? live.cents / goal : 0, `${usd(live.cents)} of ${usd(goal)} by ${last.starts}`),
+    rows([
+      ["Email list", `${list.active} subscribed, +${list.newWeek} this week`],
+      ["Visitors", `${vis} unique in 7 days`],
+      ...(st != null ? [["GitHub stars", `${st} on \`${REPO}\``]] : []),
+      ...(test.cents ? [["Test mode", `${usd(test.cents)} from ${test.paying} (not counted)`]] : []),
+    ]),
+    h("This week"),
+    checklist(actions),
+  ];
   if (status === "BEHIND" && current.week >= 4) {
-    lines.push("", "Behind by more than 40%: move this week's hours from content to outbound and design-partner calls.");
+    blocks.push(note("*Behind by more than 40%.* Move this week's hours from content to outbound and design-partner calls."));
   }
-  lines.push("", "Daily numbers arrive in the 08:00 list email. Plan source: kaviri-billing/docs/PLAN-1K-MRR.md");
+  if (next) blocks.push(h(`Next week \u00b7 ${next.starts}`), p(next.focus));
+  const { html, text } = render({
+    preheader: `${usd(live.cents)} MRR against ${usd(target)} this week. ${current.focus}.`,
+    blocks,
+    reason: "The Monday plan email, sent at 07:00 UTC. Plan source: kaviri-billing/docs/PLAN-1K-MRR.md. Daily numbers arrive in the 08:00 list email.",
+    signature: false,
+  });
 
   const subject = `kaviri week ${current.week}/${last.week}: ${usd(live.cents)} MRR, ${status.toLowerCase()}`;
-  return { ...(await notifyOwner(env, { subject, text: lines.join("\n") })), week: current.week, mrr: live.cents };
+  return { ...(await notifyOwner(env, { subject, text, html })), week: current.week, mrr: live.cents };
 }
