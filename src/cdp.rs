@@ -1421,6 +1421,106 @@ impl Cdp {
         out
     }
 
+    /// Render an animated page as `frames` PNGs in `dir`, named `{prefix}00000.png` on.
+    ///
+    /// The page's animations are paused and seeked to each frame's time through the
+    /// `__kvSeek` hook the motion module puts on every card, so the frames are exact
+    /// rather than whatever a busy machine managed to paint. See `crate::motion`.
+    #[allow(clippy::too_many_arguments)]
+    pub fn render_html_frames(
+        &mut self,
+        html: &str,
+        w: u32,
+        h: u32,
+        frames: usize,
+        fps: u32,
+        dir: &std::path::Path,
+        prefix: &str,
+        transparent: bool,
+    ) -> Result<(), String> {
+        let target = self.send_raw("Target.createTarget", json!({"url": "about:blank"}), None)?;
+        let target_id = target["targetId"]
+            .as_str()
+            .ok_or("no targetId")?
+            .to_string();
+        let out = (|| -> Result<(), String> {
+            let attach = self.send_raw(
+                "Target.attachToTarget",
+                json!({"targetId": target_id, "flatten": true}),
+                None,
+            )?;
+            let sid = attach["sessionId"]
+                .as_str()
+                .ok_or("no sessionId")?
+                .to_string();
+            let s = Some(sid.as_str());
+            self.send_raw(
+                "Emulation.setDeviceMetricsOverride",
+                json!({"width": w, "height": h, "deviceScaleFactor": 1, "mobile": false}),
+                s,
+            )?;
+            if transparent {
+                self.send_raw(
+                    "Emulation.setDefaultBackgroundColorOverride",
+                    json!({"color": {"r": 0, "g": 0, "b": 0, "a": 0}}),
+                    s,
+                )?;
+            }
+            let tree = self.send_raw("Page.getFrameTree", json!({}), s)?;
+            let frame_id = tree["frameTree"]["frame"]["id"]
+                .as_str()
+                .ok_or("no frame id")?
+                .to_string();
+            self.send_raw(
+                "Page.setDocumentContent",
+                json!({"frameId": frame_id, "html": html}),
+                s,
+            )?;
+            self.send_raw_within(
+                "Runtime.evaluate",
+                json!({
+                    "expression": "document.fonts.ready.then(() => Promise.all([...document.images].map(i => i.decode().catch(() => 0)))).then(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))).then(() => typeof window.__kvSeek)",
+                    "awaitPromise": true,
+                    "returnByValue": true,
+                }),
+                s,
+                Duration::from_secs(10),
+            )?;
+            for i in 0..frames {
+                let ms = i as f64 * 1000.0 / fps as f64;
+                // Seek, then wait one animation frame so the paint reflects the seek.
+                self.send_raw_within(
+                    "Runtime.evaluate",
+                    json!({
+                        "expression": format!("(window.__kvSeek && window.__kvSeek({ms:.3}), new Promise(r => requestAnimationFrame(() => r(0))))"),
+                        "awaitPromise": true,
+                    }),
+                    s,
+                    Duration::from_secs(10),
+                )?;
+                let shot = self.send_raw_within(
+                    "Page.captureScreenshot",
+                    json!({
+                        "format": "png",
+                        "clip": {"x": 0, "y": 0, "width": w, "height": h, "scale": 1},
+                        "optimizeForSpeed": true,
+                    }),
+                    s,
+                    Duration::from_secs(20),
+                )?;
+                let data = shot["data"].as_str().ok_or("screenshot had no data")?;
+                let png = base64::engine::general_purpose::STANDARD
+                    .decode(data)
+                    .map_err(|e| format!("screenshot base64: {e}"))?;
+                let f = dir.join(format!("{prefix}{i:05}.png"));
+                std::fs::write(&f, png).map_err(|e| format!("{}: {e}", f.display()))?;
+            }
+            Ok(())
+        })();
+        let _ = self.send_raw("Target.closeTarget", json!({"targetId": target_id}), None);
+        out
+    }
+
     /// Evaluate JS in the page; returns the by-value result.
     pub fn evaluate(&mut self, expr: &str) -> Result<Value, String> {
         let r = self.send(

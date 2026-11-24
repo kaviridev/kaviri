@@ -146,6 +146,23 @@ taskbar; `--dock on` draws the dock without the menu bar, `--dock-position` puts
 icon sets. The chrome is read off the page when `stop_recording` runs, so stop on the page you
 want the address bar to show.
 
+## Titles and callouts
+
+```jsonl
+{"op":"title","kicker":"Introducing","text":"Invoices in one click","sub":"Now in beta"}
+{"op":"start_recording"}
+{"op":"click","selector":"#new-invoice"}
+{"op":"callout","text":"One click","style":"badge"}
+{"op":"wait","ms":2000}
+{"op":"title","text":"acme.dev","style":"bold","at":"end"}
+{"op":"stop_recording"}
+```
+
+A `title` before `start_recording` is an intro card, `at: "end"` an outro; a `callout` draws a
+lower third, badge or big line over the take from the moment it runs. Styles are in
+`kaviri motion`. Both take your own `html`, rendered frame by frame by seeking its CSS
+animations, so motion graphics come out identical on any machine.
+
 ## What it will not do
 
 It will not record a native application, a terminal, or anything outside the browser it starts.

@@ -26,7 +26,7 @@ Key facts:
 ## Docs
 
 - [Overview](https://kaviri.dev/docs/): what it is, what a script looks like, how to run one.
-- [Script protocol](https://kaviri.dev/docs/script-protocol/): every op and field (frame, navigate, wait, start_recording, click, hover, type, press, scroll, mark, say, voice, inspect, stop_recording).
+- [Script protocol](https://kaviri.dev/docs/script-protocol/): every op and field (frame, navigate, wait, start_recording, click, hover, type, press, scroll, mark, say, voice, title, callout, inspect, stop_recording).
 - [The camera](https://kaviri.dev/docs/camera/): how zooms and pans are derived from interactions.
 - [In CI](https://kaviri.dev/docs/ci/): the GitHub Action and the checks that fail a build on an empty take.
 - [MCP server](https://kaviri.dev/docs/mcp/): the op protocol as MCP tools for agents.

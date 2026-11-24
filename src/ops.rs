@@ -74,6 +74,8 @@ pub struct Session {
     pub speech_until: f64,
     /// The speech engine, chosen the first time a line is said.
     engine: Option<std::sync::Arc<dyn crate::tts::Engine>>,
+    /// Title cards and callouts for the take; see `crate::motion`.
+    pub cards: Vec<crate::motion::Card>,
 }
 
 /// The pointer shapes kaviri can draw, in the macOS idiom.
@@ -668,6 +670,7 @@ impl Session {
             clips: Vec::new(),
             speech_until: f64::NEG_INFINITY,
             engine: None,
+            cards: Vec::new(),
         })
     }
 
@@ -1545,6 +1548,30 @@ impl Session {
                 let label = op["label"].as_str().unwrap_or("").to_string();
                 Ok(self.mark("mark", &label, None))
             }
+            "title" => {
+                let card = crate::motion::title(op, self.cdp.is_recording())?;
+                let at = match card.place {
+                    crate::motion::Place::End => "end",
+                    _ => "start",
+                };
+                let secs = card.secs();
+                self.cards.push(card);
+                Ok(json!({"event": "title", "at": at, "secs": secs}))
+            }
+            "callout" => {
+                if !self.cdp.is_recording() {
+                    return Err("callout draws over the take, so it needs start_recording \
+                                first; for a card before the take, use title"
+                        .into());
+                }
+                let t = self.cdp.now_rec();
+                let card = crate::motion::callout(op, t)?;
+                let until = t + card.secs();
+                self.cards.push(card);
+                let mut m = self.mark("callout", op["text"].as_str().unwrap_or(""), None);
+                m["until"] = json!(until);
+                Ok(m)
+            }
             "frame" => {
                 if self.cdp.is_recording() {
                     return Err("frame must come before start_recording: a take cannot \
@@ -1588,6 +1615,10 @@ impl Session {
                 // zooms at times that belong to footage that no longer exists.
                 self.marks.clear();
                 self.clips.clear();
+                // Titles sent before this take are its intro; callouts belong to a take
+                // that has already been rendered.
+                self.cards
+                    .retain(|c| !matches!(c.place, crate::motion::Place::Over(_)));
                 self.speech_until = f64::NEG_INFINITY;
                 self.rendered = None;
                 let max_w = (self.css_w as f64 * self.scale) as u32;
@@ -1694,6 +1725,28 @@ impl Session {
                     }
                 }
                 let sound = sound?;
+                let cards = std::mem::take(&mut self.cards);
+                if !cards.is_empty() && self.loop_tail > 0.0 {
+                    eprintln!("kaviri: warning: titles break --loop: the video no longer ends where it starts");
+                }
+                let size = self.out_size;
+                let keep = self.keep_temp;
+                let cdp = &mut self.cdp;
+                let motion = crate::motion::finish(
+                    &out,
+                    dur,
+                    &cards,
+                    size,
+                    keep,
+                    &mut |html, w, h, n, fps, dir, prefix, tr| {
+                        cdp.render_html_frames(html, w, h, n, fps, dir, prefix, tr)
+                    },
+                )?;
+                let dur = if motion.is_null() {
+                    dur
+                } else {
+                    motion["duration"].as_f64().unwrap_or(dur)
+                };
                 let mut result = json!({
                     "event": "recording_rendered", "path": out,
                     "duration": dur, "zoom_events": n_ev,
@@ -1705,6 +1758,9 @@ impl Session {
                 }
                 if !sound.is_null() {
                     result["soundtrack"] = sound;
+                }
+                if !motion.is_null() {
+                    result["motion"] = motion;
                 }
                 if let Some(w) = warning {
                     result["warning"] = json!(w);

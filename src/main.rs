@@ -16,6 +16,7 @@ mod icons;
 mod inspect;
 #[cfg(feature = "mcp")]
 mod mcp;
+mod motion;
 mod ops;
 mod soundtrack;
 mod tts;
@@ -36,7 +37,7 @@ USAGE:
   kaviri record --script <file.jsonl> --out <file.mp4> [options]
   kaviri serve [--port <n>] [--out <file.mp4>] [options]
   kaviri mcp [options]          an MCP server on stdio (docs/MCP.md)
-  kaviri doctor [--fix] | kaviri presets | kaviri backgrounds | kaviri frames
+  kaviri doctor [--fix] | kaviri presets | kaviri backgrounds | kaviri frames | kaviri motion
   kaviri voices | kaviri --version
 
 OPTIONS:
@@ -373,6 +374,13 @@ fn parse_argv_from<I: Iterator<Item = String>>(mut argv: I) -> Result<Parsed, St
         return Ok(Parsed::Help(format!(
             "Frames (--frame):\n{}\n\nUse one with: kaviri record --frame ios ...",
             device::help()
+        )));
+    }
+    if mode == "--motion" || mode == "motion" {
+        return Ok(Parsed::Help(format!(
+            "{}\nUse one with: {{\"op\":\"title\",\"text\":\"...\",\"style\":\"launch\"}} or \
+             {{\"op\":\"callout\",\"text\":\"...\",\"style\":\"badge\"}}",
+            motion::styles_help()
         )));
     }
     if mode == "--voices" || mode == "voices" {

@@ -539,6 +539,62 @@ and captions.
 
 A recorded clip placed at this moment, the way `say` places a line.
 
+## `title`
+
+```jsonc
+{"op":"title","kicker":"Introducing","text":"Demos that film themselves","sub":"A script in your repo."}
+{"op":"title","text":"kaviri.dev","style":"bold","at":"end","ms":2200}
+```
+
+| field | type | default |
+|---|---|---|
+| `text` | string | required, unless `html` or `file` |
+| `sub` | string | none |
+| `kicker` | string | none; a small line above the headline (`launch` only) |
+| `style` | `launch`, `bold`, `terminal` | `launch` |
+| `theme` | `dark`, `light` | `dark` (`launch` only) |
+| `accent` | CSS colour | brand green |
+| `at` | `start`, `end` | `start` before a take; required during one |
+| `ms` | number, 600 to 15000 | `2600` |
+| `html` / `file` | your own page, as a string or a path | none |
+
+A full-screen animated card joined onto the take with a 0.4 s dissolve: an intro when it comes
+before `start_recording` (several play in order), an outro with `at: "end"`. The take's sound,
+narration included, is delayed by the intro so it still lands on the action it was written
+for, and the result's `motion.take_starts_at` says by how much.
+
+`launch` blurs the words in one by one over a soft glow, the way product launch cards set a
+headline. `bold` pops big heavy words in on a solid colour. `terminal` types the text at a
+prompt and prints `sub` under it. `kaviri motion` lists the styles.
+
+Your own `html` is rendered the same way: kaviri pauses every animation on the page and seeks
+it to each frame's time, then takes a screenshot. Anything driven by CSS animations, or by a
+`window.kvFrame(t)` function you define (t in seconds), renders exactly, frame by frame, on any
+machine. The page can read `--dur`, `--w` and `--h` as CSS variables, and Inter is available as
+`KvInter`.
+
+## `callout`
+
+```jsonc
+{"op":"callout","text":"Cmd+K, typed by the script","sub":"no screen recorder"}
+{"op":"callout","text":"Deployed","style":"badge","ms":1800}
+```
+
+| field | type | default |
+|---|---|---|
+| `text` | string | required, unless `html` or `file` |
+| `sub` | string | none |
+| `style` | `lower-third`, `badge`, `big` | `lower-third` |
+| `accent` | CSS colour | brand green |
+| `ms` | number, 600 to 15000 | `2400` |
+| `html` / `file` | your own page, transparent where the take should show | none |
+
+An animated graphic drawn over the take from this moment, during a take only. It does not
+pause the script, so follow it with a `wait` as long as you want it seen; it is cut off where
+the take ends. `lower-third` is a name-strap card in the bottom corner, `badge` a pill that
+pops in at the top, `big` one line over a dimmed frame. Placement keeps clear of the platform
+chrome on vertical video, the same safe area the captions use.
+
 ## `inspect`
 
 ```jsonc

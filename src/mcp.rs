@@ -75,6 +75,8 @@ pub const OP_TOOLS: &[(&str, &str)] = &[
     ("inspect", "inspect"),
     ("say", "say"),
     ("voice", "voice"),
+    ("title", "title"),
+    ("callout", "callout"),
 ];
 
 /// The soundtrack flags, which `open` and `record_demo` both take.
@@ -1050,7 +1052,19 @@ impl Kaviri {
                     k.id.clone(),
                     k.status,
                     k.path.clone(),
-                    mark_pairs(&k.marks),
+                    {
+                        // Marks are on the take's clock; an intro title moves the take later
+                        // in the finished video by this much.
+                        let lead = k
+                            .rendered
+                            .as_ref()
+                            .and_then(|r| r["motion"]["take_starts_at"].as_f64())
+                            .unwrap_or(0.0);
+                        mark_pairs(&k.marks)
+                            .into_iter()
+                            .map(|(t, kind)| (t + lead, kind))
+                            .collect::<Vec<_>>()
+                    },
                     k.rendered.as_ref().and_then(|r| r["duration"].as_f64()),
                 )
             })
@@ -1278,6 +1292,28 @@ pub fn tools() -> Vec<Tool> {
          schema(json!({"file": {"type": "string"}, "text": {"type": "string"},
                        "wait": {"type": "boolean"},
                        "gain_db": {"type": "number", "description": "-60 to 24"}}), &["file"])),
+        ("title",
+         "Add a full-screen animated title card. Sent before start it is an intro; at: \"end\" \
+          makes it an outro. Styles: launch (words blur in over a glow, default), bold (big words \
+          pop in on a solid colour), terminal (typed at a prompt). html is your own animated page \
+          instead: CSS animations and window.kvFrame(t) are rendered frame by frame.",
+         schema(json!({"text": {"type": "string"}, "sub": {"type": "string"},
+                       "kicker": {"type": "string", "description": "small line above, e.g. Introducing"},
+                       "style": {"type": "string", "enum": ["launch", "bold", "terminal"]},
+                       "theme": {"type": "string", "enum": ["dark", "light"]},
+                       "accent": {"type": "string", "description": "CSS colour"},
+                       "at": {"type": "string", "enum": ["start", "end"]},
+                       "ms": ms("how long the card lasts, 600 to 15000, default 2600"),
+                       "html": {"type": "string"}}), &[])),
+        ("callout",
+         "Draw an animated callout over the take from this moment, during a take only. Styles: \
+          lower-third (default), badge (a pill at the top), big (one line over a dimmed frame). \
+          It does not pause the script: follow it with a wait as long as you want it seen.",
+         schema(json!({"text": {"type": "string"}, "sub": {"type": "string"},
+                       "style": {"type": "string", "enum": ["lower-third", "badge", "big"]},
+                       "accent": {"type": "string", "description": "CSS colour"},
+                       "ms": ms("how long it shows, default 2400"),
+                       "html": {"type": "string"}}), &[])),
         ("stop",
          "Stop filming and render the MP4. Returns path, duration, zoom_events (0 means nothing \
           was framed: a broken script), the marks and the take id for preview.",
