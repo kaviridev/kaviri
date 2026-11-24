@@ -76,6 +76,8 @@ pub struct Session {
     engine: Option<std::sync::Arc<dyn crate::tts::Engine>>,
     /// Title cards and callouts for the take; see `crate::motion`.
     pub cards: Vec<crate::motion::Card>,
+    /// The browser binary asked for, so the cards can be rendered in a browser of their own.
+    chromium: Option<String>,
 }
 
 /// The pointer shapes kaviri can draw, in the macOS idiom.
@@ -671,6 +673,7 @@ impl Session {
             speech_until: f64::NEG_INFINITY,
             engine: None,
             cards: Vec::new(),
+            chromium: chromium.map(String::from),
         })
     }
 
@@ -1731,17 +1734,30 @@ impl Session {
                 }
                 let size = self.out_size;
                 let keep = self.keep_temp;
-                let cdp = &mut self.cdp;
-                let motion = crate::motion::finish(
-                    &out,
-                    dur,
-                    &cards,
-                    size,
-                    keep,
-                    &mut |html, w, h, n, fps, dir, prefix, tr| {
-                        cdp.render_html_frames(html, w, h, n, fps, dir, prefix, tr)
-                    },
-                )?;
+                /*
+                 * The cards are rendered in a browser of their own, launched at 1x for the
+                 * length of the render. Rendering them in a tab of the take's browser was
+                 * the first version, and under a phone frame it hung: that browser runs at
+                 * the frame's forced 3x scale with a heavy page still live in it, and a
+                 * 1080x2344 tab beside it never painted. A fresh browser costs a second.
+                 */
+                let motion = if cards.is_empty() {
+                    Ok(Value::Null)
+                } else {
+                    let mut gfx =
+                        Cdp::launch(self.chromium.as_deref(), size.0, size.1, 1.0, false)?;
+                    crate::motion::finish(
+                        &out,
+                        dur,
+                        &cards,
+                        size,
+                        keep,
+                        &mut |html, w, h, n, fps, dir, prefix, tr| {
+                            gfx.render_html_frames(html, w, h, n, fps, dir, prefix, tr)
+                        },
+                    )
+                };
+                let motion = motion?;
                 let dur = if motion.is_null() {
                     dur
                 } else {

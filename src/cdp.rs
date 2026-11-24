@@ -1479,7 +1479,7 @@ impl Cdp {
             self.send_raw_within(
                 "Runtime.evaluate",
                 json!({
-                    "expression": "document.fonts.ready.then(() => Promise.all([...document.images].map(i => i.decode().catch(() => 0)))).then(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))).then(() => typeof window.__kvSeek)",
+                    "expression": "document.fonts.ready.then(() => Promise.all([...document.images].map(i => i.decode().catch(() => 0)))).then(() => typeof window.__kvSeek)",
                     "awaitPromise": true,
                     "returnByValue": true,
                 }),
@@ -1488,12 +1488,13 @@ impl Cdp {
             )?;
             for i in 0..frames {
                 let ms = i as f64 * 1000.0 / fps as f64;
-                // Seek, then wait one animation frame so the paint reflects the seek.
+                // Seek. No waiting for an animation frame: a tab the browser treats as hidden
+                // (which is what it does under phone emulation) never runs one, and the
+                // screenshot below forces a paint of the seeked state anyway.
                 self.send_raw_within(
                     "Runtime.evaluate",
                     json!({
-                        "expression": format!("(window.__kvSeek && window.__kvSeek({ms:.3}), new Promise(r => requestAnimationFrame(() => r(0))))"),
-                        "awaitPromise": true,
+                        "expression": format!("window.__kvSeek && window.__kvSeek({ms:.3}), 0"),
                     }),
                     s,
                     Duration::from_secs(10),
@@ -1503,6 +1504,9 @@ impl Cdp {
                     json!({
                         "format": "png",
                         "clip": {"x": 0, "y": 0, "width": w, "height": h, "scale": 1},
+                        // Paints the page itself rather than waiting on the compositor, which
+                        // never produces a frame for a tab the browser considers hidden.
+                        "captureBeyondViewport": true,
                         "optimizeForSpeed": true,
                     }),
                     s,

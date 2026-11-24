@@ -249,7 +249,7 @@ pub fn page(card: &Card, w: u32, h: u32) -> Result<String, String> {
     Ok(format!(
         "<!doctype html><html><head><meta charset=utf-8><style>{font}\
          :root{{--dur:{dur}ms}}\
-         *{{box-sizing:border-box}}\
+         *{{box-sizing:border-box}}p{{text-wrap:balance}}\
          html,body{{margin:0;width:{w}px;height:{h}px;overflow:hidden;background:{bg}}}\
          @keyframes kvIn{{to{{opacity:1;filter:blur(0);transform:none}}}}\
          </style>{seek}</head><body>{body}</body></html>",
@@ -285,12 +285,23 @@ fn with_seek(html: &str, w: u32, h: u32, ms: u64) -> String {
     }
 }
 
+/// The unit everything on a card is sized from. On landscape and square video it is the
+/// short side. A portrait video is watched full screen on a phone, where a card sized from
+/// its 1080px width reads small, so it gets a third more.
+fn unit(w: u32, h: u32) -> f64 {
+    if h as f64 > w as f64 * 1.2 {
+        w as f64 * 1.35
+    } else {
+        w.min(h) as f64
+    }
+}
+
 /// Type size for a headline: as big as the short side allows, smaller for longer lines.
 fn headline_px(text: &str, w: u32, h: u32, max: f64) -> f64 {
-    let short = w.min(h) as f64;
+    let short = unit(w, h);
     let n = text.chars().count() as f64;
     let portrait = h as f64 > w as f64 * 1.2;
-    let fit = if portrait { 1.6 } else { 2.6 } * w.min(h).max(1) as f64 / n.max(6.0);
+    let fit = if portrait { 2.3 } else { 2.6 } * w.min(h).max(1) as f64 / n.max(6.0);
     (short * max).min(fit).max(short * 0.045)
 }
 
@@ -322,7 +333,7 @@ fn text_of(op: &Value) -> String {
 }
 
 fn launch(op: &Value, w: u32, h: u32) -> String {
-    let short = w.min(h) as f64;
+    let short = unit(w, h);
     let light = op["theme"].as_str() == Some("light");
     let (bg, fg, muted) = if light {
         ("#ffffff", "#0b0b0c", "rgba(11,11,12,.58)")
@@ -360,17 +371,18 @@ fn launch(op: &Value, w: u32, h: u32) -> String {
     format!(
         "<style>body{{background:{bg};color:{fg};font-family:{SANS};display:flex;align-items:center;\
          justify-content:center}}\
-         .glow{{position:absolute;inset:-25%;background:radial-gradient(38% 32% at 50% 58%,{accent} 0%,transparent 72%);\
+         .glow{{position:absolute;inset:0;background:radial-gradient(circle {rad:.0}px at 50% 54%,{accent} 0%,transparent 100%);\
          opacity:0;filter:blur({blur:.0}px);animation:glow var(--dur) ease-in-out forwards}}\
          @keyframes glow{{0%{{opacity:0;transform:scale(.85)}}30%{{opacity:{peak}}}100%{{opacity:{rest};transform:scale(1.12) translateY(-2%)}}}}\
          .wrap{{position:relative;text-align:center;padding:0 {pad:.0}px;animation:out .5s ease-in forwards;\
          animation-delay:calc(var(--dur) - 500ms)}}\
          @keyframes out{{to{{opacity:0;filter:blur(12px);transform:scale(.985)}}}}\
-         h1{{margin:0;font-size:{size:.0}px;font-weight:600;letter-spacing:-.04em;line-height:1.04}}</style>\
+         h1{{margin:0;font-size:{size:.0}px;font-weight:600;letter-spacing:-.04em;line-height:1.04;text-wrap:balance}}</style>\
          <div class=glow></div><div class=wrap>{kicker}<h1>{words}</h1>{sub}</div>",
-        blur = short * 0.06,
-        peak = if light { ".35" } else { ".55" },
-        rest = if light { ".22" } else { ".32" },
+        blur = short * 0.08,
+        rad = short * 0.55,
+        peak = if light { ".28" } else { ".42" },
+        rest = if light { ".16" } else { ".24" },
         pad = w as f64 * 0.08,
         kicker = kicker.unwrap_or_default(),
         words = words(&text, 250, 90, anim),
@@ -379,7 +391,7 @@ fn launch(op: &Value, w: u32, h: u32) -> String {
 }
 
 fn bold(op: &Value, w: u32, h: u32) -> String {
-    let short = w.min(h) as f64;
+    let short = unit(w, h);
     let accent = colour(op, "accent", "#0e7a4f");
     let fg = colour(op, "color", "#ffffff");
     let text = text_of(op);
@@ -407,7 +419,7 @@ fn bold(op: &Value, w: u32, h: u32) -> String {
          .wrap{{position:relative;text-align:center;padding:0 {pad:.0}px;animation:out .4s cubic-bezier(.6,0,.8,.2) forwards;\
          animation-delay:calc(var(--dur) - 400ms)}}\
          @keyframes out{{to{{transform:translateY(-12%);opacity:0}}}}\
-         h1{{margin:0;font-size:{size:.0}px;font-weight:800;letter-spacing:-.045em;line-height:.98}}</style>\
+         h1{{margin:0;font-size:{size:.0}px;font-weight:800;letter-spacing:-.045em;line-height:.98;text-wrap:balance}}</style>\
          <div class=stripes></div><div class=wrap><h1>{words}</h1>{sub}</div>",
         s1 = short * 0.04,
         s2 = short * 0.08,
@@ -418,7 +430,7 @@ fn bold(op: &Value, w: u32, h: u32) -> String {
 }
 
 fn terminal(op: &Value, w: u32, h: u32) -> String {
-    let short = w.min(h) as f64;
+    let short = unit(w, h);
     let accent = colour(op, "accent", BRAND_GREEN);
     let text = text_of(op).replace('\n', " ");
     let n = text.chars().count().max(1);
@@ -454,7 +466,7 @@ fn terminal(op: &Value, w: u32, h: u32) -> String {
 }
 
 fn lower_third(op: &Value, w: u32, h: u32) -> String {
-    let short = w.min(h) as f64;
+    let short = unit(w, h);
     let (bottom, side) = crate::captions::safe_area(w, h);
     let accent = colour(op, "accent", BRAND_GREEN);
     let sub = op["sub"].as_str().map(|s| {
@@ -473,8 +485,8 @@ fn lower_third(op: &Value, w: u32, h: u32) -> String {
          @keyframes out{{to{{opacity:0;transform:translateX(-{s2:.0}px)}}}}\
          .bar{{width:{bar:.0}px;background:{accent};border-radius:{bar:.0}px;transform:scaleY(0);\
          animation:kvIn .3s cubic-bezier(.2,.8,.2,1) forwards}}\
-         .card{{margin-left:{gap:.0}px;padding:{py:.0}px {px:.0}px;background:rgba(12,12,14,.84);\
-         border-radius:{r:.0}px;clip-path:inset(0 100% 0 0);animation:reveal .5s cubic-bezier(.2,.8,.2,1) forwards;\
+         .card{{margin-left:{gap:.0}px;padding:{py:.0}px {px:.0}px;background:rgba(24,24,28,.97);\
+         box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);border-radius:{r:.0}px;clip-path:inset(0 100% 0 0);animation:reveal .5s cubic-bezier(.2,.8,.2,1) forwards;\
          animation-delay:150ms}}\
          @keyframes reveal{{to{{clip-path:inset(0 0 0 0)}}}}\
          .ti{{font-size:{ts:.0}px;font-weight:600;letter-spacing:-.015em;opacity:0;transform:translateY(.3em);\
@@ -495,7 +507,7 @@ fn lower_third(op: &Value, w: u32, h: u32) -> String {
 }
 
 fn badge(op: &Value, w: u32, h: u32) -> String {
-    let short = w.min(h) as f64;
+    let short = unit(w, h);
     let accent = colour(op, "accent", "#0e7a4f");
     let top = if h as f64 > w as f64 * 1.3 {
         h as f64 * 0.12
@@ -520,7 +532,7 @@ fn badge(op: &Value, w: u32, h: u32) -> String {
 }
 
 fn big(op: &Value, w: u32, h: u32) -> String {
-    let short = w.min(h) as f64;
+    let short = unit(w, h);
     let text = text_of(op);
     let size = headline_px(&text, w, h, 0.1);
     let anim = "opacity:0;filter:blur(12px);transform:translateY(.2em);\
@@ -536,12 +548,12 @@ fn big(op: &Value, w: u32, h: u32) -> String {
         )
     });
     format!(
-        "<style>.s{{position:absolute;inset:0;background:rgba(0,0,0,.6);opacity:0;animation:kvIn .3s ease forwards}}\
+        "<style>.s{{position:absolute;inset:0;background:rgba(0,0,0,.84);opacity:0;animation:kvIn .3s ease forwards}}\
          .w{{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;\
          text-align:center;padding:0 {pad:.0}px;font-family:{SANS};color:#fff}}\
          .all{{position:absolute;inset:0;animation:out .4s ease-in forwards;animation-delay:calc(var(--dur) - 400ms)}}\
          @keyframes out{{to{{opacity:0}}}}\
-         h1{{margin:0;font-size:{size:.0}px;font-weight:700;letter-spacing:-.035em;line-height:1.05}}</style>\
+         h1{{margin:0;font-size:{size:.0}px;font-weight:700;letter-spacing:-.035em;line-height:1.05;text-wrap:balance}}</style>\
          <div class=all><div class=s></div><div class=w><h1>{words}</h1>{sub}</div></div>",
         pad = w as f64 * 0.08,
         words = words(&text, 150, 80, anim),
