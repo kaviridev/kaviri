@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prompt console</title>
+<!--
+  A prompt console that replays a real model response, captured from the API by
+  capture.py, at the timing it actually streamed at. kaviri types the prompt and
+  presses send like a person would; the words that come back are the model's own,
+  byte for byte, and the footer says so. If the typed prompt is not the captured
+  one, the console refuses to answer rather than pair an answer with a question
+  it was never asked.
+
+  Load a transcript with ?t=transcripts/name.json
+-->
+<style>
+  :root { --bg:#0b0c0e; --panel:#131418; --line:#24262c; --ink:#f2f3f5; --muted:#8b8f98; --accent:#3ddc97; }
+  * { box-sizing: border-box; }
+  html, body { margin:0; height:100%; background:var(--bg); color:var(--ink);
+    font-family: Inter, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; }
+  body { display:flex; flex-direction:column; }
+  header { display:flex; align-items:center; justify-content:space-between; padding:14px 18px;
+    border-bottom:1px solid var(--line); }
+  .model { display:inline-flex; align-items:center; gap:8px; font-size:14px; font-weight:600;
+    padding:6px 12px; border:1px solid var(--line); border-radius:999px; background:var(--panel); }
+  .model i { width:8px; height:8px; border-radius:50%; background:var(--accent); display:block; }
+  .meta { font-size:12px; color:var(--muted); font-variant-numeric: tabular-nums; }
+  main { flex:1; overflow:auto; padding:22px 18px 8px; scroll-behavior:smooth; }
+  .msg { max-width:760px; margin:0 auto 18px; }
+  .you { display:flex; justify-content:flex-end; }
+  .you div { background:#1d1f25; border:1px solid var(--line); padding:12px 15px; border-radius:16px 16px 4px 16px;
+    font-size:15px; line-height:1.5; max-width:88%; white-space:pre-wrap; }
+  .bot { font-size:15.5px; line-height:1.62; }
+  .bot p { margin:0 0 12px; }
+  .bot h3 { font-size:16px; margin:16px 0 8px; }
+  .bot ul { margin:0 0 12px; padding-left:20px; }
+  .bot pre { background:#0f1013; border:1px solid var(--line); border-radius:10px; padding:12px 14px;
+    overflow:auto; font: 13px/1.55 "JetBrains Mono", ui-monospace, Menlo, monospace; }
+  .bot code { font: 13px "JetBrains Mono", ui-monospace, Menlo, monospace; background:#1b1d22; padding:1px 4px; border-radius:4px; }
+  .bot pre code { background:none; padding:0; }
+  .caret { display:inline-block; width:8px; height:1.05em; vertical-align:-.15em; background:var(--accent);
+    margin-left:2px; animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity:0; } }
+  .thinking { color:var(--muted); font-size:14px; display:flex; gap:8px; align-items:center; }
+  .thinking b { width:6px; height:6px; border-radius:50%; background:var(--muted); animation: pulse 1s infinite; }
+  .thinking b:nth-child(2) { animation-delay:.15s } .thinking b:nth-child(3) { animation-delay:.3s }
+  @keyframes pulse { 0%,100% { opacity:.25 } 50% { opacity:1 } }
+  .run { display:inline-flex; gap:8px; align-items:center; margin:4px 0 12px; padding:9px 14px; border-radius:10px;
+    border:0; background:var(--accent); color:#06120c; font-weight:700; font-size:14px; cursor:pointer; }
+  form { display:flex; gap:10px; padding:12px 18px 16px; border-top:1px solid var(--line); max-width:796px; width:100%; margin:0 auto; }
+  textarea { flex:1; resize:none; height:52px; padding:14px 15px; border-radius:14px; border:1px solid var(--line);
+    background:var(--panel); color:var(--ink); font: 15px/1.4 inherit; font-family:inherit; outline:none; }
+  textarea:focus { border-color:#3a3d45; }
+  button.send { width:52px; height:52px; border-radius:14px; border:0; background:var(--ink); color:#000; font-size:20px; cursor:pointer; }
+  footer { text-align:center; font-size:11.5px; color:var(--muted); padding:0 18px 12px; }
+  #out { position:fixed; inset:0; background:#000; display:none; }
+  #out.on { display:block; }
+  #out iframe { width:100%; height:100%; border:0; background:#fff; }
+  .err { color:#ff8a80; font-size:14px; }
+</style>
+</head>
+<body>
+<header>
+  <span class="model" id="model"><i></i><span>model</span></span>
+  <span class="meta" id="meta"></span>
+</header>
+<main id="log"></main>
+<form id="f">
+  <textarea id="q" placeholder="Ask anything" autocomplete="off"></textarea>
+  <button class="send" id="send" type="submit" aria-label="Send">&#8593;</button>
+</form>
+<footer id="foot"></footer>
+<div id="out"><iframe id="frame" title="output"></iframe></div>
+<script>
+(async function () {
+  const $ = (id) => document.getElementById(id);
+  const src = new URLSearchParams(location.search).get("t");
+  let T = null;
+  try {
+    T = await (await fetch(src)).json();
+  } catch (e) {
+    $("log").innerHTML = '<p class="err">No transcript. Load one with ?t=transcripts/name.json</p>';
+    return;
+  }
+  $("model").querySelector("span").textContent = T.model;
+  $("foot").textContent = `Real ${T.model} output from the OpenAI API, captured ${T.captured_at.slice(0, 10)}, replayed at its original speed.`;
+
+  const esc = (s) => s.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]);
+  // Just enough markdown for a chat answer: fenced code, headings, bullets, inline code, bold.
+  function md(text) {
+    const parts = text.split(/```/);
+    return parts.map((part, i) => {
+      if (i % 2 === 1) {
+        const nl = part.indexOf("\n");
+        const body = nl >= 0 ? part.slice(nl + 1) : part;
+        return `<pre><code>${esc(body)}</code></pre>`;
+      }
+      return part.split(/\n{2,}/).filter((b) => b.trim()).map((b) => {
+        const inline = (s) => esc(s).replace(/`([^`]+)`/g, "<code>$1</code>").replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>");
+        if (/^#{1,4} /.test(b)) return `<h3>${inline(b.replace(/^#{1,4} /, ""))}</h3>`;
+        if (/^\s*[-*] /m.test(b) && b.split("\n").every((l) => /^\s*[-*] /.test(l) || !l.trim()))
+          return "<ul>" + b.split("\n").filter((l) => l.trim()).map((l) => `<li>${inline(l.replace(/^\s*[-*] /, ""))}</li>`).join("") + "</ul>";
+        return `<p>${inline(b).replace(/\n/g, "<br>")}</p>`;
+      }).join("");
+    }).join("");
+  }
+  const html_of = (text) => {
+    const m = text.match(/```html\n([\s\S]*?)```/);
+    return m ? m[1] : null;
+  };
+
+  $("f").addEventListener("submit", (ev) => {
+    ev.preventDefault();
+    const asked = $("q").value.trim();
+    if (!asked) return;
+    $("q").value = "";
+    const log = $("log");
+    log.insertAdjacentHTML("beforeend", `<div class="msg you"><div>${esc(asked)}</div></div>`);
+    const bot = document.createElement("div");
+    bot.className = "msg bot";
+    log.appendChild(bot);
+    if (asked !== T.prompt.trim()) {
+      bot.innerHTML = '<p class="err">This console only replays the captured answer, and that was an answer to a different prompt.</p>';
+      return;
+    }
+    bot.innerHTML = '<div class="thinking"><b></b><b></b><b></b><span>Thinking</span></div>';
+    const t0 = performance.now();
+    let text = "";
+    let i = 0;
+    const tick = () => {
+      const now = performance.now() - t0;
+      let changed = false;
+      while (i < T.chunks.length && T.chunks[i].t_ms <= now) {
+        text += T.chunks[i].text;
+        i++;
+        changed = true;
+      }
+      if (changed) {
+        bot.innerHTML = md(text) + (i < T.chunks.length ? '<span class="caret"></span>' : "");
+        log.scrollTop = log.scrollHeight;
+        $("meta").textContent = `${(now / 1000).toFixed(1)}s`;
+      }
+      if (i < T.chunks.length) return requestAnimationFrame(tick);
+      $("meta").textContent = `${(T.chunks[T.chunks.length - 1].t_ms / 1000).toFixed(1)}s · ${T.usage?.output_tokens ?? "?"} tokens`;
+      const page = html_of(text);
+      if (page) {
+        const b = document.createElement("button");
+        b.className = "run";
+        b.id = "run";
+        b.textContent = "Run it";
+        b.onclick = () => {
+          $("frame").srcdoc = page;
+          $("out").classList.add("on");
+        };
+        bot.appendChild(b);
+        log.scrollTop = log.scrollHeight;
+      }
+      document.body.dataset.done = "1";
+    };
+    requestAnimationFrame(tick);
+  });
+})();
+</script>
+</body>
+</html>

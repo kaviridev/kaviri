@@ -543,7 +543,9 @@ A recorded clip placed at this moment, the way `say` places a line.
 
 ```jsonc
 {"op":"title","kicker":"Introducing","text":"Demos that film themselves","sub":"A script in your repo."}
-{"op":"title","text":"kaviri.dev","style":"bold","at":"end","ms":2200}
+{"op":"title","text":"It streams.","style":"punch"}
+{"op":"title","text":"1,318 Elo","sub":"on the arena","style":"stat"}
+{"op":"title","style":"end","at":"end"}
 ```
 
 | field | type | default |
@@ -551,21 +553,27 @@ A recorded clip placed at this moment, the way `say` places a line.
 | `text` | string | required, unless `html` or `file` |
 | `sub` | string | none |
 | `kicker` | string | none; a small line above the headline (`launch` only) |
-| `style` | `launch`, `bold`, `terminal` | `launch` |
+| `style` | `launch`, `bold`, `terminal`, `punch`, `stat`, `end` | `launch` |
 | `theme` | `dark`, `light` | `dark` (`launch` only) |
 | `accent` | CSS colour | brand green |
-| `at` | `start`, `end` | `start` before a take; required during one |
-| `ms` | number, 600 to 15000 | `2600` |
+| `at` | `start`, `end`, `here` | `start` before a take, `here` during one |
+| `transition` | `fade`, `cut` | `fade` for intros and outros, `cut` mid-take and for `punch` |
+| `ms` | number, 600 to 15000 | `2600`; `punch` 1100, `stat` 2200, `end` 3200 |
 | `html` / `file` | your own page, as a string or a path | none |
 
 A full-screen animated card joined onto the take with a 0.4 s dissolve: an intro when it comes
-before `start_recording` (several play in order), an outro with `at: "end"`. The take's sound,
+before `start_recording` (several play in order), an outro with `at: "end"`. During a take, a title
+cuts in where it runs (`at: "here"`): the take stops for the card and carries on after it, which
+is how launch videos punctuate a demo. The take's sound,
 narration included, is delayed by the intro so it still lands on the action it was written
 for, and the result's `motion.take_starts_at` says by how much.
 
 `launch` blurs the words in one by one over a soft glow, the way product launch cards set a
 headline. `bold` pops big heavy words in on a solid colour. `terminal` types the text at a
-prompt and prints `sub` under it. `kaviri motion` lists the styles.
+prompt and prints `sub` under it. `punch` slams a short line in and pushes slowly, made for
+cut-ins. `stat` counts its number up from zero and keeps the symbols around it (`$8`, `1,318 Elo`,
+`40%`). `end` is the kaviri end card and needs no text; `text` and `sub` replace its line and URL.
+`kaviri motion` lists the styles.
 
 Your own `html` is rendered the same way: kaviri pauses every animation on the page and seeks
 it to each frame's time, then takes a screenshot. Anything driven by CSS animations, or by a

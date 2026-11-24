@@ -1552,9 +1552,11 @@ impl Session {
                 Ok(self.mark("mark", &label, None))
             }
             "title" => {
-                let card = crate::motion::title(op, self.cdp.is_recording())?;
+                let now = self.cdp.is_recording().then(|| self.cdp.now_rec());
+                let card = crate::motion::title(op, now)?;
                 let at = match card.place {
                     crate::motion::Place::End => "end",
+                    crate::motion::Place::Cut(_) => "here",
                     _ => "start",
                 };
                 let secs = card.secs();
