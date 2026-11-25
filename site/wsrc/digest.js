@@ -82,6 +82,19 @@ export async function sendDigest(env) {
     if (best) blocks.push(note(best));
     if (works.kinds.reduce((a, k) => a + k.videos, 0) < 10) blocks.push(note("Fewer than ten posts so far, so read this as a hint, not a verdict."));
   }
+  // The explainer autopilot runs on the owner's laptop (systemd timer) and reports its last
+  // run here, so a stopped laptop or a failing render shows up without opening anything.
+  const auto = await env.kaviri_waitlist
+    .prepare("select updated_at, summary, next_up, problems from autopilot_status where name = 'explainers'")
+    .first()
+    .catch(() => null);
+  if (auto) {
+    blocks.push(h("Explainer autopilot"));
+    blocks.push(rows([["Last run", `${auto.updated_at} UTC`], ["Result", auto.summary], ["Next to post", auto.next_up || "nothing queued"]]));
+    if (Date.now() - Date.parse(auto.updated_at.replace(" ", "T") + "Z") > 36 * 36e5)
+      blocks.push(note("*It has not run for over a day.* The laptop may be off or asleep; it catches up when it wakes."));
+    if (auto.problems) blocks.push(note(`*Needs a look:* ${auto.problems}`));
+  }
   blocks.push(button("Open the list", "https://kaviri.dev/admin"));
   const { html, text } = render({
     preheader: `${c.active} subscribed, ${plus(c.newDay)} in the last 24 hours.`,
