@@ -1,0 +1,32 @@
+{
+  "title": "MCP in 60 seconds",
+  "voice": "cloudflare:arcas",
+  "scenes": [
+    {"type": "title", "kicker": "in 60 seconds", "title": "MCP", "sub": "Model Context Protocol",
+     "say": "MCP, in sixty seconds."},
+    {"type": "icons", "center": "AI", "cage": true,
+     "items": [{"icon": "📁", "label": "your files", "crossed": true}, {"icon": "🛠", "label": "your tools", "crossed": true}, {"icon": "🌐", "label": "your browser", "crossed": true}],
+     "say": "Your AI model is brilliant, but it's stuck in a box. It can't open your files, run your tools, or touch your browser."},
+    {"type": "mesh", "heading": "Every app, wired to every tool",
+     "left": ["Claude", "ChatGPT", "Cursor", "VS Code", "Zed"], "right": ["GitHub", "Postgres", "Slack", "Browser", "Files"], "count": "5 × 5 = 25",
+     "say": "So every app wires up every tool by hand. Five apps, five tools: twenty five integrations."},
+    {"type": "mesh", "heading": "One protocol in the middle", "hub": "MCP",
+     "left": ["Claude", "ChatGPT", "Cursor", "VS Code", "Zed"], "right": ["GitHub", "Postgres", "Slack", "Browser", "Files"], "count": "5 + 5 = 10",
+     "say": "MCP puts one standard in the middle. Build a server once, and any app that speaks MCP can use it."},
+    {"type": "cards", "kicker": "an MCP server offers",
+     "say": "A server offers three things.",
+     "items": [{"icon": "⚡", "title": "Tools", "text": "things the model can do", "say": "Tools to call."},
+               {"icon": "📄", "title": "Resources", "text": "things it can read", "say": "Resources to read."},
+               {"icon": "💬", "title": "Prompts", "text": "templates it can reuse", "say": "And prompts to reuse."}]},
+    {"type": "code", "kicker": "on the wire: JSON-RPC",
+     "code": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"click\",\n    \"arguments\": { \"selector\": \"#buy\" }\n  }\n}",
+     "chips": ["stdio · local", "HTTP · remote"],
+     "say": "Underneath, it's plain JSON-RPC: standard input for local servers, HTTP for remote ones."},
+    {"type": "terminal", "kicker": "a real one", "command": "claude mcp add kaviri -- kaviri mcp", "output": "✓ Added MCP server kaviri",
+     "say": "Here's a real one. One line adds kaviri's MCP server to Claude Code."},
+    {"type": "video", "src": "/site/demo.mp4", "label": "kaviri · filming a demo",
+     "say": "Now the model can open a browser, click around, and film the demo for you."},
+    {"type": "statement", "text": "Write it *once*.\nEvery AI app\ncan use it.",
+     "say": "That's MCP. Write it once, and every AI app can use it."}
+  ]
+}

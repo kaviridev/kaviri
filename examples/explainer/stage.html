@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Explainer</title>
+<!--
+  The stage for an "X in 60 seconds" explainer. It draws whatever episode it is given
+  (?ep=episodes/mcp.json) and moves to the next beat on ArrowRight. make.py writes the kaviri
+  script that narrates each beat and presses the key, and films it. Laid out for the tiktok
+  preset (432x768); the bottom 40% stays clear for burned captions.
+
+  Scene types: title, icons, mesh, cards, code, terminal, video, statement. See README.md.
+-->
+<style>
+  @font-face { font-family: Inter; src: url(/site/brand/fonts/inter.woff2) format("woff2"); font-weight: 100 900; }
+  @font-face { font-family: Grotesk; src: url(/site/brand/fonts/space-grotesk.woff2) format("woff2"); font-weight: 300 700; }
+  :root { --bg:#08090b; --ink:#f4f5f7; --mute:#8a8f99; --line:#262a31; --accent:#2fd37e; --bad:#ff5c5c; --c2:#6aa8ff; --c3:#ffc24b; }
+  * { box-sizing:border-box; margin:0; }
+  html, body { height:100%; background:var(--bg); color:var(--ink); font-family:Inter, system-ui, sans-serif; overflow:hidden; }
+  body::before { content:""; position:fixed; inset:0; background:
+      radial-gradient(500px 380px at 50% 30%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 70%),
+      linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px) 0 0/24px 24px,
+      linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px) 0 0/24px 24px; }
+  .scene { position:absolute; left:0; right:0; top:0; height:60%; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; padding:0 24px; opacity:0; transform:scale(.96);
+    transition:opacity .35s ease, transform .5s cubic-bezier(.2,.8,.2,1); }
+  .scene { pointer-events:none; }
+  .scene.on { opacity:1; transform:none; pointer-events:auto; z-index:1; }
+  .kick { font:600 13px/1 Inter; letter-spacing:.18em; text-transform:uppercase; color:var(--accent); margin-bottom:14px; text-align:center; }
+  h1 { font:700 110px/0.9 Grotesk; letter-spacing:-.05em; text-align:center; }
+  h1.long { font-size:64px; }
+  h2 { font:700 32px/1.05 Grotesk; letter-spacing:-.03em; text-align:center; }
+  .sub { font:500 22px/1.2 Inter; color:var(--mute); margin-top:12px; text-align:center; }
+  .tag { display:inline-block; font:600 14px/1 Inter; padding:8px 14px; border-radius:999px; border:1px solid var(--line); color:var(--ink); }
+
+  /* icons: a centre with things around it, optionally crossed out */
+  .ring { position:relative; width:330px; height:290px; }
+  .core { position:absolute; left:50%; top:50%; width:118px; height:118px; margin:-59px 0 0 -59px; border-radius:28px;
+    background:linear-gradient(140deg,#1d2a24,#0f1512); border:2px solid var(--accent); display:grid; place-items:center;
+    font:700 18px Grotesk; text-align:center; box-shadow:0 0 50px color-mix(in srgb, var(--accent) 25%, transparent); }
+  .cage { position:absolute; left:50%; top:50%; width:170px; height:170px; margin:-85px 0 0 -85px; border:2px dashed #3b414b; border-radius:36px; }
+  .thing { position:absolute; width:96px; text-align:center; font:600 13px Inter; color:var(--mute); }
+  .thing b { position:relative; display:grid; place-items:center; margin:0 auto 6px; width:52px; height:52px; border-radius:14px; background:#14171c; border:1px solid var(--line); font-size:24px; }
+  .thing.x b { border-color:var(--bad); }
+  .thing.x b::after { content:"\00d7"; position:absolute; right:-8px; top:-10px; color:var(--bad); font:700 20px Inter; }
+
+  /* mesh: left nodes to right nodes, all to all or through a hub */
+  svg.mesh { width:360px; height:290px; overflow:visible; margin:6px 0; }
+  .node rect { fill:#14171c; stroke:#2c3139; }
+  .node text { fill:var(--ink); font:600 12px Inter; text-anchor:middle; dominant-baseline:middle; }
+  .ln { stroke:var(--bad); stroke-width:1.4; opacity:.75; stroke-dasharray:400; stroke-dashoffset:400; }
+  .gl { stroke:var(--accent); stroke-width:2; stroke-dasharray:300; stroke-dashoffset:300; }
+  .scene.on .ln, .scene.on .gl { animation:draw .8s ease forwards; }
+  @keyframes draw { to { stroke-dashoffset:0; } }
+  .hub circle { fill:#0f1a14; stroke:var(--accent); stroke-width:2.5; }
+  .hub text { fill:var(--accent); font:700 16px Grotesk; text-anchor:middle; dominant-baseline:middle; }
+  .count { font:700 38px/1 Grotesk; margin-top:2px; }
+  .count.bad { color:var(--bad); } .count.good { color:var(--accent); }
+
+  /* cards, revealed one per beat */
+  .cards { display:grid; gap:12px; width:100%; max-width:360px; }
+  .card { display:flex; gap:14px; align-items:center; padding:16px 18px; border-radius:16px; background:#111418; border:1px solid var(--line);
+    opacity:0; transform:translateX(-30px); transition:all .45s cubic-bezier(.2,.8,.2,1); }
+  .card.in { opacity:1; transform:none; }
+  .card i { font-style:normal; font-size:26px; width:44px; height:44px; display:grid; place-items:center; border-radius:12px; background:#0c0e11; }
+  .card b { display:block; font:700 20px Grotesk; }
+  .card span { font:500 14px Inter; color:var(--mute); }
+
+  /* code, typed out */
+  pre { width:100%; max-width:384px; background:#0d0f12; border:1px solid var(--line); border-radius:14px; padding:16px;
+    font:500 13px/1.6 ui-monospace, "DejaVu Sans Mono", Menlo, monospace; color:#cfd3da; white-space:pre-wrap; min-height:170px; }
+  pre .k { color:var(--c2); } pre .s { color:var(--accent); } pre .n { color:var(--c3); }
+  .chips { display:flex; gap:10px; margin-top:14px; flex-wrap:wrap; justify-content:center; }
+
+  /* terminal: kaviri types the command */
+  .term { width:100%; max-width:384px; border-radius:14px; background:#0d0f12; border:1px solid var(--line); overflow:hidden; }
+  .term .bar { display:flex; gap:6px; padding:10px 12px; border-bottom:1px solid var(--line); }
+  .term .bar i { width:10px; height:10px; border-radius:50%; background:#2c3139; }
+  .term .body { padding:16px 14px; font:500 14px/1.6 ui-monospace, "DejaVu Sans Mono", Menlo, monospace; }
+  .term .row { display:flex; gap:8px; align-items:center; }
+  .term .row span { color:var(--accent); }
+  .term input { flex:1; min-width:0; background:none; border:0; outline:0; color:var(--ink); font:inherit; caret-color:var(--accent); }
+  .term .out { color:var(--accent); margin-top:8px; opacity:0; transition:opacity .3s; white-space:pre-wrap; }
+  .term .out.in { opacity:1; }
+
+  /* video */
+  .screen { width:340px; border-radius:18px; overflow:hidden; border:1px solid var(--line); box-shadow:0 20px 60px rgba(0,0,0,.6); }
+  .screen .url { background:#14171c; font:500 12px Inter; color:var(--mute); padding:8px 12px; }
+  .screen video, .screen img { display:block; width:100%; }
+
+  /* statement */
+  .big { font:700 44px/1.02 Grotesk; letter-spacing:-.035em; text-align:center; }
+  .big em { font-style:normal; color:var(--accent); }
+</style>
+</head>
+<body>
+<script>
+(async () => {
+  const esc = (s) => String(s ?? "").replace(/[<>&"]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" })[c]);
+  // A statement may mark words to colour with *stars*; nothing else is taken as markup.
+  const marked = (s) => esc(s).replace(/\*([^*]+)\*/g, "<em>$1</em>").replace(/\n/g, "<br>");
+  const ep = await (await fetch(new URLSearchParams(location.search).get("ep"))).json();
+  document.title = ep.title || "Explainer";
+  if (ep.accent) document.documentElement.style.setProperty("--accent", ep.accent);
+
+  const nodes = (names, x, ys) => names.map((t, i) =>
+    `<g class="node"><rect x="${x - 46}" y="${ys[i] - 15}" width="92" height="30" rx="8"/><text x="${x}" y="${ys[i]}">${esc(t)}</text></g>`).join("");
+
+  const draw = {
+    title: (s) => `${s.kicker ? `<div class="kick">${esc(s.kicker)}</div>` : ""}<h1 class="${(s.title || "").length > 5 ? "long" : ""}">${esc(s.title)}</h1>${s.sub ? `<div class="sub">${esc(s.sub)}</div>` : ""}`,
+    icons: (s) => {
+      const pos = [{ left: "0", top: "0" }, { right: "0", top: "0" }, { left: "117px", bottom: "-14px" }, { left: "0", bottom: "-14px" }, { right: "0", bottom: "-14px" }];
+      return `${s.heading ? `<h2 style="margin-bottom:14px">${esc(s.heading)}</h2>` : ""}<div class="ring">${s.cage ? '<div class="cage"></div>' : ""}<div class="core">${esc(s.center)}</div>${
+        (s.items || []).slice(0, 5).map((it, i) => `<div class="thing ${it.crossed ? "x" : ""}" style="${Object.entries(pos[i]).map(([k, v]) => `${k}:${v}`).join(";")}"><b>${esc(it.icon)}</b>${esc(it.label)}</div>`).join("")}</div>`;
+    },
+    mesh: (s) => {
+      const L = s.left || [], R = s.right || [];
+      const n = Math.max(L.length, R.length), gap = n > 1 ? 260 / (n - 1) : 0;
+      const ys = Array.from({ length: n }, (_, i) => 15 + i * gap);
+      let lines = "";
+      if (s.hub) {
+        L.forEach((_, i) => { lines += `<line class="gl" x1="94" y1="${ys[i]}" x2="180" y2="145" style="animation-delay:${i * 60}ms"/>`; });
+        R.forEach((_, i) => { lines += `<line class="gl" x1="180" y1="145" x2="266" y2="${ys[i]}" style="animation-delay:${300 + i * 60}ms"/>`; });
+        lines += `<g class="hub"><circle cx="180" cy="145" r="38"/><text x="180" y="146">${esc(s.hub)}</text></g>`;
+      } else {
+        L.forEach((_, i) => R.forEach((_, j) => { lines += `<line class="ln" x1="94" y1="${ys[i]}" x2="266" y2="${ys[j]}" style="animation-delay:${(i * R.length + j) * 22}ms"/>`; }));
+      }
+      return `${s.heading ? `<h2>${esc(s.heading)}</h2>` : ""}<svg class="mesh" viewBox="0 0 360 290">${lines}${nodes(L, 48, ys)}${nodes(R, 312, ys)}</svg>${
+        s.count ? `<div class="count ${s.hub ? "good" : "bad"}">${esc(s.count)}</div>` : ""}`;
+    },
+    cards: (s) => `${s.kicker ? `<div class="kick">${esc(s.kicker)}</div>` : ""}<div class="cards">${(s.items || []).map((it, i) =>
+      `<div class="card"><i style="color:${["var(--accent)", "var(--c2)", "var(--c3)", "var(--bad)"][i % 4]}">${esc(it.icon)}</i><div><b>${esc(it.title)}</b><span>${esc(it.text)}</span></div></div>`).join("")}</div>`,
+    code: (s) => `${s.kicker ? `<div class="kick">${esc(s.kicker)}</div>` : ""}<pre data-code="${esc(s.code)}"></pre>${
+      s.chips ? `<div class="chips">${s.chips.map((c) => `<span class="tag">${esc(c)}</span>`).join("")}</div>` : ""}`,
+    terminal: (s) => `${s.kicker ? `<div class="kick">${esc(s.kicker)}</div>` : ""}<div class="term"><div class="bar"><i></i><i></i><i></i></div><div class="body">
+      <div class="row"><span>$</span><input class="cmd" autocomplete="off" spellcheck="false"></div><div class="out">${esc(s.output || "")}</div></div></div>`,
+    video: (s) => `<div class="screen">${s.label ? `<div class="url">${esc(s.label)}</div>` : ""}${
+      /\.(mp4|webm|mov)$/i.test(s.src) ? `<video src="${esc(s.src)}" muted playsinline preload="auto"></video>` : `<img src="${esc(s.src)}" alt="">`}</div>`,
+    statement: (s) => `<div class="big">${marked(s.text)}</div>`,
+  };
+
+  const scenes = ep.scenes.map((s, i) => {
+    const el = document.createElement("section");
+    el.className = "scene" + (i === 0 ? " on" : "");
+    el.innerHTML = (draw[s.type] || (() => `<h2>unknown scene type ${esc(s.type)}</h2>`))(s);
+    document.body.appendChild(el);
+    return el;
+  });
+
+  // Code is coloured by a small tokenizer: JSON-ish strings, keys and numbers.
+  function typeCode(pre) {
+    const src = pre.dataset.code;
+    const toks = [];
+    src.replace(/("(?:[^"\\]|\\.)*")(\s*:)?|(\b\d+(?:\.\d+)?\b)|([^"\d]+|\d)/g, (m, str, colon, num, rest) => {
+      if (str) toks.push([str, colon ? "k" : "s"], [colon || "", ""]);
+      else if (num) toks.push([num, "n"]);
+      else toks.push([rest, ""]);
+    });
+    const flat = toks.flatMap(([t, c]) => [...t].map((ch) => [ch, c]));
+    let i = 0;
+    (function step() {
+      if (i > flat.length) return;
+      pre.innerHTML = flat.slice(0, i).map(([ch, c]) => (c ? `<span class="${c}">${esc(ch)}</span>` : esc(ch))).join("");
+      i += 3;
+      setTimeout(step, 16);
+    })();
+  }
+
+  let n = 0, sub = 0;
+  function enter(k) {
+    scenes.forEach((s, i) => s.classList.toggle("on", i === k));
+    sub = 0;
+    const el = scenes[k];
+    const pre = el.querySelector("pre[data-code]"); if (pre) typeCode(pre);
+    const cmd = el.querySelector(".cmd"); if (cmd) setTimeout(() => cmd.focus(), 50);
+    const v = el.querySelector("video"); if (v) { v.currentTime = 0; v.play(); }
+  }
+  document.addEventListener("keydown", (e) => {
+    if (e.target.classList?.contains("cmd") && e.key === "Enter") { scenes[n].querySelector(".out").classList.add("in"); return; }
+    if (e.key !== "ArrowRight") return;
+    e.preventDefault();
+    const cards = scenes[n].querySelectorAll(".card");
+    if (sub < cards.length) { cards[sub++].classList.add("in"); return; }
+    if (document.activeElement) document.activeElement.blur();
+    if (n < scenes.length - 1) enter(++n);
+  });
+  document.body.dataset.ready = "1";
+})();
+</script>
+</body>
+</html>
