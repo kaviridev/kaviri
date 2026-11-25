@@ -19,6 +19,7 @@ import { forgetOldSalts, pruneVisits, record } from "./wsrc/visits.js";
 import * as admin from "./wsrc/admin.js";
 import * as stripe from "./wsrc/stripe.js";
 import { ensureOutboundSchema, outboundUnsubscribe, runOutbound } from "./wsrc/outbound.js";
+import * as trends from "./wsrc/trends.js";
 
 const SIGNATURE_SOURCE = "https://raw.githubusercontent.com/kaviridev/kaviri/main/site/email/signature.gif";
 
@@ -253,6 +254,16 @@ export default {
         await pruneVisits(env);
       })()
     );
+    // The trending pick, once a day. The film and the owner's email follow when the runner
+    // delivers it (wsrc/trends.js); nothing is posted from here.
+    if (at.getUTCHours() === trends.TREND_HOUR_UTC) {
+      ctx.waitUntil(
+        trends
+          .runTrends(env)
+          .then((r) => beat(env, "last_trend", JSON.stringify(r)))
+          .catch((e) => beat(env, "last_trend", JSON.stringify({ error: String(e) })))
+      );
+    }
     // A free Supabase project pauses after a week idle, and a paused project is a dead
     // service with no warning. One cheap request an hour is the whole defence.
     ctx.waitUntil(keepDatabaseAwake(env));
@@ -276,6 +287,11 @@ export default {
      */
     if (url.pathname === "/stripe" && request.method === "POST") {
       return withSecurity(await stripe.receive(request, env));
+    }
+    // The trending runner: claims a pick to film and delivers the film (wsrc/trends.js).
+    if (url.pathname.startsWith("/api/trends/")) {
+      return withSecurity(await trends.api(request, env, url, ctx).catch((e) =>
+        new Response(JSON.stringify({ error: String(e) }), { status: 500, headers: { "Content-Type": "application/json" } })));
     }
     if (url.pathname === "/admin" || url.pathname.startsWith("/admin/")) {
       return withSecurity(await admin.handle(request, env, url));

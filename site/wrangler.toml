@@ -60,6 +60,10 @@ binding = "kaviri_waitlist"
 database_name = "kaviri-waitlist"
 database_id = "1fab7a49-aba5-4bf3-b33b-886a86e3e70a"
 
+# Workers AI, for the trending pick (wsrc/trends.js). Free tier: one short call a day.
+[ai]
+binding = "AI"
+
 [triggers]
 # Retry any confirmation that did not go out. Hourly is often enough that nobody waits long and
 # rare enough that a provider outage is not hammered.

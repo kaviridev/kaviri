@@ -16,6 +16,7 @@ import { sendDigest } from "./digest.js";
 import { STEPS, ensureSchema, ensureSchemaOnce, runSequence } from "./sequence.js";
 import * as stats from "./stats.js";
 import { beat } from "./stats.js";
+import * as trends from "./trends.js";
 
 const COOKIE = "kaviri_admin";
 const TTL = 60 * 60 * 12;
@@ -172,6 +173,7 @@ async function dashboard(env) {
     <form method="POST" action="/admin/retry"><button class="btn btn-secondary" type="submit">Retry unsent</button></form>
     <form method="POST" action="/admin/sequence"><button class="btn btn-secondary" type="submit">Run sequence now</button></form>
     <form method="POST" action="/admin/digest"><button class="btn btn-secondary" type="submit">Send list email</button></form>
+    <a class="btn btn-secondary" href="/admin/trends">Trending</a>
     <form method="POST" action="/admin/plan"><button class="btn btn-secondary" type="submit">Send plan email</button></form>
     <form method="POST" action="/admin/logout"><button class="btn btn-secondary" type="submit">Sign out</button></form>
   </div>
@@ -322,5 +324,49 @@ export async function handle(request, env, url) {
     return new Response(null, { status: 303, headers: { Location: "/admin" } });
   }
 
+  if (url.pathname === "/admin/trends" && request.method === "GET") {
+    return html(await trendsPage(env, url.searchParams.get("msg")));
+  }
+  if (url.pathname === "/admin/trends/run" && request.method === "POST") {
+    const r = await trends.runTrends(env, { force: true }).catch((e) => ({ error: String(e) }));
+    await beat(env, "last_trend", JSON.stringify(r));
+    return back(r.error ? `Pick failed: ${r.error}` : `Picked: ${r.title || r.skipped}`);
+  }
+  const tm = url.pathname.match(/^\/admin\/trends\/(\d+)\/(post|skip|refilm)$/);
+  if (tm && request.method === "POST") {
+    const id = Number(tm[1]);
+    if (tm[2] === "post") {
+      const r = await trends.postEverywhere(env, id).then(() => "Posted to every channel.").catch((e) => `Post failed: ${e}`);
+      return back(r);
+    }
+    await trends.setStatus(env, id, tm[2] === "skip" ? "skipped" : "ready");
+    return back(tm[2] === "skip" ? "Skipped." : "Queued to film again.");
+  }
+
   return html(await dashboard(env));
+}
+
+const back = (msg) =>
+  new Response(null, { status: 303, headers: { Location: `/admin/trends?msg=${encodeURIComponent(msg.slice(0, 200))}` } });
+
+async function trendsPage(env, msg) {
+  const list = await trends.recentTrends(env);
+  const card = (t) => `<section class="card">
+<p class="muted">${esc(t.day)} · ${esc(t.source)} · <b>${esc(t.status)}</b></p>
+<h2>${esc(t.short_title)}</h2>
+<p><a href="${esc(t.url)}" rel="noopener">${esc(t.title)}</a></p>
+${t.why ? `<p class="muted">${esc(t.why)}</p>` : ""}
+<p>Cards: <b>${esc(t.hook1)}</b>${t.hook2 ? ` / <b>${esc(t.hook2)}</b>` : ""}${t.stat ? ` · stat <b>${esc(t.stat)}</b>` : ""}</p>
+<p>${esc(t.caption)}</p>
+${t.media_path ? `<video src="${esc(t.media_path)}" controls playsinline preload="metadata" style="max-width:280px;border-radius:12px"></video>` : ""}
+<div class="row">
+${t.status === "filmed" ? `<form method="POST" action="/admin/trends/${t.id}/post"><button class="btn btn-primary">Post everywhere</button></form>` : ""}
+${["filmed", "ready", "claimed"].includes(t.status) ? `<form method="POST" action="/admin/trends/${t.id}/skip"><button class="btn">Skip</button></form>` : ""}
+${["filmed", "skipped", "claimed"].includes(t.status) ? `<form method="POST" action="/admin/trends/${t.id}/refilm"><button class="btn">Film again</button></form>` : ""}
+</div></section>`;
+  return page(`<p><a href="/admin">&larr; admin</a></p><h1>Trending</h1>
+${msg ? `<p class="note">${esc(msg)}</p>` : ""}
+<p class="muted">Picked daily at 06:xx UTC, filmed by .github/workflows/trend.yml at 06:40 UTC. Nothing posts until you press Post everywhere.</p>
+<form method="POST" action="/admin/trends/run"><button class="btn">Pick one now</button></form>
+${list.map(card).join("") || "<p>No picks yet.</p>"}`);
 }

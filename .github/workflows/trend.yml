@@ -1,0 +1,74 @@
+name: trend
+
+# The filming half of the trending pipeline (site/wsrc/trends.js). kaviri.dev picks something
+# trending at 06:xx UTC; this claims it, films the script the site built for it, and sends the
+# film back with the one-time claim code it was handed. The site puts the film in Postiz and
+# emails the owner, and nothing is posted until the owner presses Post everywhere.
+#
+# No secrets here on purpose: the claim code is the only credential, it is minted per pick,
+# and it can do exactly one thing, which is deliver the film for that pick.
+
+on:
+  schedule:
+    - cron: "40 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: trend
+  cancel-in-progress: false
+
+jobs:
+  film:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Claim today's pick
+        id: claim
+        run: |
+          set -euo pipefail
+          code=$(curl -s -o pick.json -w '%{http_code}' https://kaviri.dev/api/trends/next)
+          if [ "$code" = "204" ]; then
+            echo "nothing to film"
+            echo "film=no" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          [ "$code" = "200" ] || { echo "claim failed: $code"; cat pick.json; exit 1; }
+          python3 - <<'PY'
+          import json
+          d = json.load(open("pick.json"))
+          with open("trend.jsonl", "w") as f:
+              for op in d["script"]:
+                  f.write(json.dumps(op) + "\n")
+          with open("pick.env", "w") as f:
+              f.write(f"TREND_ID={int(d['id'])}\n")
+          PY
+          cat pick.env >> "$GITHUB_ENV"
+          echo "film=yes" >> "$GITHUB_OUTPUT"
+          cat trend.jsonl
+
+      - name: Film it
+        if: steps.claim.outputs.film == 'yes'
+        uses: ./
+        with:
+          script: trend.jsonl
+          out: trend.mp4
+          scale: "2"
+          artifact-name: trend
+
+      - name: Deliver the film
+        if: steps.claim.outputs.film == 'yes'
+        run: |
+          set -euo pipefail
+          dur=$(ffprobe -v error -show_entries format=duration -of csv=p=0 -i trend.mp4)
+          echo "duration: ${dur}s"
+          awk -v d="$dur" 'BEGIN { exit (d > 5.0) ? 0 : 1 }' || { echo "film too short to be real"; exit 1; }
+          claim=$(python3 -c "import json; print(json.load(open('pick.json'))['claim'])")
+          echo "::add-mask::$claim"
+          curl -sf -X POST "https://kaviri.dev/api/trends/${TREND_ID}/video" \
+            -H "X-Claim: $claim" \
+            -F "video=@trend.mp4;type=video/mp4"
