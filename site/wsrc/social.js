@@ -10,7 +10,42 @@
  * of the email intact.
  */
 
-const POSTIZ = "https://social.ishe.dev/api/public/v1";
+/*
+ * The scheduler's address is a secret (POSTIZ_URL, its origin with no trailing slash), so it
+ * appears nowhere in this source. Its media is served back through this Worker at /m/, so pages
+ * and emails link to kaviri.dev only.
+ */
+export function postizApi(env) {
+  if (!env.POSTIZ_URL) throw new Error("POSTIZ_URL is not set on the worker");
+  return `${String(env.POSTIZ_URL).replace(/\/+$/, "")}/api/public/v1`;
+}
+
+const MEDIA = /^(\d{4}\/\d{2}\/\d{2}\/[A-Za-z0-9_-]+\.(?:mp4|webm|png|jpe?g|webp))$/;
+
+/** A stored media path (the scheduler's upload URL) as a kaviri.dev/m/ path, or "" if it is not one. */
+export function mediaUrl(path, absolute = false) {
+  const m = String(path || "").match(/\/uploads\/(.+)$/);
+  if (!m || !MEDIA.test(m[1])) return "";
+  return `${absolute ? "https://kaviri.dev" : ""}/m/${m[1]}`;
+}
+
+/** GET /m/<yyyy>/<mm>/<dd>/<file>: the scheduler's file, proxied, with Range passed through for seeking. */
+export async function serveMedia(request, env, url) {
+  const rest = url.pathname.slice(3);
+  if (!MEDIA.test(rest) || !env.POSTIZ_URL) return new Response("not found", { status: 404 });
+  const headers = {};
+  const range = request.headers.get("Range");
+  if (range) headers.Range = range;
+  const r = await fetch(`${String(env.POSTIZ_URL).replace(/\/+$/, "")}/uploads/${rest}`, { headers });
+  if (!r.ok && r.status !== 206) return new Response("not found", { status: 404 });
+  const out = new Headers();
+  for (const h of ["Content-Type", "Content-Length", "Content-Range", "Accept-Ranges", "ETag", "Last-Modified"]) {
+    const v = r.headers.get(h);
+    if (v) out.set(h, v);
+  }
+  out.set("Cache-Control", "public, max-age=86400");
+  return new Response(r.body, { status: r.status, headers: out });
+}
 const BLUESKY = "kaviri.dev";
 const MASTODON = { host: "mastodon.social", id: "117614266944080663" };
 
@@ -31,7 +66,7 @@ async function getJson(url, headers = {}) {
 
 async function fromPostiz(env, ch) {
   if (!env.POSTIZ_API_KEY) throw new Error("no POSTIZ_API_KEY");
-  const list = await getJson(`${POSTIZ}/analytics/${ch.id}?date=7`, { Authorization: env.POSTIZ_API_KEY });
+  const list = await getJson(`${postizApi(env)}/analytics/${ch.id}?date=7`, { Authorization: env.POSTIZ_API_KEY });
   const by = new Map((list || []).map((m) => [m.label, m]));
   const out = {};
   for (const [label, name] of ch.metrics) {
@@ -192,7 +227,7 @@ export async function collectPostStats(env) {
   const auth = { Authorization: env.POSTIZ_API_KEY };
   const end = new Date();
   const start = new Date(Date.now() - 30 * 864e5);
-  const listing = await getJson(`${POSTIZ}/posts?startDate=${start.toISOString()}&endDate=${end.toISOString()}`, auth);
+  const listing = await getJson(`${postizApi(env)}/posts?startDate=${start.toISOString()}&endDate=${end.toISOString()}`, auth);
   const { results: kinds } = await env.kaviri_waitlist.prepare("select post_id, kind, title from social_kinds").all();
   const kindOf = new Map((kinds || []).map((k) => [k.post_id, k]));
   const posts = (listing.posts || [])
@@ -223,7 +258,7 @@ export async function collectPostStats(env) {
         const s = await getJson(`https://${MASTODON.host}/api/v1/statuses/${encodeURIComponent(p.releaseId)}`);
         stats.set(p.id, { reach: null, engagement: (s.favourites_count || 0) + (s.reblogs_count || 0) + (s.replies_count || 0) });
       } else {
-        const a = await getJson(`${POSTIZ}/analytics/post/${p.id}?date=30`, auth);
+        const a = await getJson(`${postizApi(env)}/analytics/post/${p.id}?date=30`, auth);
         const reach = p.platform === "x" ? sumOf(a, ["Impressions"]) : p.platform === "youtube" ? sumOf(a, ["Views"]) : null;
         const engagement = sumOf(a, ["Likes", "Retweets", "Replies", "Quotes", "Bookmarks", "Comments", "Favorites"]);
         stats.set(p.id, { reach, engagement });

@@ -20,7 +20,7 @@ import * as admin from "./wsrc/admin.js";
 import * as stripe from "./wsrc/stripe.js";
 import { ensureOutboundSchema, outboundUnsubscribe, runOutbound } from "./wsrc/outbound.js";
 import * as trends from "./wsrc/trends.js";
-import { POSTS_HOUR_UTC, collectPostStats } from "./wsrc/social.js";
+import { POSTS_HOUR_UTC, collectPostStats, serveMedia } from "./wsrc/social.js";
 
 const SIGNATURE_SOURCE = "https://raw.githubusercontent.com/kaviridev/kaviri/main/site/email/signature.gif";
 
@@ -64,8 +64,8 @@ const CSP = [
   "script-src 'self'",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data:",
-  // The trend films are served from the scheduler's media library (wsrc/trends.js).
-  "media-src 'self' blob: https://social.ishe.dev",
+  // The trend films are proxied from the scheduler at /m/ (wsrc/social.js serveMedia).
+  "media-src 'self' blob:",
   "font-src 'self'",
   "connect-src 'self'",
   "object-src 'none'",
@@ -300,6 +300,10 @@ export default {
       return withSecurity(await stripe.receive(request, env));
     }
     // One click from the trend email (wsrc/trends.js): the page and the POST it makes.
+    // Trend films, proxied from the scheduler so no page names its host.
+    if (url.pathname.startsWith("/m/") && (request.method === "GET" || request.method === "HEAD")) {
+      return withSecurity(await serveMedia(request, env, url));
+    }
     if (url.pathname.startsWith("/t/") && (request.method === "GET" || request.method === "POST")) {
       return withSecurity(await trends.oneClick(request, env, url).catch((e) => {
         console.error("trend one-click", String(e));

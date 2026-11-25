@@ -15,12 +15,11 @@
 
 import { notifyOwner } from "./mail.js";
 import { render, h, rows, note, button, status } from "./brand-email.js";
-import { tagPosts } from "./social.js";
+import { tagPosts, postizApi, mediaUrl } from "./social.js";
 
 export const TREND_HOUR_UTC = 6;
 const MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
 const UA = { "User-Agent": "kaviri-trends (+https://kaviri.dev)", Accept: "application/json" };
-const POSTIZ = "https://social.ishe.dev/api/public/v1";
 // The caption is about the thing; kaviri is credited in a first comment under it.
 const COMMENT = "Filmed by a script with kaviri: kaviri.dev";
 
@@ -310,7 +309,7 @@ async function uploadToPostiz(env, file) {
   if (!env.POSTIZ_API_KEY) throw new Error("POSTIZ_API_KEY is not set on the worker");
   const fd = new FormData();
   fd.append("file", file, "trend.mp4");
-  const r = await fetch(`${POSTIZ}/upload`, { method: "POST", headers: { Authorization: env.POSTIZ_API_KEY }, body: fd });
+  const r = await fetch(`${postizApi(env)}/upload`, { method: "POST", headers: { Authorization: env.POSTIZ_API_KEY }, body: fd });
   if (!r.ok) throw new Error(`postiz upload: ${r.status} ${await r.text()}`);
   const j = await r.json();
   if (!j.path) throw new Error("postiz upload gave no path");
@@ -343,7 +342,7 @@ async function reviewEmail(env, t) {
   const blocks = [
     status("A trending video is filmed and waiting for you", "good"),
     h(t.short_title),
-    button("Watch the video", t.media_path),
+    button("Watch the video", mediaUrl(t.media_path, true)),
     note(`Caption: ${t.caption}`),
     note(`First comment: ${COMMENT}`),
     rows([
@@ -413,7 +412,7 @@ export async function oneClick(request, env, url) {
     `${verb}: ${escHtml(t.short_title)}`,
     `<h1>${escHtml(t.short_title)}</h1>
 <p id="state" class="note">${verb}...</p>
-<video src="${escHtml(t.media_path)}" controls playsinline preload="metadata" style="max-width:280px;border-radius:12px"></video>
+<video src="${escHtml(mediaUrl(t.media_path))}" controls playsinline preload="metadata" style="max-width:280px;border-radius:12px"></video>
 <p>${escHtml(t.caption)}</p>
 <noscript><form method="POST"><button class="btn btn-primary">${action === "post" ? "Post everywhere" : "Skip"}</button></form></noscript>
 <p class="muted"><a href="/admin/trends">All trends</a></p>
@@ -440,7 +439,7 @@ export async function postEverywhere(env, id) {
       settings: { __type: c.type, ...c.settings, ...(c.title ? { title: t.short_title.slice(0, 90) } : {}) },
     })),
   };
-  const r = await fetch(`${POSTIZ}/posts`, {
+  const r = await fetch(`${postizApi(env)}/posts`, {
     method: "POST",
     headers: { Authorization: env.POSTIZ_API_KEY, "Content-Type": "application/json" },
     body: JSON.stringify(body),

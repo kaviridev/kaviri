@@ -79,8 +79,7 @@ name = "OWNER_MAIL"
 destination_address = "usekaviri@gmail.com"
 
 [vars]
-# kaviri.dev is the verified sending domain in Resend. vambo.ai is not one, and a From on an
-# unverified domain is rejected by the API rather than merely landing in spam.
+# kaviri.dev is the verified sending domain in Resend. A From on an unverified domain is rejected by the API rather than merely landing in spam.
 MAIL_FROM = "kaviri <hello@kaviri.dev>"
 OWNER_EMAIL = "usekaviri@gmail.com"
 # Outbound (wsrc/outbound.js). Off until OUTBOUND_ENABLED is "1"; the ramp counts from
@@ -96,6 +95,8 @@ ACCESS_AUD = "63769ce7d7ee74bb0c22e317bc082241ae6e6b08638346d82cac48477fa279f2"
 
 # Secrets, set with `npx wrangler secret put NAME`, never here:
 #   ADMIN_PASSWORD   the one password for /admin. Until it is set, /admin answers 503.
+#   POSTIZ_URL       the social scheduler's origin (https://host, no trailing slash); its media
+#                    is proxied at /m/. POSTIZ_API_KEY is its API key.
 #   RESEND_API_KEY   preferred sender. Set this and SMTP is not used.
 #   SMTP_HOST SMTP_PORT SMTP_USER SMTP_PASS   an SMTP sender, and SMTP_ENABLED=1 to arm it.
 #     Measured not to work from a Worker on this account: Cloudflare black-holes the outbound

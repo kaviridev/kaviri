@@ -8,7 +8,7 @@ concept anywhere public, until a fix has shipped.
 - Preferred: GitHub's private vulnerability reporting, under the repository's
   **Security** tab → **Report a vulnerability**. It creates a private thread
   attached to the repo and gets a CVE if one is warranted.
-- By email: **ishe@vambo.ai**, subject line starting `kaviri security`.
+- By email: **hello@kaviri.dev**, subject line starting `kaviri security`.
 
 Please include the kaviri version (`kaviri --version`), the OS, the Chromium and
 ffmpeg that `kaviri doctor` reports, the smallest op script or command line that

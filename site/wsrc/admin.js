@@ -17,6 +17,7 @@ import { STEPS, ensureSchema, ensureSchemaOnce, runSequence } from "./sequence.j
 import * as stats from "./stats.js";
 import { beat } from "./stats.js";
 import * as trends from "./trends.js";
+import { mediaUrl } from "./social.js";
 
 const COOKIE = "kaviri_admin";
 const TTL = 60 * 60 * 12;
@@ -358,7 +359,7 @@ async function trendsPage(env, msg) {
 ${t.why ? `<p class="muted">${esc(t.why)}</p>` : ""}
 <p>Cards: <b>${esc(t.hook1)}</b>${t.hook2 ? ` / <b>${esc(t.hook2)}</b>` : ""}${t.stat ? ` · stat <b>${esc(t.stat)}</b>` : ""}</p>
 <p>${esc(t.caption)}</p>
-${t.media_path ? `<video src="${esc(t.media_path)}" controls playsinline preload="metadata" style="max-width:280px;border-radius:12px"></video>` : ""}
+${t.media_path ? `<video src="${esc(mediaUrl(t.media_path))}" controls playsinline preload="metadata" style="max-width:280px;border-radius:12px"></video>` : ""}
 <div class="row">
 ${t.status === "filmed" ? `<form method="POST" action="/admin/trends/${t.id}/post"><button class="btn btn-primary">Post everywhere</button></form>` : ""}
 ${["filmed", "ready", "claimed"].includes(t.status) ? `<form method="POST" action="/admin/trends/${t.id}/skip"><button class="btn">Skip</button></form>` : ""}

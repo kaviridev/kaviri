@@ -15,7 +15,7 @@ create table if not exists waitlist (
   id           integer primary key autoincrement,
   email        text not null,
   -- Lowercased and trimmed. The unique index is on this rather than on email, so that
-  -- Ishe@Example.com and ishe@example.com are one person and the original spelling is
+  -- Ada@Example.com and ada@example.com are one person and the original spelling is
   -- still what gets written to.
   email_key    text not null,
   note         text,
