@@ -20,6 +20,8 @@ export const TREND_HOUR_UTC = 6;
 const MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
 const UA = { "User-Agent": "kaviri-trends (+https://kaviri.dev)", Accept: "application/json" };
 const POSTIZ = "https://social.ishe.dev/api/public/v1";
+// The caption is about the thing; kaviri is credited in a first comment under it.
+const COMMENT = "Filmed by a script with kaviri: kaviri.dev";
 
 /*
  * The channels, by Postiz integration id. TikTok goes as an inbox draft (UPLOAD) because the
@@ -146,7 +148,7 @@ Bad: labels like "AI Tool" or "Game Mod", or anything with a colon.
 Use only facts in the candidate's own text. Never invent a number, a speed-up, a benchmark or a
 comparison it does not state; a made-up claim on a real project's video is the worst outcome.
 The caption leads with the outcome, the way a developer would tell a friend, under 240
-characters, then ends with: Filmed by a script with kaviri. kaviri.dev
+characters. Do not mention kaviri in it; kaviri goes in a separate first comment.
 Write plainly. No hashtags. No em dashes. No exclamation marks. Never speak for the project.
 Answer with JSON only:
 {"index": <number of the candidate>,
@@ -178,13 +180,13 @@ export async function pick(env, candidates) {
   const p = parseJson(r.response ?? r);
   const c = candidates[Number(p.index)];
   if (!c) throw new Error(`model picked ${p.index}, which is not a candidate`);
-  // The sign-off is always the same words in the same place, whatever the model did with it.
+  // kaviri stays out of the caption (it goes in the first comment, see COMMENT), whatever
+  // the model did.
   let caption = clean(p.caption, 300)
     .replace(/\s*filmed by a script.*$/i, "")
     .replace(/\s*kaviri\.dev\s*$/i, "")
     .replace(/[\s,;:]+$/, "");
   if (caption && !/[.?]$/.test(caption)) caption += ".";
-  caption = `${caption} Filmed by a script with kaviri. kaviri.dev`;
   return {
     ...c,
     hook1: clean(p.hook1, 40) || "Trending today.",
@@ -342,6 +344,7 @@ async function reviewEmail(env, t) {
     h(t.short_title),
     button("Watch the video", t.media_path),
     note(`Caption: ${t.caption}`),
+    note(`First comment: ${COMMENT}`),
     rows([
       ["Cards", [t.hook1, t.hook2].filter(Boolean).join(" / ")],
       ["Topic", t.title],
@@ -429,7 +432,10 @@ export async function postEverywhere(env, id) {
     tags: [],
     posts: CHANNELS.map((c) => ({
       integration: { id: c.id },
-      value: [{ content, image: [{ id: t.media_id, path: t.media_path }] }],
+      value: [
+        { content, image: [{ id: t.media_id, path: t.media_path }] },
+        { content: `<p>${COMMENT}</p>`, image: [] },
+      ],
       settings: { __type: c.type, ...c.settings, ...(c.title ? { title: t.short_title.slice(0, 90) } : {}) },
     })),
   };
