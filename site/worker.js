@@ -64,7 +64,7 @@ const CSP = [
   "script-src 'self'",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data:",
-  // social.ishe.dev: the trend films live in Postiz's media library (wsrc/trends.js).
+  // The trend films are served from the scheduler's media library (wsrc/trends.js).
   "media-src 'self' blob: https://social.ishe.dev",
   "font-src 'self'",
   "connect-src 'self'",
