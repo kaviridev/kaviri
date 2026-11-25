@@ -21,7 +21,8 @@ inputs:
   preset:
     description: >-
       Shape of the take: desktop, tiktok, reels, shorts, square, landscape, readme, phone.
-      Run `kaviri presets` to see the sizes.
+      Run `kaviri presets` to see the sizes. none (or empty) leaves the shape to the script, which is
+      what a script that starts with a frame op (a phone, say) wants.
     required: false
     default: desktop
   background:
@@ -32,6 +33,12 @@ inputs:
     description: Capture supersampling. 2 is crisp, 1 is faster and lighter on CPU.
     required: false
     default: '2'
+  slowmo:
+    description: >-
+      Run the page's clock this many times slower while filming, for canvas-heavy pages that a
+      runner paints at a few frames a second. 1 is off. See AGENTS.md, item 6.
+    required: false
+    default: '1'
   chromium-args:
     description: >-
       Extra flags to append to Chromium's argv. The action always passes --no-sandbox and
@@ -181,6 +188,7 @@ runs:
         PRESET: ${{ inputs.preset }}
         BACKGROUND: ${{ inputs.background }}
         SCALE: ${{ inputs.scale }}
+        SLOWMO: ${{ inputs.slowmo }}
         # Chromium's sandbox cannot start inside a CI container. This is a real reduction in
         # isolation, which is why kaviri does not do it by default and the runner opts in.
         KAVIRI_CHROMIUM_ARGS: --no-sandbox --disable-dev-shm-usage ${{ inputs.chromium-args }}
@@ -188,12 +196,10 @@ runs:
         TMPDIR: ${{ runner.temp }}
       run: |
         set -euo pipefail
-        "$ACTION_PATH/target/release/kaviri" record \
-          --script "$SCRIPT" \
-          --out "$OUT" \
-          --preset "$PRESET" \
-          --background "$BACKGROUND" \
-          --scale "$SCALE"
+        args=(--script "$SCRIPT" --out "$OUT" --background "$BACKGROUND" --scale "$SCALE")
+        if [ -n "$PRESET" ] && [ "$PRESET" != "none" ]; then args+=(--preset "$PRESET"); fi
+        if [ "$SLOWMO" != "1" ]; then args+=(--slowmo "$SLOWMO"); fi
+        "$ACTION_PATH/target/release/kaviri" record "${args[@]}"
         ls -lh "$OUT"
 
     - name: Upload

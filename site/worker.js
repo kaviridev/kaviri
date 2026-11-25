@@ -290,8 +290,10 @@ export default {
     }
     // The trending runner: claims a pick to film and delivers the film (wsrc/trends.js).
     if (url.pathname.startsWith("/api/trends/")) {
-      return withSecurity(await trends.api(request, env, url, ctx).catch((e) =>
-        new Response(JSON.stringify({ error: String(e) }), { status: 500, headers: { "Content-Type": "application/json" } })));
+      return withSecurity(await trends.api(request, env, url, ctx).catch((e) => {
+        console.error("trends api", url.pathname, String(e));
+        return new Response(JSON.stringify({ error: String(e) }), { status: 500, headers: { "Content-Type": "application/json" } });
+      }));
     }
     if (url.pathname === "/admin" || url.pathname.startsWith("/admin/")) {
       return withSecurity(await admin.handle(request, env, url));

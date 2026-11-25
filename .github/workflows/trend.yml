@@ -57,7 +57,11 @@ jobs:
         with:
           script: trend.jsonl
           out: trend.mp4
-          scale: "2"
+          # The script's frame op sets the phone shape, so no preset. A runner paints a page
+          # at about 2 frames a second at 2x; 1.5x with slowmo 10 gives a smooth 30.
+          preset: none
+          scale: "1.5"
+          slowmo: "10"
           artifact-name: trend
 
       - name: Deliver the film
@@ -69,6 +73,8 @@ jobs:
           awk -v d="$dur" 'BEGIN { exit (d > 5.0) ? 0 : 1 }' || { echo "film too short to be real"; exit 1; }
           claim=$(python3 -c "import json; print(json.load(open('pick.json'))['claim'])")
           echo "::add-mask::$claim"
-          curl -sf -X POST "https://kaviri.dev/api/trends/${TREND_ID}/video" \
+          code=$(curl -s -o reply.json -w '%{http_code}' -X POST "https://kaviri.dev/api/trends/${TREND_ID}/video" \
             -H "X-Claim: $claim" \
-            -F "video=@trend.mp4;type=video/mp4"
+            -F "video=@trend.mp4;type=video/mp4")
+          cat reply.json; echo
+          [ "$code" = "200" ] || { echo "delivery failed: HTTP $code"; exit 1; }
