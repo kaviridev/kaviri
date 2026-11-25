@@ -72,5 +72,6 @@
    "text": "Don't teach the model.\n*Hand it the page.*",
    "say": "That's RAG. Don't teach the model everything. Hand it the right page."
   }
- ]
+ ],
+ "caption": "RAG in 60 seconds: how AI apps answer questions about documents the model has never seen, without retraining it."
 }

@@ -1,0 +1,68 @@
+{
+ "title": "Two-factor auth in 60 seconds",
+ "voice": "cloudflare:arcas",
+ "caption": "Two-factor authentication in 60 seconds: how those six-digit codes work, with no internet connection.",
+ "scenes": [
+  {
+   "type": "title",
+   "kicker": "in 60 seconds",
+   "title": "Two-factor auth",
+   "say": "Two-factor auth, in sixty seconds."
+  },
+  {
+   "type": "icons",
+   "center": "account",
+   "say": "A password is something you know, and it can leak. Two-factor adds something you have, like your phone.",
+   "items": [
+    {
+     "icon": "🔑",
+     "label": "something you know"
+    },
+    {
+     "icon": "📱",
+     "label": "something you have"
+    }
+   ]
+  },
+  {
+   "type": "cards",
+   "kicker": "authenticator codes",
+   "say": "Authenticator apps don't need a connection.",
+   "items": [
+    {
+     "icon": "🤝",
+     "title": "Shared secret",
+     "text": "the QR code, scanned once",
+     "say": "When you scan the QR code, your phone and the site share a secret."
+    },
+    {
+     "icon": "⏱",
+     "title": "Time",
+     "text": "both know the time",
+     "say": "Both sides know the current time."
+    },
+    {
+     "icon": "🔢",
+     "title": "Code",
+     "text": "secret + time → 6 digits",
+     "say": "Mix the secret with the time, and you get the same six digits on both."
+    }
+   ]
+  },
+  {
+   "type": "code",
+   "kicker": "TOTP",
+   "code": "code = HMAC(secret, now / 30s)\n      → 6 digits\n\nnew code every 30 seconds",
+   "say": "A new code every thirty seconds, so a stolen one goes stale fast.",
+   "chips": [
+    "TOTP",
+    "works offline"
+   ]
+  },
+  {
+   "type": "statement",
+   "text": "A password\n*and a phone.*",
+   "say": "That's two-factor. A thief needs your password and your phone."
+  }
+ ]
+}

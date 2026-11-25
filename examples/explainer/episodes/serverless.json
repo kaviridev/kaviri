@@ -1,0 +1,74 @@
+{
+ "title": "Serverless in 60 seconds",
+ "voice": "cloudflare:arcas",
+ "caption": "Serverless in 60 seconds: there are still servers, you just stop being the one who looks after them.",
+ "scenes": [
+  {
+   "type": "title",
+   "kicker": "in 60 seconds",
+   "title": "Serverless",
+   "say": "Serverless, in sixty seconds."
+  },
+  {
+   "type": "icons",
+   "center": "you",
+   "say": "Running servers means patching them, guessing how many you need, and paying for them while they sit idle.",
+   "items": [
+    {
+     "icon": "🖥",
+     "label": "patch servers",
+     "crossed": true
+    },
+    {
+     "icon": "📈",
+     "label": "plan capacity",
+     "crossed": true
+    },
+    {
+     "icon": "💸",
+     "label": "pay while idle",
+     "crossed": true
+    }
+   ]
+  },
+  {
+   "type": "code",
+   "kicker": "you write a function",
+   "code": "export default {\n  async fetch(request) {\n    return new Response(\"hi\")\n  }\n}",
+   "say": "Serverless means you write a function, and the platform runs it when a request comes in.",
+   "chips": [
+    "no servers to manage"
+   ]
+  },
+  {
+   "type": "cards",
+   "kicker": "what you get",
+   "say": "There are still servers. They're just not your problem.",
+   "items": [
+    {
+     "icon": "📈",
+     "title": "Scales",
+     "text": "zero to thousands, automatically",
+     "say": "It scales from zero to thousands of requests on its own."
+    },
+    {
+     "icon": "🧾",
+     "title": "Per use",
+     "text": "pay for what runs",
+     "say": "You pay for what actually runs."
+    },
+    {
+     "icon": "🥶",
+     "title": "Cold starts",
+     "text": "the first call can be slower",
+     "say": "The catch: the first request after a quiet spell can be slower."
+    }
+   ]
+  },
+  {
+   "type": "statement",
+   "text": "Still servers.\n*Not your servers.*",
+   "say": "That's serverless. Still servers, just not yours to babysit."
+  }
+ ]
+}

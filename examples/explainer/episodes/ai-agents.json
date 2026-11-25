@@ -1,0 +1,69 @@
+{
+ "title": "AI agents in 60 seconds",
+ "voice": "cloudflare:arcas",
+ "caption": "AI agents in 60 seconds: a language model in a loop with tools, and why the loop is the whole trick.",
+ "scenes": [
+  {
+   "type": "title",
+   "kicker": "in 60 seconds",
+   "title": "AI agents",
+   "say": "AI agents, in sixty seconds."
+  },
+  {
+   "type": "icons",
+   "center": "LLM",
+   "say": "A chatbot answers. An agent does things. The difference isn't a smarter model. It's a loop.",
+   "items": [
+    {
+     "icon": "💬",
+     "label": "answers questions"
+    },
+    {
+     "icon": "🛠",
+     "label": "does things",
+     "crossed": true
+    }
+   ]
+  },
+  {
+   "type": "cards",
+   "kicker": "the loop",
+   "say": "The loop has three steps.",
+   "items": [
+    {
+     "icon": "🧠",
+     "title": "Think",
+     "text": "decide the next step",
+     "say": "The model decides what to do next."
+    },
+    {
+     "icon": "🛠",
+     "title": "Act",
+     "text": "call a tool",
+     "say": "It calls a tool: search, run code, click a button."
+    },
+    {
+     "icon": "👀",
+     "title": "Observe",
+     "text": "read the result",
+     "say": "It reads the result, and goes round again until the job is done."
+    }
+   ]
+  },
+  {
+   "type": "code",
+   "kicker": "a tool call",
+   "code": "{\n  \"tool\": \"search_flights\",\n  \"args\": { \"to\": \"LIS\", \"date\": \"2027-01-14\" }\n}",
+   "say": "The model never touches the world directly. It writes a request, and your code runs it.",
+   "chips": [
+    "your code runs the tool",
+    "the model just asks"
+   ]
+  },
+  {
+   "type": "statement",
+   "text": "A model, a loop,\n*and some tools.*",
+   "say": "That's an agent. A model, a loop, and some tools."
+  }
+ ]
+}

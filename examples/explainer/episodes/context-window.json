@@ -1,0 +1,76 @@
+{
+ "title": "Context windows in 60 seconds",
+ "voice": "cloudflare:arcas",
+ "caption": "Context windows in 60 seconds: the model's working memory, and what happens when a conversation outgrows it.",
+ "scenes": [
+  {
+   "type": "title",
+   "kicker": "in 60 seconds",
+   "title": "Context window",
+   "say": "Context window, in sixty seconds.",
+   "sub": "an LLM's working memory"
+  },
+  {
+   "type": "icons",
+   "center": "context",
+   "say": "Everything a model can see at once, the instructions, your messages, any documents, and its own reply, has to fit in one window.",
+   "items": [
+    {
+     "icon": "💬",
+     "label": "your chat"
+    },
+    {
+     "icon": "📄",
+     "label": "documents"
+    },
+    {
+     "icon": "⚙️",
+     "label": "instructions"
+    },
+    {
+     "icon": "✍️",
+     "label": "the answer"
+    }
+   ]
+  },
+  {
+   "type": "cards",
+   "kicker": "when it fills up",
+   "say": "When the window fills up, something has to give.",
+   "items": [
+    {
+     "icon": "✂️",
+     "title": "Cut",
+     "text": "the oldest messages drop off",
+     "say": "Old messages get cut."
+    },
+    {
+     "icon": "🗜",
+     "title": "Summarise",
+     "text": "compress what came before",
+     "say": "Or summarised into something shorter."
+    },
+    {
+     "icon": "🔎",
+     "title": "Retrieve",
+     "text": "fetch only what's needed",
+     "say": "Or kept outside and fetched back only when needed."
+    }
+   ]
+  },
+  {
+   "type": "code",
+   "kicker": "measured in tokens",
+   "code": "context = system prompt\n        + conversation\n        + documents\n        + the reply",
+   "say": "It's measured in tokens, and a bigger window costs more to fill on every call.",
+   "chips": [
+    "no memory between calls"
+   ]
+  },
+  {
+   "type": "statement",
+   "text": "If it's not in the window,\n*it doesn't exist.*",
+   "say": "The model has no memory outside it. That's a context window."
+  }
+ ]
+}

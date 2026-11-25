@@ -1,0 +1,69 @@
+{
+ "title": "Quantization in 60 seconds",
+ "voice": "cloudflare:arcas",
+ "caption": "Quantization in 60 seconds: how a big AI model gets small enough to run on a laptop or phone.",
+ "scenes": [
+  {
+   "type": "title",
+   "kicker": "in 60 seconds",
+   "title": "Quantization",
+   "say": "Quantization, in sixty seconds.",
+   "sub": "shrinking a model"
+  },
+  {
+   "type": "icons",
+   "center": "model",
+   "say": "A model is billions of numbers called weights. Stored at full precision, they're too big for most laptops.",
+   "items": [
+    {
+     "icon": "🧮",
+     "label": "billions of numbers"
+    },
+    {
+     "icon": "💾",
+     "label": "too big for your laptop",
+     "crossed": true
+    }
+   ]
+  },
+  {
+   "type": "code",
+   "kicker": "fewer bits per number",
+   "code": "16-bit: 0.03471\n 8-bit: 0.0347\n 4-bit: 0.03\n\n16 → 4 bits = a quarter of the memory",
+   "say": "Quantization stores each number with fewer bits. Rounded a little, but much smaller.",
+   "chips": [
+    "16 → 8 → 4 bits"
+   ]
+  },
+  {
+   "type": "cards",
+   "kicker": "the trade",
+   "say": "It's a trade.",
+   "items": [
+    {
+     "icon": "📉",
+     "title": "Smaller",
+     "text": "four times less memory",
+     "say": "Going from sixteen bits to four uses a quarter of the memory."
+    },
+    {
+     "icon": "⚡",
+     "title": "Faster",
+     "text": "less to move around",
+     "say": "It's often faster, because there's less to move."
+    },
+    {
+     "icon": "🎯",
+     "title": "Slightly worse",
+     "text": "a little accuracy lost",
+     "say": "And usually only a little less accurate."
+    }
+   ]
+  },
+  {
+   "type": "statement",
+   "text": "Round the numbers.\n*Keep the smarts.*",
+   "say": "That's quantization. Round the numbers, keep the smarts."
+  }
+ ]
+}

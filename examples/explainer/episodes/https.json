@@ -1,0 +1,72 @@
+{
+ "title": "HTTPS in 60 seconds",
+ "voice": "cloudflare:arcas",
+ "caption": "HTTPS in 60 seconds: what the padlock actually means, and how two strangers agree on a secret in public.",
+ "scenes": [
+  {
+   "type": "title",
+   "kicker": "in 60 seconds",
+   "title": "HTTPS",
+   "say": "HTTPS, in sixty seconds.",
+   "sub": "HTTP over TLS"
+  },
+  {
+   "type": "icons",
+   "center": "you",
+   "say": "Between you and a website sits café wifi, your provider, and every router on the way. Plain HTTP is readable by all of them.",
+   "items": [
+    {
+     "icon": "☕",
+     "label": "café wifi"
+    },
+    {
+     "icon": "🏢",
+     "label": "your ISP"
+    },
+    {
+     "icon": "🌍",
+     "label": "every router"
+    }
+   ]
+  },
+  {
+   "type": "cards",
+   "kicker": "what TLS adds",
+   "say": "HTTPS wraps it in TLS, which adds three things.",
+   "items": [
+    {
+     "icon": "🔒",
+     "title": "Encryption",
+     "text": "nobody in between can read it",
+     "say": "Encryption, so nobody in the middle can read it."
+    },
+    {
+     "icon": "🧾",
+     "title": "Integrity",
+     "text": "nobody can change it",
+     "say": "Integrity, so nobody can change it."
+    },
+    {
+     "icon": "🪪",
+     "title": "Identity",
+     "text": "a certificate proves who it is",
+     "say": "And a certificate, proving the site is who it claims to be."
+    }
+   ]
+  },
+  {
+   "type": "code",
+   "kicker": "the handshake",
+   "code": "client: hello, here's what I support\nserver: here's my certificate\nboth:   agree on a key, in public\n→ everything after is encrypted",
+   "say": "The handshake lets both sides agree on a key, even though everyone can see the conversation.",
+   "chips": [
+    "key exchange"
+   ]
+  },
+  {
+   "type": "statement",
+   "text": "The padlock means\n*private, not trustworthy.*",
+   "say": "The padlock means the connection is private. Not that the site is honest. That's HTTPS."
+  }
+ ]
+}

@@ -1,0 +1,72 @@
+{
+ "title": "GraphQL in 60 seconds",
+ "voice": "cloudflare:arcas",
+ "caption": "GraphQL in 60 seconds: one endpoint where the client asks for exactly the data it wants.",
+ "scenes": [
+  {
+   "type": "title",
+   "kicker": "in 60 seconds",
+   "title": "GraphQL",
+   "say": "GraphQL, in sixty seconds."
+  },
+  {
+   "type": "icons",
+   "center": "app",
+   "say": "To draw one screen, an app might call three endpoints, and get back far more fields than it needs.",
+   "items": [
+    {
+     "icon": "📡",
+     "label": "/users/42"
+    },
+    {
+     "icon": "📡",
+     "label": "/users/42/posts"
+    },
+    {
+     "icon": "📡",
+     "label": "/posts/7/comments"
+    }
+   ]
+  },
+  {
+   "type": "code",
+   "kicker": "ask for exactly this",
+   "code": "query {\n  user(id: 42) {\n    name\n    posts(last: 3) { title }\n  }\n}",
+   "say": "With GraphQL, the client writes one query describing exactly the shape it wants.",
+   "chips": [
+    "one request",
+    "one endpoint"
+   ]
+  },
+  {
+   "type": "cards",
+   "kicker": "what you get",
+   "say": "And that's what comes back.",
+   "items": [
+    {
+     "icon": "🎯",
+     "title": "Exact",
+     "text": "no extra fields",
+     "say": "Only the fields asked for."
+    },
+    {
+     "icon": "📐",
+     "title": "Typed",
+     "text": "a schema describes everything",
+     "say": "A schema describes every type, so tools can check queries."
+    },
+    {
+     "icon": "⚖️",
+     "title": "Trade-off",
+     "text": "caching gets harder",
+     "say": "The trade-off: one endpoint is harder to cache than many."
+    }
+   ]
+  },
+  {
+   "type": "statement",
+   "text": "Ask for what you need.\n*Get exactly that.*",
+   "say": "That's GraphQL. Ask for what you need, get exactly that."
+  }
+ ]
+}

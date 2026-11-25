@@ -1,0 +1,66 @@
+{
+ "title": "DNS in 60 seconds",
+ "voice": "cloudflare:arcas",
+ "caption": "DNS in 60 seconds: how a name like kaviri.dev turns into an address your computer can actually connect to.",
+ "scenes": [
+  {
+   "type": "title",
+   "kicker": "in 60 seconds",
+   "title": "DNS",
+   "say": "DNS, in sixty seconds.",
+   "sub": "the internet's phone book"
+  },
+  {
+   "type": "icons",
+   "center": "browser",
+   "say": "Computers connect to numbers called IP addresses. People remember names. DNS turns one into the other.",
+   "items": [
+    {
+     "icon": "🔤",
+     "label": "shop.example"
+    },
+    {
+     "icon": "🔢",
+     "label": "203.0.113.7"
+    }
+   ]
+  },
+  {
+   "type": "cards",
+   "kicker": "a lookup",
+   "say": "A lookup asks a chain of servers.",
+   "items": [
+    {
+     "icon": "🌐",
+     "title": "Root",
+     "text": "who handles .com?",
+     "say": "The root servers point to who runs dot com."
+    },
+    {
+     "icon": "🏷",
+     "title": "TLD",
+     "text": "who handles example.com?",
+     "say": "The dot com servers point to the domain's own name servers."
+    },
+    {
+     "icon": "📍",
+     "title": "Authoritative",
+     "text": "here's the address",
+     "say": "And those give the actual address."
+    }
+   ]
+  },
+  {
+   "type": "terminal",
+   "kicker": "ask it yourself",
+   "command": "dig +short shop.example",
+   "output": "203.0.113.7",
+   "say": "Then the answer is cached along the way, so the next lookup is almost instant."
+  },
+  {
+   "type": "statement",
+   "text": "Names for people.\n*Numbers for machines.*",
+   "say": "That's DNS. Names for people, numbers for machines."
+  }
+ ]
+}

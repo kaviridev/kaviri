@@ -1,0 +1,69 @@
+{
+ "title": "Diffusion models in 60 seconds",
+ "voice": "cloudflare:arcas",
+ "caption": "Diffusion models in 60 seconds: how image generators turn pure noise into a picture.",
+ "scenes": [
+  {
+   "type": "title",
+   "kicker": "in 60 seconds",
+   "title": "Diffusion",
+   "say": "Diffusion, in sixty seconds.",
+   "sub": "how AI draws"
+  },
+  {
+   "type": "icons",
+   "center": "image",
+   "say": "Take a photo and add a little noise. Then more. Keep going, and eventually it's pure static.",
+   "items": [
+    {
+     "icon": "🖼",
+     "label": "a photo"
+    },
+    {
+     "icon": "📺",
+     "label": "static"
+    }
+   ]
+  },
+  {
+   "type": "cards",
+   "kicker": "learn to undo it",
+   "say": "A diffusion model learns to undo that.",
+   "items": [
+    {
+     "icon": "🔊",
+     "title": "Noise",
+     "text": "add noise to real images",
+     "say": "Training adds noise to millions of real images."
+    },
+    {
+     "icon": "🧹",
+     "title": "Denoise",
+     "text": "predict the noise, remove it",
+     "say": "The model learns to predict the noise, so it can be removed."
+    },
+    {
+     "icon": "💬",
+     "title": "Guide",
+     "text": "a caption steers each step",
+     "say": "And a text caption steers what it removes it towards."
+    }
+   ]
+  },
+  {
+   "type": "code",
+   "kicker": "generating an image",
+   "code": "start:  pure random noise\nstep 1: slightly less noise\nstep 2: shapes appear\n...\nstep 30: \"a fox in snow\"",
+   "say": "To generate, start from pure noise, and denoise step by step, guided by your prompt.",
+   "chips": [
+    "start from noise",
+    "many small steps"
+   ]
+  },
+  {
+   "type": "statement",
+   "text": "Every image\n*starts as static.*",
+   "say": "That's diffusion. Every image starts as static."
+  }
+ ]
+}

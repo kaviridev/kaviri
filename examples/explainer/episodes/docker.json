@@ -72,5 +72,6 @@
    "text": "Ship the app\n*with its world.*",
    "say": "Containers share the host's kernel, so they start in seconds. That's Docker. Ship the app with its world."
   }
- ]
+ ],
+ "caption": "Docker in 60 seconds: images, containers, and why the same app finally runs the same everywhere."
 }

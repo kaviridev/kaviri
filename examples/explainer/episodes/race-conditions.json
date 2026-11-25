@@ -1,0 +1,63 @@
+{
+ "title": "Race conditions in 60 seconds",
+ "voice": "cloudflare:arcas",
+ "caption": "Race conditions in 60 seconds: the bug that only shows up when two things happen at once.",
+ "scenes": [
+  {
+   "type": "title",
+   "kicker": "in 60 seconds",
+   "title": "Race conditions",
+   "say": "Race conditions, in sixty seconds."
+  },
+  {
+   "type": "code",
+   "kicker": "two requests, at once",
+   "code": "A reads balance: 100\nB reads balance: 100\nA writes 100 - 80 = 20\nB writes 100 - 80 = 20\n\n→ 160 spent from 100",
+   "say": "Two withdrawals arrive at the same moment. Both read a balance of a hundred, both approve, and you've paid out a hundred and sixty.",
+   "chips": [
+    "read",
+    "then write"
+   ]
+  },
+  {
+   "type": "cards",
+   "kicker": "why it's nasty",
+   "say": "It's a nasty kind of bug.",
+   "items": [
+    {
+     "icon": "🎲",
+     "title": "Timing",
+     "text": "depends on who goes first",
+     "say": "It depends on exact timing."
+    },
+    {
+     "icon": "🧪",
+     "title": "Hidden",
+     "text": "tests almost never hit it",
+     "say": "So tests almost never catch it."
+    },
+    {
+     "icon": "🔥",
+     "title": "Production",
+     "text": "real traffic finds it",
+     "say": "And real traffic eventually does."
+    }
+   ]
+  },
+  {
+   "type": "code",
+   "kicker": "the fix: make it atomic",
+   "code": "UPDATE accounts\n  SET balance = balance - 80\n  WHERE id = 7 AND balance >= 80;",
+   "say": "The fix is to make check and change one step: a lock, a transaction, or a single atomic update.",
+   "chips": [
+    "atomic",
+    "locks"
+   ]
+  },
+  {
+   "type": "statement",
+   "text": "Check and change\n*in one step.*",
+   "say": "That's a race condition. Check and change in one step."
+  }
+ ]
+}

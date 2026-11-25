@@ -1,0 +1,71 @@
+{
+ "title": "CI/CD in 60 seconds",
+ "voice": "cloudflare:arcas",
+ "caption": "CI/CD in 60 seconds: every push gets tested and shipped by a machine, the same way every time.",
+ "scenes": [
+  {
+   "type": "title",
+   "kicker": "in 60 seconds",
+   "title": "CI/CD",
+   "say": "CI/CD, in sixty seconds."
+  },
+  {
+   "type": "icons",
+   "center": "release day",
+   "say": "Shipping by hand means a long checklist, and hoping nobody skips a step.",
+   "items": [
+    {
+     "icon": "🙏",
+     "label": "hope it works"
+    },
+    {
+     "icon": "📋",
+     "label": "40-step checklist"
+    },
+    {
+     "icon": "😰",
+     "label": "friday deploy"
+    }
+   ]
+  },
+  {
+   "type": "cards",
+   "kicker": "two halves",
+   "say": "CI/CD hands that to a machine, in two halves.",
+   "items": [
+    {
+     "icon": "🧪",
+     "title": "Continuous integration",
+     "text": "every push is built and tested",
+     "say": "Continuous integration: every push is built and tested automatically."
+    },
+    {
+     "icon": "🚀",
+     "title": "Continuous delivery",
+     "text": "every green build can ship",
+     "say": "Continuous delivery: every build that passes can ship."
+    },
+    {
+     "icon": "🚦",
+     "title": "Gate",
+     "text": "red stops the line",
+     "say": "Anything red stops the line."
+    }
+   ]
+  },
+  {
+   "type": "code",
+   "kicker": "a pipeline",
+   "code": "on: push\njobs:\n  test:\n    steps:\n      - run: npm test\n  deploy:\n    needs: test",
+   "say": "It's a file in your repo. Push, and the steps run, in order, every time.",
+   "chips": [
+    "runs on every push"
+   ]
+  },
+  {
+   "type": "statement",
+   "text": "Small changes,\n*shipped often.*",
+   "say": "That's CI/CD. Small changes, shipped often, checked every time."
+  }
+ ]
+}

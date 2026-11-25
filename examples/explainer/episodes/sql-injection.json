@@ -1,0 +1,46 @@
+{
+ "title": "SQL injection in 60 seconds",
+ "voice": "cloudflare:arcas",
+ "caption": "SQL injection in 60 seconds: the decades-old bug that still leaks databases, and the simple fix.",
+ "scenes": [
+  {
+   "type": "title",
+   "kicker": "in 60 seconds",
+   "title": "SQL injection",
+   "say": "SQL injection, in sixty seconds."
+  },
+  {
+   "type": "code",
+   "kicker": "building a query from input",
+   "code": "query = \"SELECT * FROM users\n  WHERE name = '\" + name + \"'\"",
+   "say": "Build a query by gluing user input into a string, and the input becomes part of the code.",
+   "chips": [
+    "string concatenation"
+   ]
+  },
+  {
+   "type": "code",
+   "kicker": "the input",
+   "code": "name = ' OR '1'='1\n\nSELECT * FROM users\n  WHERE name = '' OR '1'='1'",
+   "say": "Type a quote and a condition that's always true, and the query returns every user.",
+   "chips": [
+    "always true"
+   ]
+  },
+  {
+   "type": "code",
+   "kicker": "the fix: parameters",
+   "code": "db.query(\n  \"SELECT * FROM users WHERE name = ?\",\n  [name]\n)",
+   "say": "The fix is parameters. The query and the data travel separately, so input is never run as code.",
+   "chips": [
+    "parameterised",
+    "never concatenate"
+   ]
+  },
+  {
+   "type": "statement",
+   "text": "Data is data.\n*Never code.*",
+   "say": "That's SQL injection. Data is data, never code."
+  }
+ ]
+}

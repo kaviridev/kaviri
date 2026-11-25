@@ -1,0 +1,79 @@
+{
+ "title": "AI hallucinations in 60 seconds",
+ "voice": "cloudflare:arcas",
+ "caption": "AI hallucinations in 60 seconds: why language models state false things with total confidence.",
+ "scenes": [
+  {
+   "type": "title",
+   "kicker": "in 60 seconds",
+   "title": "Hallucinations",
+   "say": "Hallucinations, in sixty seconds.",
+   "sub": "when AI makes things up"
+  },
+  {
+   "type": "icons",
+   "center": "LLM",
+   "say": "Ask a model for sources, and it might give you a book with a real-sounding title, a real author, and no existence.",
+   "items": [
+    {
+     "icon": "📚",
+     "label": "a real book"
+    },
+    {
+     "icon": "📖",
+     "label": "a book that doesn't exist",
+     "crossed": true
+    }
+   ]
+  },
+  {
+   "type": "cards",
+   "kicker": "why it happens",
+   "say": "It's not lying. It's predicting.",
+   "items": [
+    {
+     "icon": "🎲",
+     "title": "Predict",
+     "text": "the most likely next words",
+     "say": "A model writes the most likely next words."
+    },
+    {
+     "icon": "🎭",
+     "title": "Plausible",
+     "text": "sounds right, may not be",
+     "say": "Likely and true usually overlap. Sometimes they don't."
+    },
+    {
+     "icon": "🤷",
+     "title": "No 'I don't know'",
+     "text": "unless it's trained to say it",
+     "say": "And it doesn't know which is which unless it's trained to."
+    }
+   ]
+  },
+  {
+   "type": "cards",
+   "kicker": "what helps",
+   "say": "What helps:",
+   "items": [
+    {
+     "icon": "📎",
+     "title": "Ground it",
+     "text": "give it the source text",
+     "say": "Give it the source to work from."
+    },
+    {
+     "icon": "🔗",
+     "title": "Ask for citations",
+     "text": "then check them",
+     "say": "Ask for citations, and check them."
+    }
+   ]
+  },
+  {
+   "type": "statement",
+   "text": "Fluent\n*isn't the same as true.*",
+   "say": "That's a hallucination. Fluent isn't the same as true."
+  }
+ ]
+}

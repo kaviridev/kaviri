@@ -1,0 +1,68 @@
+{
+ "title": "Caching in 60 seconds",
+ "voice": "cloudflare:arcas",
+ "caption": "Caching in 60 seconds: keeping answers close so you don't work them out twice.",
+ "scenes": [
+  {
+   "type": "title",
+   "kicker": "in 60 seconds",
+   "title": "Caching",
+   "say": "Caching, in sixty seconds."
+  },
+  {
+   "type": "icons",
+   "center": "app",
+   "say": "Asking the database the same question a thousand times a second is slow, and it's the same answer every time.",
+   "items": [
+    {
+     "icon": "🗄",
+     "label": "database: 80 ms"
+    },
+    {
+     "icon": "⚡",
+     "label": "memory: under 1 ms"
+    }
+   ]
+  },
+  {
+   "type": "cards",
+   "kicker": "cache-aside",
+   "say": "So you keep a copy in fast memory, like Redis.",
+   "items": [
+    {
+     "icon": "🔎",
+     "title": "Check",
+     "text": "is it in the cache?",
+     "say": "Check the cache first."
+    },
+    {
+     "icon": "✅",
+     "title": "Hit",
+     "text": "return it, done",
+     "say": "If it's there, return it. Done."
+    },
+    {
+     "icon": "🗄",
+     "title": "Miss",
+     "text": "ask the database, then store it",
+     "say": "If not, ask the database, and store the answer for next time."
+    }
+   ]
+  },
+  {
+   "type": "code",
+   "kicker": "the hard part",
+   "code": "SET user:42 \"{...}\" EX 60\n\n# user changes their name\n# → cache still says the old one",
+   "say": "The hard part is staleness. When data changes, the copy is wrong until it expires or you clear it.",
+   "chips": [
+    "TTL",
+    "invalidation"
+   ]
+  },
+  {
+   "type": "statement",
+   "text": "Fast answers.\n*Sometimes stale ones.*",
+   "say": "That's caching. Fast answers, as long as you keep them fresh."
+  }
+ ]
+}

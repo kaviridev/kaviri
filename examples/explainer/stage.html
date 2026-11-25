@@ -160,10 +160,9 @@
     const flat = toks.flatMap(([t, c]) => [...t].map((ch) => [ch, c]));
     let i = 0;
     (function step() {
-      if (i > flat.length) return;
+      i = Math.min(i + 3, flat.length);
       pre.innerHTML = flat.slice(0, i).map(([ch, c]) => (c ? `<span class="${c}">${esc(ch)}</span>` : esc(ch))).join("");
-      i += 3;
-      setTimeout(step, 16);
+      if (i < flat.length) setTimeout(step, 16);
     })();
   }
 

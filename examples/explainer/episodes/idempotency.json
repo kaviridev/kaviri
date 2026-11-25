@@ -1,0 +1,70 @@
+{
+ "title": "Idempotency in 60 seconds",
+ "voice": "cloudflare:arcas",
+ "caption": "Idempotency in 60 seconds: why pressing pay twice should not charge you twice.",
+ "scenes": [
+  {
+   "type": "title",
+   "kicker": "in 60 seconds",
+   "title": "Idempotency",
+   "say": "Idempotency, in sixty seconds."
+  },
+  {
+   "type": "icons",
+   "center": "checkout",
+   "say": "You tap pay. The connection drops. Did it go through? You tap again. Now were you charged twice?",
+   "items": [
+    {
+     "icon": "👆",
+     "label": "tap pay"
+    },
+    {
+     "icon": "⏳",
+     "label": "timeout"
+    },
+    {
+     "icon": "👆",
+     "label": "tap again"
+    },
+    {
+     "icon": "💸",
+     "label": "charged twice?",
+     "crossed": true
+    }
+   ]
+  },
+  {
+   "type": "cards",
+   "kicker": "the idea",
+   "say": "Idempotent means doing it twice has the same effect as doing it once.",
+   "items": [
+    {
+     "icon": "✅",
+     "title": "Safe",
+     "text": "GET, PUT, DELETE",
+     "say": "Reading, setting a value, deleting: safe to repeat."
+    },
+    {
+     "icon": "⚠️",
+     "title": "Not safe",
+     "text": "\"add one\", \"charge $10\"",
+     "say": "Adding, charging, sending: not safe to repeat."
+    }
+   ]
+  },
+  {
+   "type": "code",
+   "kicker": "the fix: a key",
+   "code": "POST /payments\nIdempotency-Key: 5f1c-9a2e\n\n→ seen this key before?\n  return the first result",
+   "say": "The fix is a key. The client sends a unique key with the request, and the server remembers it. A retry gets the first result back.",
+   "chips": [
+    "safe retries"
+   ]
+  },
+  {
+   "type": "statement",
+   "text": "Retry all you like.\n*It happens once.*",
+   "say": "That's idempotency. Retry all you like, it happens once."
+  }
+ ]
+}

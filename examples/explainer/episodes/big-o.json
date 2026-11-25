@@ -1,0 +1,72 @@
+{
+ "title": "Big O in 60 seconds",
+ "voice": "cloudflare:arcas",
+ "caption": "Big O notation in 60 seconds: how programmers describe what happens to code as the input gets huge.",
+ "scenes": [
+  {
+   "type": "title",
+   "kicker": "in 60 seconds",
+   "title": "Big O",
+   "say": "Big O, in sixty seconds.",
+   "sub": "how code scales"
+  },
+  {
+   "type": "icons",
+   "center": "input",
+   "say": "Code that's instant on ten items can crawl on ten million. Big O describes how it grows.",
+   "items": [
+    {
+     "icon": "🔟",
+     "label": "10 items"
+    },
+    {
+     "icon": "💯",
+     "label": "100 items"
+    },
+    {
+     "icon": "🌊",
+     "label": "10 million items"
+    }
+   ]
+  },
+  {
+   "type": "cards",
+   "kicker": "the common ones",
+   "say": "The common ones:",
+   "items": [
+    {
+     "icon": "⚡",
+     "title": "O(1)",
+     "text": "same time, any size",
+     "say": "O of one: same time, however big. Like a hash lookup."
+    },
+    {
+     "icon": "📏",
+     "title": "O(n)",
+     "text": "twice the data, twice the time",
+     "say": "O of n: double the data, double the time. Like scanning a list."
+    },
+    {
+     "icon": "🐢",
+     "title": "O(n²)",
+     "text": "twice the data, four times",
+     "say": "O of n squared: double the data, four times the time. Like comparing every pair."
+    }
+   ]
+  },
+  {
+   "type": "code",
+   "kicker": "a million items",
+   "code": "O(1)       1 step\nO(log n)   ~20 steps\nO(n)       1,000,000 steps\nO(n²)      1,000,000,000,000",
+   "say": "At a million items, the difference is twenty steps or a trillion.",
+   "chips": [
+    "growth, not speed"
+   ]
+  },
+  {
+   "type": "statement",
+   "text": "Not how fast.\n*How it grows.*",
+   "say": "That's Big O. Not how fast, but how it grows."
+  }
+ ]
+}

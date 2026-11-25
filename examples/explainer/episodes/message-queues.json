@@ -1,0 +1,78 @@
+{
+ "title": "Message queues in 60 seconds",
+ "voice": "cloudflare:arcas",
+ "caption": "Message queues in 60 seconds: how systems hand off work without waiting on each other.",
+ "scenes": [
+  {
+   "type": "title",
+   "kicker": "in 60 seconds",
+   "title": "Message queues",
+   "say": "Message queues, in sixty seconds."
+  },
+  {
+   "type": "icons",
+   "center": "signup",
+   "say": "A user signs up. You need to send an email, resize their photo, and update analytics. They shouldn't wait for all of that.",
+   "items": [
+    {
+     "icon": "📧",
+     "label": "send email"
+    },
+    {
+     "icon": "🖼",
+     "label": "resize avatar"
+    },
+    {
+     "icon": "📊",
+     "label": "update analytics"
+    }
+   ]
+  },
+  {
+   "type": "mesh",
+   "heading": "Producers, a queue, consumers",
+   "left": [
+    "web app",
+    "API",
+    "cron"
+   ],
+   "right": [
+    "email worker",
+    "image worker",
+    "stats worker"
+   ],
+   "say": "So the app drops a message in a queue and answers straight away. Workers pick messages up when they're ready.",
+   "hub": "queue"
+  },
+  {
+   "type": "cards",
+   "kicker": "what you get",
+   "say": "That gives you three things.",
+   "items": [
+    {
+     "icon": "⚡",
+     "title": "Fast",
+     "text": "the user isn't kept waiting",
+     "say": "The user isn't kept waiting."
+    },
+    {
+     "icon": "🛟",
+     "title": "Durable",
+     "text": "a crash doesn't lose work",
+     "say": "A worker crash doesn't lose the job."
+    },
+    {
+     "icon": "📈",
+     "title": "Scalable",
+     "text": "add workers when it backs up",
+     "say": "Busy? Add more workers."
+    }
+   ]
+  },
+  {
+   "type": "statement",
+   "text": "Hand it off.\n*Someone will get to it.*",
+   "say": "That's a message queue. Hand it off, someone will get to it."
+  }
+ ]
+}

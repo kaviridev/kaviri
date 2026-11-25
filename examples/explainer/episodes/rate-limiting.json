@@ -1,0 +1,73 @@
+{
+ "title": "Rate limiting in 60 seconds",
+ "voice": "cloudflare:arcas",
+ "caption": "Rate limiting in 60 seconds: how an API stays up when one client sends far too many requests.",
+ "scenes": [
+  {
+   "type": "title",
+   "kicker": "in 60 seconds",
+   "title": "Rate limiting",
+   "say": "Rate limiting, in sixty seconds."
+  },
+  {
+   "type": "icons",
+   "center": "API",
+   "say": "One runaway script can send thousands of requests a second, and take an API down for everyone.",
+   "items": [
+    {
+     "icon": "👤",
+     "label": "normal users"
+    },
+    {
+     "icon": "🤖",
+     "label": "one runaway script"
+    },
+    {
+     "icon": "💥",
+     "label": "everyone's down",
+     "crossed": true
+    }
+   ]
+  },
+  {
+   "type": "cards",
+   "kicker": "the token bucket",
+   "say": "A common fix is the token bucket.",
+   "items": [
+    {
+     "icon": "🪣",
+     "title": "Bucket",
+     "text": "holds up to ten tokens",
+     "say": "Each client gets a bucket of tokens."
+    },
+    {
+     "icon": "🎟",
+     "title": "Spend",
+     "text": "every request costs one",
+     "say": "Every request spends one."
+    },
+    {
+     "icon": "💧",
+     "title": "Refill",
+     "text": "tokens drip back over time",
+     "say": "Tokens drip back at a steady rate, so short bursts are fine."
+    }
+   ]
+  },
+  {
+   "type": "code",
+   "kicker": "bucket's empty",
+   "code": "HTTP/1.1 429 Too Many Requests\nRetry-After: 30",
+   "say": "When the bucket's empty, the API answers four twenty nine, too many requests, and says when to try again.",
+   "chips": [
+    "429",
+    "Retry-After"
+   ]
+  },
+  {
+   "type": "statement",
+   "text": "Fair share\n*for everyone.*",
+   "say": "That's rate limiting. A fair share for everyone."
+  }
+ ]
+}

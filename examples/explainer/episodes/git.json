@@ -1,0 +1,71 @@
+{
+ "title": "Git in 60 seconds",
+ "voice": "cloudflare:arcas",
+ "caption": "Git in 60 seconds: commits, branches and merges, and why nothing you commit is ever really lost.",
+ "scenes": [
+  {
+   "type": "title",
+   "kicker": "in 60 seconds",
+   "title": "Git",
+   "say": "Git, in sixty seconds.",
+   "sub": "version control"
+  },
+  {
+   "type": "icons",
+   "center": "project",
+   "say": "Without version control, you end up with final, final two, and final real. And no idea what changed between them.",
+   "items": [
+    {
+     "icon": "📄",
+     "label": "final.doc"
+    },
+    {
+     "icon": "📄",
+     "label": "final2.doc"
+    },
+    {
+     "icon": "📄",
+     "label": "final_REAL.doc",
+     "crossed": true
+    }
+   ]
+  },
+  {
+   "type": "cards",
+   "kicker": "three ideas",
+   "say": "Git is built on three ideas.",
+   "items": [
+    {
+     "icon": "📸",
+     "title": "Commit",
+     "text": "a snapshot of every file",
+     "say": "A commit is a snapshot of your whole project, with a message saying why."
+    },
+    {
+     "icon": "🌿",
+     "title": "Branch",
+     "text": "a movable pointer to a commit",
+     "say": "A branch is just a name pointing at a commit, so making one is instant."
+    },
+    {
+     "icon": "🔀",
+     "title": "Merge",
+     "text": "join two histories",
+     "say": "A merge joins two branches back together."
+    }
+   ]
+  },
+  {
+   "type": "terminal",
+   "kicker": "try something risky",
+   "command": "git switch -c experiment",
+   "output": "Switched to a new branch 'experiment'",
+   "say": "So you can try something risky on its own branch, and main never notices."
+  },
+  {
+   "type": "statement",
+   "text": "Commit often.\n*Branch freely.*",
+   "say": "Every commit can be brought back. That's Git. Commit often, branch freely."
+  }
+ ]
+}

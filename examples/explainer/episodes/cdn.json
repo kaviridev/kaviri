@@ -1,0 +1,75 @@
+{
+ "title": "CDN in 60 seconds",
+ "voice": "cloudflare:arcas",
+ "caption": "CDNs in 60 seconds: why a website loads fast on the other side of the world from its server.",
+ "scenes": [
+  {
+   "type": "title",
+   "kicker": "in 60 seconds",
+   "title": "CDN",
+   "say": "CDN, in sixty seconds.",
+   "sub": "content delivery network"
+  },
+  {
+   "type": "icons",
+   "center": "server",
+   "say": "Your server is in Virginia. A visitor in Johannesburg waits for every byte to cross an ocean and back.",
+   "items": [
+    {
+     "icon": "🇺🇸",
+     "label": "Virginia"
+    },
+    {
+     "icon": "🇿🇦",
+     "label": "Johannesburg",
+     "crossed": true
+    },
+    {
+     "icon": "🇯🇵",
+     "label": "Tokyo",
+     "crossed": true
+    }
+   ]
+  },
+  {
+   "type": "cards",
+   "kicker": "copies near everyone",
+   "say": "A CDN puts copies near everyone.",
+   "items": [
+    {
+     "icon": "🌍",
+     "title": "Edge",
+     "text": "servers in hundreds of cities",
+     "say": "It runs servers in cities all over the world."
+    },
+    {
+     "icon": "📦",
+     "title": "Cache",
+     "text": "keep a copy of your files",
+     "say": "They keep copies of your files."
+    },
+    {
+     "icon": "⚡",
+     "title": "Nearby",
+     "text": "served from down the road",
+     "say": "Each visitor is served from the closest one."
+    }
+   ]
+  },
+  {
+   "type": "code",
+   "kicker": "only the first visit travels",
+   "code": "visitor in Johannesburg\n  → edge in Johannesburg: HIT\n\nfirst visitor ever\n  → edge: MISS → origin → cached",
+   "say": "Only the first request goes all the way to your server. After that, it's local.",
+   "chips": [
+    "cache hit",
+    "origin"
+   ]
+  },
+  {
+   "type": "statement",
+   "text": "Move the content\n*closer to people.*",
+   "say": "That's a CDN. Move the content closer to people."
+  }
+ ]
+}

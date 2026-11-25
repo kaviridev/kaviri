@@ -1,0 +1,69 @@
+{
+ "title": "Vector databases in 60 seconds",
+ "voice": "cloudflare:arcas",
+ "caption": "Vector databases in 60 seconds: searching by meaning instead of matching words.",
+ "scenes": [
+  {
+   "type": "title",
+   "kicker": "in 60 seconds",
+   "title": "Vector databases",
+   "say": "Vector databases, in sixty seconds."
+  },
+  {
+   "type": "icons",
+   "center": "search",
+   "say": "A normal search matches words. Search for car, and you miss the page that only says vehicle.",
+   "items": [
+    {
+     "icon": "🔤",
+     "label": "exact words",
+     "crossed": true
+    },
+    {
+     "icon": "💡",
+     "label": "meaning"
+    }
+   ]
+  },
+  {
+   "type": "cards",
+   "kicker": "how it works",
+   "say": "A vector database searches by meaning.",
+   "items": [
+    {
+     "icon": "🔢",
+     "title": "Embed",
+     "text": "text becomes a list of numbers",
+     "say": "First, a model turns every piece of text into a list of numbers."
+    },
+    {
+     "icon": "📍",
+     "title": "Store",
+     "text": "similar meaning, nearby points",
+     "say": "Text with similar meaning lands close together."
+    },
+    {
+     "icon": "🎯",
+     "title": "Query",
+     "text": "find the nearest neighbours",
+     "say": "Then a query finds the nearest points."
+    }
+   ]
+  },
+  {
+   "type": "code",
+   "kicker": "a query",
+   "code": "results = db.query(\n  embed(\"cheap cars\"),\n  top_k=3\n)\n# → \"affordable vehicles\"\n#   \"budget used autos\"",
+   "say": "Search cheap cars, and you get affordable vehicles, even with no words in common.",
+   "chips": [
+    "nearest neighbours",
+    "powers RAG"
+   ]
+  },
+  {
+   "type": "statement",
+   "text": "Search by meaning,\n*not by spelling.*",
+   "say": "That's a vector database. Search by meaning, not by spelling."
+  }
+ ]
+}

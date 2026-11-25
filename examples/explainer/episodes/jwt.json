@@ -1,0 +1,70 @@
+{
+ "title": "JWT in 60 seconds",
+ "voice": "cloudflare:arcas",
+ "caption": "JWT in 60 seconds: the signed token behind most logins, and what that signature does and does not protect.",
+ "scenes": [
+  {
+   "type": "title",
+   "kicker": "in 60 seconds",
+   "title": "JWT",
+   "say": "JWT, in sixty seconds.",
+   "sub": "JSON Web Token"
+  },
+  {
+   "type": "icons",
+   "center": "server",
+   "say": "After you log in, the server needs to know it's you on every request. A JWT lets it check without looking anything up.",
+   "items": [
+    {
+     "icon": "🗄",
+     "label": "session lookup",
+     "crossed": true
+    },
+    {
+     "icon": "🎟",
+     "label": "signed token"
+    }
+   ]
+  },
+  {
+   "type": "code",
+   "kicker": "three parts, dot separated",
+   "code": "header . payload . signature\n\n{ \"sub\": \"user_42\",\n  \"exp\": 1767225600 }",
+   "say": "A JWT is three parts: a header, a payload with claims like who you are and when it expires, and a signature.",
+   "chips": [
+    "base64url",
+    "signed, not encrypted"
+   ]
+  },
+  {
+   "type": "cards",
+   "kicker": "the signature",
+   "say": "The signature is the whole point.",
+   "items": [
+    {
+     "icon": "✍️",
+     "title": "Signed",
+     "text": "with the server's secret key",
+     "say": "The server signs the token with a secret key."
+    },
+    {
+     "icon": "🚫",
+     "title": "Tamper-proof",
+     "text": "change one byte, it fails",
+     "say": "Change a single character, and the signature no longer matches."
+    },
+    {
+     "icon": "👀",
+     "title": "Readable",
+     "text": "anyone can decode it",
+     "say": "But anyone can read it, so never put secrets in the payload."
+    }
+   ]
+  },
+  {
+   "type": "statement",
+   "text": "Signed,\n*not secret.*",
+   "say": "That's a JWT. Signed, not secret."
+  }
+ ]
+}

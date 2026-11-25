@@ -68,5 +68,6 @@
    "text": "The browser asks.\n*The server decides.*",
    "say": "That's CORS. The browser asks. The server decides."
   }
- ]
+ ],
+ "caption": "CORS in 60 seconds: why the browser blocks your fetch, and why the fix lives on the server."
 }

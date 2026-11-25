@@ -1,0 +1,76 @@
+{
+ "title": "Load balancers in 60 seconds",
+ "voice": "cloudflare:arcas",
+ "caption": "Load balancers in 60 seconds: one address in front, many servers behind it.",
+ "scenes": [
+  {
+   "type": "title",
+   "kicker": "in 60 seconds",
+   "title": "Load balancers",
+   "say": "Load balancers, in sixty seconds."
+  },
+  {
+   "type": "icons",
+   "center": "one server",
+   "say": "One server can only handle so much. A million users at once, and it falls over.",
+   "items": [
+    {
+     "icon": "👥",
+     "label": "a million users"
+    },
+    {
+     "icon": "🔥",
+     "label": "overloaded",
+     "crossed": true
+    }
+   ]
+  },
+  {
+   "type": "mesh",
+   "heading": "One address, many servers",
+   "left": [
+    "user",
+    "user",
+    "user",
+    "user"
+   ],
+   "right": [
+    "server 1",
+    "server 2",
+    "server 3"
+   ],
+   "say": "A load balancer sits in front. Everyone connects to it, and it hands each request to one of the servers behind.",
+   "hub": "LB"
+  },
+  {
+   "type": "cards",
+   "kicker": "how it picks",
+   "say": "It picks a server, and keeps watch.",
+   "items": [
+    {
+     "icon": "🔁",
+     "title": "Round robin",
+     "text": "take turns",
+     "say": "Take turns."
+    },
+    {
+     "icon": "📉",
+     "title": "Least busy",
+     "text": "whoever has fewest",
+     "say": "Or send it to whoever is least busy."
+    },
+    {
+     "icon": "❤️",
+     "title": "Health checks",
+     "text": "skip the dead ones",
+     "say": "And it checks each server, skipping any that stop answering."
+    }
+   ]
+  },
+  {
+   "type": "statement",
+   "text": "Many servers.\n*One front door.*",
+   "say": "That's a load balancer. Many servers, one front door."
+  }
+ ]
+}

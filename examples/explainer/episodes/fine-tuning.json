@@ -1,0 +1,68 @@
+{
+ "title": "Fine-tuning in 60 seconds",
+ "voice": "cloudflare:arcas",
+ "caption": "Fine-tuning in 60 seconds: teaching a trained model a new habit, and when you should reach for it instead of a better prompt.",
+ "scenes": [
+  {
+   "type": "title",
+   "kicker": "in 60 seconds",
+   "title": "Fine-tuning",
+   "say": "Fine-tuning, in sixty seconds."
+  },
+  {
+   "type": "icons",
+   "center": "model",
+   "say": "A base model has read a huge amount of text. Fine-tuning takes that model and trains it a little more, on your examples.",
+   "items": [
+    {
+     "icon": "📚",
+     "label": "trained on the internet"
+    },
+    {
+     "icon": "🎯",
+     "label": "your task"
+    }
+   ]
+  },
+  {
+   "type": "code",
+   "kicker": "training examples",
+   "code": "{\"input\": \"Summarise: ...\",\n \"output\": \"Three bullets, no jargon.\"}\n{\"input\": \"Summarise: ...\",\n \"output\": \"...\"}",
+   "say": "You show it hundreds of input and output pairs, and it learns the pattern.",
+   "chips": [
+    "hundreds of examples",
+    "small updates"
+   ]
+  },
+  {
+   "type": "cards",
+   "kicker": "good for",
+   "say": "It's good at some things and bad at others.",
+   "items": [
+    {
+     "icon": "🎨",
+     "title": "Style",
+     "text": "a voice, a format",
+     "say": "Great for style and format."
+    },
+    {
+     "icon": "🔁",
+     "title": "Habits",
+     "text": "the same task, done reliably",
+     "say": "Great for doing one task the same way every time."
+    },
+    {
+     "icon": "📰",
+     "title": "New facts",
+     "text": "use retrieval instead",
+     "say": "Weak for new facts. For those, retrieval works better."
+    }
+   ]
+  },
+  {
+   "type": "statement",
+   "text": "Fine-tune for behaviour.\n*Retrieve for knowledge.*",
+   "say": "That's fine-tuning. Train it for behaviour, retrieve for knowledge."
+  }
+ ]
+}

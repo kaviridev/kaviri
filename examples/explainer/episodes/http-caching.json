@@ -1,0 +1,72 @@
+{
+ "title": "HTTP caching in 60 seconds",
+ "voice": "cloudflare:arcas",
+ "caption": "HTTP caching in 60 seconds: the headers that decide whether your browser downloads a file again or not.",
+ "scenes": [
+  {
+   "type": "title",
+   "kicker": "in 60 seconds",
+   "title": "HTTP caching",
+   "say": "HTTP caching, in sixty seconds."
+  },
+  {
+   "type": "icons",
+   "center": "browser",
+   "say": "Every page needs the same logo, styles and scripts. Downloading them every time is slow. Caching keeps a copy.",
+   "items": [
+    {
+     "icon": "🖼",
+     "label": "logo.png"
+    },
+    {
+     "icon": "🎨",
+     "label": "style.css"
+    },
+    {
+     "icon": "📜",
+     "label": "app.js"
+    }
+   ]
+  },
+  {
+   "type": "code",
+   "kicker": "the server decides",
+   "code": "Cache-Control: max-age=31536000, immutable\n\nCache-Control: no-cache\nETag: \"a1b2c3\"",
+   "say": "The server decides with headers. Max age says keep this for a year, no questions asked.",
+   "chips": [
+    "max-age",
+    "ETag"
+   ]
+  },
+  {
+   "type": "cards",
+   "kicker": "two ways to reuse",
+   "say": "There are two ways to reuse a copy.",
+   "items": [
+    {
+     "icon": "⚡",
+     "title": "Fresh",
+     "text": "use it, no request at all",
+     "say": "If it's still fresh, the browser doesn't even ask."
+    },
+    {
+     "icon": "🔁",
+     "title": "Revalidate",
+     "text": "ask: has it changed?",
+     "say": "If not, it asks whether the file changed, using the ETag."
+    },
+    {
+     "icon": "✅",
+     "title": "304",
+     "text": "not modified, keep yours",
+     "say": "And the server answers three oh four: not modified, keep yours."
+    }
+   ]
+  },
+  {
+   "type": "statement",
+   "text": "The fastest request\n*is the one you never make.*",
+   "say": "That's HTTP caching. The fastest request is the one you never make."
+  }
+ ]
+}

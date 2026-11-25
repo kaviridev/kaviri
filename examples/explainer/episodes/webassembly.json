@@ -1,0 +1,74 @@
+{
+ "title": "WebAssembly in 60 seconds",
+ "voice": "cloudflare:arcas",
+ "caption": "WebAssembly in 60 seconds: running code written in Rust, C++ or Go inside the browser, close to native speed.",
+ "scenes": [
+  {
+   "type": "title",
+   "kicker": "in 60 seconds",
+   "title": "WebAssembly",
+   "say": "WebAssembly, in sixty seconds.",
+   "sub": "Wasm"
+  },
+  {
+   "type": "icons",
+   "center": "browser",
+   "say": "For years, the browser ran one language: JavaScript. WebAssembly lets it run code from many others.",
+   "items": [
+    {
+     "icon": "🟨",
+     "label": "JavaScript"
+    },
+    {
+     "icon": "🦀",
+     "label": "Rust"
+    },
+    {
+     "icon": "⚙️",
+     "label": "C++"
+    },
+    {
+     "icon": "🐹",
+     "label": "Go"
+    }
+   ]
+  },
+  {
+   "type": "cards",
+   "kicker": "how",
+   "say": "Here's how.",
+   "items": [
+    {
+     "icon": "🛠",
+     "title": "Compile",
+     "text": "to a compact binary",
+     "say": "You compile your code to a compact binary format."
+    },
+    {
+     "icon": "⚡",
+     "title": "Fast",
+     "text": "close to native speed",
+     "say": "The browser runs it close to native speed."
+    },
+    {
+     "icon": "🧱",
+     "title": "Sandboxed",
+     "text": "same safety as a web page",
+     "say": "In the same sandbox as any web page."
+    }
+   ]
+  },
+  {
+   "type": "terminal",
+   "kicker": "compile Rust for the web",
+   "command": "cargo build --target wasm32-unknown-unknown",
+   "output": "Finished release target(s)",
+   "say": "It's how heavy apps like video editors and design tools run in a tab, and it's spreading to servers too."
+  },
+  {
+   "type": "statement",
+   "text": "Any language,\n*in a browser tab.*",
+   "say": "That's WebAssembly. Any language, in a browser tab."
+  }
+ ]
+}

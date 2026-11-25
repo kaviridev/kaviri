@@ -1,0 +1,69 @@
+{
+ "title": "Database indexes in 60 seconds",
+ "voice": "cloudflare:arcas",
+ "caption": "Database indexes in 60 seconds: why one line of SQL can make a slow query thousands of times faster.",
+ "scenes": [
+  {
+   "type": "title",
+   "kicker": "in 60 seconds",
+   "title": "Indexes",
+   "say": "Indexes, in sixty seconds.",
+   "sub": "databases"
+  },
+  {
+   "type": "icons",
+   "center": "10 million rows",
+   "say": "Find one email in ten million rows, with no index, and the database checks every single row.",
+   "items": [
+    {
+     "icon": "🐢",
+     "label": "check every row"
+    },
+    {
+     "icon": "⚡",
+     "label": "jump straight there"
+    }
+   ]
+  },
+  {
+   "type": "cards",
+   "kicker": "like a book's index",
+   "say": "An index is like the index at the back of a book.",
+   "items": [
+    {
+     "icon": "🔤",
+     "title": "Sorted",
+     "text": "values kept in order",
+     "say": "It keeps a column's values in sorted order."
+    },
+    {
+     "icon": "📍",
+     "title": "Pointers",
+     "text": "each points to its row",
+     "say": "Each one points to its row."
+    },
+    {
+     "icon": "🌳",
+     "title": "Tree",
+     "text": "a few hops to any value",
+     "say": "Stored as a tree, so any value is a few hops away."
+    }
+   ]
+  },
+  {
+   "type": "code",
+   "kicker": "one line",
+   "code": "CREATE INDEX idx_users_email\n  ON users (email);",
+   "say": "One line, and the lookup goes from scanning everything to a handful of steps.",
+   "chips": [
+    "B-tree",
+    "faster reads"
+   ]
+  },
+  {
+   "type": "statement",
+   "text": "Faster reads,\n*slightly slower writes.*",
+   "say": "The catch: every insert also updates the index. That's an index. Faster reads, slightly slower writes."
+  }
+ ]
+}

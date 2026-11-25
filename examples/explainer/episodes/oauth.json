@@ -64,5 +64,6 @@
    "text": "Don't share the password.\n*Share a key.*",
    "say": "You can revoke that token any time. That's OAuth. Don't share the password. Share a key."
   }
- ]
+ ],
+ "caption": "OAuth in 60 seconds: how apps get access to your account without ever seeing your password."
 }

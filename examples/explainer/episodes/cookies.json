@@ -1,0 +1,72 @@
+{
+ "title": "Cookies in 60 seconds",
+ "voice": "cloudflare:arcas",
+ "caption": "Cookies in 60 seconds: how a website remembers you between requests, when HTTP itself forgets everything.",
+ "scenes": [
+  {
+   "type": "title",
+   "kicker": "in 60 seconds",
+   "title": "Cookies",
+   "say": "Cookies, in sixty seconds."
+  },
+  {
+   "type": "icons",
+   "center": "server",
+   "say": "HTTP has no memory. Every request arrives as if from a stranger.",
+   "items": [
+    {
+     "icon": "📨",
+     "label": "request 1"
+    },
+    {
+     "icon": "📨",
+     "label": "request 2"
+    },
+    {
+     "icon": "❓",
+     "label": "who are you?"
+    }
+   ]
+  },
+  {
+   "type": "code",
+   "kicker": "the server hands you one",
+   "code": "Set-Cookie: session=8f3a9c;\n  HttpOnly; Secure; SameSite=Lax\n\n→ next request:\nCookie: session=8f3a9c",
+   "say": "So the server sends a cookie, a small piece of text, and the browser sends it back on every request after.",
+   "chips": [
+    "Set-Cookie",
+    "sent back automatically"
+   ]
+  },
+  {
+   "type": "cards",
+   "kicker": "the flags matter",
+   "say": "The flags matter.",
+   "items": [
+    {
+     "icon": "🙈",
+     "title": "HttpOnly",
+     "text": "scripts can't read it",
+     "say": "HttpOnly: page scripts can't read it."
+    },
+    {
+     "icon": "🔒",
+     "title": "Secure",
+     "text": "HTTPS only",
+     "say": "Secure: only sent over HTTPS."
+    },
+    {
+     "icon": "🚧",
+     "title": "SameSite",
+     "text": "not sent from other sites",
+     "say": "SameSite: not sent when another site triggers the request."
+    }
+   ]
+  },
+  {
+   "type": "statement",
+   "text": "A small note\n*the browser carries for you.*",
+   "say": "That's a cookie. A small note the browser carries for you."
+  }
+ ]
+}

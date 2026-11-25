@@ -1,0 +1,73 @@
+{
+ "title": "Kubernetes in 60 seconds",
+ "voice": "cloudflare:arcas",
+ "caption": "Kubernetes in 60 seconds: you describe what should be running, and it keeps making that true.",
+ "scenes": [
+  {
+   "type": "title",
+   "kicker": "in 60 seconds",
+   "title": "Kubernetes",
+   "say": "Kubernetes, in sixty seconds.",
+   "sub": "container orchestration"
+  },
+  {
+   "type": "icons",
+   "center": "you",
+   "say": "One container is easy. A hundred containers across twenty servers, while one of them just died, is not.",
+   "items": [
+    {
+     "icon": "📦",
+     "label": "100 containers"
+    },
+    {
+     "icon": "🖥",
+     "label": "20 servers"
+    },
+    {
+     "icon": "💥",
+     "label": "one just died"
+    }
+   ]
+  },
+  {
+   "type": "code",
+   "kicker": "you describe what you want",
+   "code": "kind: Deployment\nspec:\n  replicas: 3\n  template:\n    containers:\n      - image: my-app:1.4",
+   "say": "With Kubernetes you don't say what to do. You describe what should exist: three copies of this image.",
+   "chips": [
+    "declarative",
+    "YAML"
+   ]
+  },
+  {
+   "type": "cards",
+   "kicker": "then it keeps it true",
+   "say": "Then it works constantly to make that true.",
+   "items": [
+    {
+     "icon": "💥",
+     "title": "Heals",
+     "text": "a container dies, it starts another",
+     "say": "A container dies, it starts a new one."
+    },
+    {
+     "icon": "📈",
+     "title": "Scales",
+     "text": "more traffic, more copies",
+     "say": "Traffic grows, it adds copies."
+    },
+    {
+     "icon": "🔄",
+     "title": "Rolls out",
+     "text": "new version, one at a time",
+     "say": "New version, it swaps them over one at a time."
+    }
+   ]
+  },
+  {
+   "type": "statement",
+   "text": "Say what should exist.\n*It handles the how.*",
+   "say": "That's Kubernetes. Say what should exist, and it handles the how."
+  }
+ ]
+}

@@ -64,5 +64,6 @@
    "text": "One connection.\n*Both directions.*",
    "say": "That's WebSockets. One connection, both directions, no more asking."
   }
- ]
+ ],
+ "caption": "WebSockets in 60 seconds: one connection, both directions, and why polling is wasteful."
 }

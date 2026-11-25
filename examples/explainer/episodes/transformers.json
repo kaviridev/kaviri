@@ -1,0 +1,72 @@
+{
+ "title": "Transformers in 60 seconds",
+ "voice": "cloudflare:arcas",
+ "caption": "Transformers in 60 seconds: the architecture behind modern language models, and the one idea at its centre, attention.",
+ "scenes": [
+  {
+   "type": "title",
+   "kicker": "in 60 seconds",
+   "title": "Transformers",
+   "say": "Transformers, in sixty seconds.",
+   "sub": "the T in GPT"
+  },
+  {
+   "type": "icons",
+   "center": "sentence",
+   "say": "In the cat sat on the mat because it was tired, what does it mean? You knew instantly. A model has to work it out.",
+   "items": [
+    {
+     "icon": "🐱",
+     "label": "The cat"
+    },
+    {
+     "icon": "🛋",
+     "label": "sat on the mat"
+    },
+    {
+     "icon": "😴",
+     "label": "because it was tired"
+    }
+   ]
+  },
+  {
+   "type": "cards",
+   "kicker": "attention",
+   "say": "Transformers do it with attention.",
+   "items": [
+    {
+     "icon": "👀",
+     "title": "Look",
+     "text": "every word looks at every other",
+     "say": "Every word looks at every other word."
+    },
+    {
+     "icon": "⚖️",
+     "title": "Weigh",
+     "text": "decide which ones matter",
+     "say": "It weighs which ones matter. For it, cat matters most."
+    },
+    {
+     "icon": "🔁",
+     "title": "Stack",
+     "text": "repeat in many layers",
+     "say": "Then it repeats that, layer after layer."
+    }
+   ]
+  },
+  {
+   "type": "code",
+   "kicker": "then predict",
+   "code": "The cat sat on the mat because it was\n\n→ tired   62%\n→ hungry  11%\n→ warm     6%",
+   "say": "At the end, it predicts the next token. Then it adds that token and does it again.",
+   "chips": [
+    "one token at a time"
+   ]
+  },
+  {
+   "type": "statement",
+   "text": "Attention\n*is the whole trick.*",
+   "say": "Because every word is processed in parallel, they train fast on huge amounts of text. That's a transformer."
+  }
+ ]
+}

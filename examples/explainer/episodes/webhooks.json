@@ -1,0 +1,73 @@
+{
+ "title": "Webhooks in 60 seconds",
+ "voice": "cloudflare:arcas",
+ "caption": "Webhooks in 60 seconds: instead of asking an API if anything happened, let it tell you.",
+ "scenes": [
+  {
+   "type": "title",
+   "kicker": "in 60 seconds",
+   "title": "Webhooks",
+   "say": "Webhooks, in sixty seconds."
+  },
+  {
+   "type": "icons",
+   "center": "your app",
+   "say": "To know when a payment comes in, you could ask the API every few seconds. Almost every answer is no.",
+   "items": [
+    {
+     "icon": "🔁",
+     "label": "anything new?"
+    },
+    {
+     "icon": "🔁",
+     "label": "anything new?"
+    },
+    {
+     "icon": "🔁",
+     "label": "anything new?",
+     "crossed": true
+    }
+   ]
+  },
+  {
+   "type": "cards",
+   "kicker": "flip it around",
+   "say": "A webhook flips it around.",
+   "items": [
+    {
+     "icon": "🔗",
+     "title": "Register",
+     "text": "give them a URL",
+     "say": "You give the service a URL."
+    },
+    {
+     "icon": "⚡",
+     "title": "Event",
+     "text": "something happens",
+     "say": "Something happens: a payment, a push, a signup."
+    },
+    {
+     "icon": "📬",
+     "title": "POST",
+     "text": "they call your URL",
+     "say": "They send an HTTP request to your URL, with the details."
+    }
+   ]
+  },
+  {
+   "type": "code",
+   "kicker": "what arrives",
+   "code": "POST /hooks/payments\n\n{ \"type\": \"payment.succeeded\",\n  \"amount\": 2900 }",
+   "say": "Always check the signature they send, so nobody else can fake an event.",
+   "chips": [
+    "verify the signature",
+    "reply fast"
+   ]
+  },
+  {
+   "type": "statement",
+   "text": "Don't call us.\n*We'll call you.*",
+   "say": "That's a webhook. Don't call us, we'll call you."
+  }
+ ]
+}

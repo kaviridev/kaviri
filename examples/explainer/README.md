@@ -19,6 +19,7 @@ words of narration.
   "title": "MCP in 60 seconds",
   "voice": "cloudflare:arcas",          // any kaviri voice, engine:voice included
   "accent": "#2fd37e",                  // optional
+  "caption": "MCP in 60 seconds: ...",  // the post text, about the topic only
   "scenes": [ { "type": "title", "title": "MCP", "say": "MCP, in sixty seconds." } ]
 }
 ```
