@@ -1,0 +1,76 @@
+{
+ "title": "RAG in 60 seconds",
+ "voice": "cloudflare:arcas",
+ "scenes": [
+  {
+   "type": "title",
+   "kicker": "in 60 seconds",
+   "title": "RAG",
+   "sub": "Retrieval-Augmented Generation",
+   "say": "RAG, in sixty seconds."
+  },
+  {
+   "type": "icons",
+   "center": "LLM",
+   "cage": true,
+   "items": [
+    {
+     "icon": "📄",
+     "label": "your docs",
+     "crossed": true
+    },
+    {
+     "icon": "🗂",
+     "label": "your wiki",
+     "crossed": true
+    },
+    {
+     "icon": "📅",
+     "label": "last week",
+     "crossed": true
+    }
+   ],
+   "say": "A language model only knows what it saw in training. It has never read your docs, your wiki, or anything from last week."
+  },
+  {
+   "type": "cards",
+   "kicker": "the fix, in three steps",
+   "say": "RAG fixes that in three steps.",
+   "items": [
+    {
+     "icon": "🔎",
+     "title": "Retrieve",
+     "text": "find passages that match the question",
+     "say": "Retrieve: search your documents for passages that match the question."
+    },
+    {
+     "icon": "📎",
+     "title": "Augment",
+     "text": "paste them into the prompt",
+     "say": "Augment: paste those passages into the prompt."
+    },
+    {
+     "icon": "✍️",
+     "title": "Generate",
+     "text": "answer from what it was given",
+     "say": "Generate: the model answers from what it was just handed."
+    }
+   ]
+  },
+  {
+   "type": "code",
+   "kicker": "the prompt, assembled",
+   "code": "Answer using only these sources.\n\n[1] \"Refunds are issued within 14 days.\"\n[2] \"Email billing@acme.dev for help.\"\n\nQuestion: \"How long do refunds take?\"",
+   "chips": [
+    "no retraining",
+    "can cite sources"
+   ],
+   "say": "Nothing gets retrained. The model just reads the right page at the right moment, and can point to where its answer came from."
+  },
+  {
+   "type": "statement",
+   "text": "Don't teach the model.\n*Hand it the page.*",
+   "say": "That's RAG. Don't teach the model everything. Hand it the right page."
+  }
+ ]
+}

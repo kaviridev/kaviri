@@ -1,0 +1,68 @@
+{
+ "title": "WebSockets in 60 seconds",
+ "voice": "cloudflare:arcas",
+ "scenes": [
+  {
+   "type": "title",
+   "kicker": "in 60 seconds",
+   "title": "WebSockets",
+   "say": "WebSockets, in sixty seconds."
+  },
+  {
+   "type": "code",
+   "kicker": "the old way: polling",
+   "code": "setInterval(() => {\n  fetch(\"/messages\")\n}, 1000)",
+   "chips": [
+    "ask",
+    "ask again",
+    "ask again"
+   ],
+   "say": "With plain HTTP, only the browser can speak first. Want new messages? Ask. Ask again. And again. That's polling, and it's wasteful."
+  },
+  {
+   "type": "code",
+   "kicker": "the upgrade",
+   "code": "GET /chat HTTP/1.1\nUpgrade: \"websocket\"\nConnection: \"Upgrade\"",
+   "chips": [
+    "101 Switching Protocols"
+   ],
+   "say": "A WebSocket starts as an ordinary HTTP request that asks to upgrade. The server answers one oh one, switching protocols, and the connection stays open."
+  },
+  {
+   "type": "cards",
+   "kicker": "now both sides can talk",
+   "say": "From then on, it's a two-way pipe.",
+   "items": [
+    {
+     "icon": "💬",
+     "title": "Chat",
+     "text": "messages arrive instantly",
+     "say": "Chat messages arrive the moment they're sent."
+    },
+    {
+     "icon": "📈",
+     "title": "Live data",
+     "text": "prices, scores, dashboards",
+     "say": "Prices and dashboards update live."
+    },
+    {
+     "icon": "🎮",
+     "title": "Multiplayer",
+     "text": "every move, in real time",
+     "say": "And games sync every move."
+    }
+   ]
+  },
+  {
+   "type": "code",
+   "kicker": "in the browser",
+   "code": "const ws = new WebSocket(\"wss://example.com/chat\")\nws.onmessage = (e) => show(e.data)\nws.send(\"hi\")",
+   "say": "In the browser, it's three lines. Connect, listen, send."
+  },
+  {
+   "type": "statement",
+   "text": "One connection.\n*Both directions.*",
+   "say": "That's WebSockets. One connection, both directions, no more asking."
+  }
+ ]
+}

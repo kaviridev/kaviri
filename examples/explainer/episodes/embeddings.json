@@ -1,0 +1,73 @@
+{
+ "title": "Embeddings in 60 seconds",
+ "voice": "cloudflare:arcas",
+ "scenes": [
+  {
+   "type": "title",
+   "kicker": "in 60 seconds",
+   "title": "Embeddings",
+   "sub": "meaning, as numbers",
+   "say": "Embeddings, in sixty seconds."
+  },
+  {
+   "type": "code",
+   "kicker": "a sentence, as numbers",
+   "code": "embed(\"I love dogs\")\n\n→ [0.021, -0.483, 0.917, 0.064, ...]",
+   "chips": [
+    "hundreds to thousands of numbers"
+   ],
+   "say": "An embedding model turns text into a long list of numbers. Hundreds of them, sometimes thousands."
+  },
+  {
+   "type": "icons",
+   "heading": "Close in meaning, close in space",
+   "center": "I love dogs",
+   "items": [
+    {
+     "icon": "🐶",
+     "label": "puppies are great"
+    },
+    {
+     "icon": "🐕",
+     "label": "my dog's name is Max"
+    },
+    {
+     "icon": "🧾",
+     "label": "tax law",
+     "crossed": true
+    }
+   ],
+   "say": "The trick is where those numbers land. Texts that mean similar things end up close together. I love dogs sits right next to puppies are great, and nowhere near tax law."
+  },
+  {
+   "type": "cards",
+   "kicker": "what that unlocks",
+   "say": "That one idea powers a lot.",
+   "items": [
+    {
+     "icon": "🔎",
+     "title": "Search",
+     "text": "find by meaning, not keywords",
+     "say": "Search by meaning, not keywords."
+    },
+    {
+     "icon": "🧩",
+     "title": "Recommendations",
+     "text": "more like this",
+     "say": "Recommendations: more like this."
+    },
+    {
+     "icon": "📚",
+     "title": "RAG",
+     "text": "fetch the right passages",
+     "say": "And RAG, fetching the right passages for a model to read."
+    }
+   ]
+  },
+  {
+   "type": "statement",
+   "text": "Similar meaning.\n*Nearby numbers.*",
+   "say": "That's embeddings. Similar meaning, nearby numbers."
+  }
+ ]
+}

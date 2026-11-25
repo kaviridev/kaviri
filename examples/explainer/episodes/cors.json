@@ -1,0 +1,72 @@
+{
+ "title": "CORS in 60 seconds",
+ "voice": "cloudflare:arcas",
+ "scenes": [
+  {
+   "type": "title",
+   "kicker": "in 60 seconds",
+   "title": "CORS",
+   "sub": "Cross-Origin Resource Sharing",
+   "say": "CORS, in sixty seconds."
+  },
+  {
+   "type": "code",
+   "kicker": "the error everyone has seen",
+   "code": "Access to fetch at \"https://api.other.com\"\nfrom origin \"https://myapp.com\"\nhas been blocked by CORS policy",
+   "say": "You've seen this error. Your code is probably fine. The browser is protecting you."
+  },
+  {
+   "type": "icons",
+   "heading": "Same-origin policy",
+   "center": "a page you opened",
+   "items": [
+    {
+     "icon": "🏦",
+     "label": "your bank",
+     "crossed": true
+    },
+    {
+     "icon": "📧",
+     "label": "your email",
+     "crossed": true
+    },
+    {
+     "icon": "🔐",
+     "label": "your accounts",
+     "crossed": true
+    }
+   ],
+   "say": "By default, a page can't read responses from another origin. Otherwise any site you visit could read your bank or your email, using your logged-in cookies."
+  },
+  {
+   "type": "code",
+   "kicker": "the server opts in",
+   "code": "Access-Control-Allow-Origin: \"https://myapp.com\"\nAccess-Control-Allow-Methods: \"GET, POST\"",
+   "say": "CORS is how a server opts in. It sends headers saying which origins are allowed to read its responses."
+  },
+  {
+   "type": "cards",
+   "kicker": "two things to know",
+   "say": "Two things trip people up.",
+   "items": [
+    {
+     "icon": "✈️",
+     "title": "Preflight",
+     "text": "an OPTIONS request goes first",
+     "say": "Some requests send a preflight first: an OPTIONS request asking permission."
+    },
+    {
+     "icon": "🔧",
+     "title": "Fix it on the server",
+     "text": "not in your frontend",
+     "say": "And the fix lives on the server, not in your frontend code."
+    }
+   ]
+  },
+  {
+   "type": "statement",
+   "text": "The browser asks.\n*The server decides.*",
+   "say": "That's CORS. The browser asks. The server decides."
+  }
+ ]
+}

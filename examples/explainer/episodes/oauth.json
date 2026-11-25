@@ -1,0 +1,68 @@
+{
+ "title": "OAuth in 60 seconds",
+ "voice": "cloudflare:arcas",
+ "scenes": [
+  {
+   "type": "title",
+   "kicker": "in 60 seconds",
+   "title": "OAuth",
+   "say": "OAuth, in sixty seconds."
+  },
+  {
+   "type": "icons",
+   "center": "some app",
+   "items": [
+    {
+     "icon": "🔑",
+     "label": "your password",
+     "crossed": true
+    },
+    {
+     "icon": "📅",
+     "label": "your calendar"
+    },
+    {
+     "icon": "📧",
+     "label": "your email"
+    }
+   ],
+   "say": "An app wants to read your calendar. The bad old way: you hand it your password. Now it can do anything, for as long as it likes."
+  },
+  {
+   "type": "cards",
+   "kicker": "the OAuth flow",
+   "say": "OAuth replaces that with a short dance.",
+   "items": [
+    {
+     "icon": "↪️",
+     "title": "Redirect",
+     "text": "the app sends you to the provider",
+     "say": "The app sends you to the provider, say, your email service."
+    },
+    {
+     "icon": "✅",
+     "title": "Consent",
+     "text": "you approve what it asked for",
+     "say": "You sign in there, and approve exactly what the app asked for."
+    },
+    {
+     "icon": "🎟",
+     "title": "Token",
+     "text": "the app gets a limited key",
+     "say": "The app gets back a token, a key that only opens what you approved."
+    }
+   ]
+  },
+  {
+   "type": "code",
+   "kicker": "what the app asks for",
+   "code": "https://auth.example.com/authorize\n  ?client_id=\"my-app\"\n  &scope=\"calendar.readonly\"\n  &redirect_uri=\"https://my-app.dev/callback\"",
+   "say": "The app never sees your password. It asks for a scope, like read-only calendar, and that's all it gets."
+  },
+  {
+   "type": "statement",
+   "text": "Don't share the password.\n*Share a key.*",
+   "say": "You can revoke that token any time. That's OAuth. Don't share the password. Share a key."
+  }
+ ]
+}

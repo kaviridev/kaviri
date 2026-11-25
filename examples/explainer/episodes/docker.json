@@ -1,0 +1,76 @@
+{
+ "title": "Docker in 60 seconds",
+ "voice": "cloudflare:arcas",
+ "scenes": [
+  {
+   "type": "title",
+   "kicker": "in 60 seconds",
+   "title": "Docker",
+   "say": "Docker, in sixty seconds."
+  },
+  {
+   "type": "icons",
+   "center": "your app",
+   "items": [
+    {
+     "icon": "💻",
+     "label": "works on my machine"
+    },
+    {
+     "icon": "🖥",
+     "label": "breaks on the server",
+     "crossed": true
+    },
+    {
+     "icon": "🧩",
+     "label": "different versions",
+     "crossed": true
+    }
+   ],
+   "say": "It works on my machine. Then it breaks on the server, because the server has different versions of everything."
+  },
+  {
+   "type": "cards",
+   "kicker": "ship the environment too",
+   "say": "Docker's fix is to ship the environment along with the app.",
+   "items": [
+    {
+     "icon": "📄",
+     "title": "Dockerfile",
+     "text": "the recipe",
+     "say": "A Dockerfile is the recipe."
+    },
+    {
+     "icon": "📦",
+     "title": "Image",
+     "text": "the recipe, built and frozen",
+     "say": "Build it, and you get an image: your app plus everything it needs."
+    },
+    {
+     "icon": "▶️",
+     "title": "Container",
+     "text": "the image, running",
+     "say": "Run the image, and you have a container."
+    }
+   ]
+  },
+  {
+   "type": "code",
+   "kicker": "a Dockerfile",
+   "code": "FROM node:22\nWORKDIR /app\nCOPY . .\nRUN npm install\nCMD [\"node\", \"server.js\"]",
+   "say": "Five lines. Start from Node, copy your code, install, run."
+  },
+  {
+   "type": "terminal",
+   "kicker": "run it anywhere",
+   "command": "docker run -p 3000:3000 my-app",
+   "output": "listening on :3000",
+   "say": "Now the same image runs on your laptop, a server, or the cloud."
+  },
+  {
+   "type": "statement",
+   "text": "Ship the app\n*with its world.*",
+   "say": "Containers share the host's kernel, so they start in seconds. That's Docker. Ship the app with its world."
+  }
+ ]
+}
