@@ -63,7 +63,8 @@ const CSP = [
   "script-src 'self'",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data:",
-  "media-src 'self' blob:",
+  // social.ishe.dev: the trend films live in Postiz's media library (wsrc/trends.js).
+  "media-src 'self' blob: https://social.ishe.dev",
   "font-src 'self'",
   "connect-src 'self'",
   "object-src 'none'",
@@ -287,6 +288,13 @@ export default {
      */
     if (url.pathname === "/stripe" && request.method === "POST") {
       return withSecurity(await stripe.receive(request, env));
+    }
+    // One click from the trend email (wsrc/trends.js): the page and the POST it makes.
+    if (url.pathname.startsWith("/t/") && (request.method === "GET" || request.method === "POST")) {
+      return withSecurity(await trends.oneClick(request, env, url).catch((e) => {
+        console.error("trend one-click", String(e));
+        return new Response(JSON.stringify({ error: String(e) }), { status: 500, headers: { "Content-Type": "application/json" } });
+      }));
     }
     // The trending runner: claims a pick to film and delivers the film (wsrc/trends.js).
     if (url.pathname.startsWith("/api/trends/")) {

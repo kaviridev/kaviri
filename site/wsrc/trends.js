@@ -316,23 +316,105 @@ async function uploadToPostiz(env, file) {
 
 // ---------------------------------------------------------------- the owner's side
 
+/*
+ * One click from the email. The link is signed with the admin secret over the pick and its
+ * film, so it is good for that film only, and posting moves the pick out of "filmed", so it is
+ * good once. Opening it does not post by itself: mail scanners open links to check them, so the
+ * page the link opens is what posts, from a script, and scanners do not run scripts.
+ */
+const enc = new TextEncoder();
+const LINK_DAYS = 3;
+
+async function sign(env, id, action, media) {
+  const key = await crypto.subtle.importKey("raw", enc.encode(env.ADMIN_PASSWORD || ""), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const mac = new Uint8Array(await crypto.subtle.sign("HMAC", key, enc.encode(`trend:${id}:${action}:${media}`)));
+  return btoa(String.fromCharCode(...mac)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+export async function link(env, t, action) {
+  return `https://kaviri.dev/t/${t.id}/${action}/${await sign(env, t.id, action, t.media_id)}`;
+}
+
 async function reviewEmail(env, t) {
   const subject = `kaviri trend ready: ${t.short_title}`;
   const blocks = [
     status("A trending video is filmed and waiting for you", "good"),
     h(t.short_title),
-    rows([
-      ["Topic", t.title],
-      ["Why", t.why || ""],
-      ["Source", t.url],
-    ]),
     button("Watch the video", t.media_path),
     note(`Caption: ${t.caption}`),
-    button("Review and post", "https://kaviri.dev/admin/trends"),
-    note("Nothing is posted until you press Post everywhere on that page. TikTok goes to your TikTok inbox as a draft."),
+    rows([
+      ["Cards", [t.hook1, t.hook2].filter(Boolean).join(" / ")],
+      ["Topic", t.title],
+      ["Source", t.url],
+      ["Why", t.why || ""],
+    ]),
+    button("Post everywhere", await link(env, t, "post")),
+    note(`One click posts to X, Bluesky, Mastodon, LinkedIn and YouTube, and sends TikTok to your TikTok inbox. Not this one: ${await link(env, t, "skip")} . Links work once and expire in ${LINK_DAYS} days.`),
   ];
   const { html, text } = render({ preheader: `${t.title}`, blocks, signature: false });
   return notifyOwner(env, { subject, text, html });
+}
+
+const page = (title, body) =>
+  new Response(
+    `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${title}</title><link rel="icon" href="/favicon.svg"><link rel="stylesheet" href="/brand/tokens.css"><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/admin.css">
+</head><body><div class="wrap adm">${body}</div></body></html>`,
+    { headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex" } }
+  );
+
+// The script the one-click page runs: POST the same URL, show what came back.
+export const GO_JS = `(async () => {
+  const s = document.getElementById("state");
+  try {
+    const r = await fetch(location.pathname, { method: "POST" });
+    const j = await r.json();
+    s.textContent = j.message || j.error || "Done.";
+    s.className = r.ok ? "note" : "err";
+  } catch (e) { s.textContent = "Could not reach kaviri.dev: " + e; s.className = "err"; }
+})();`;
+
+const escHtml = (x) => String(x ?? "").replace(/[<>&"]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" })[c]);
+
+export async function oneClick(request, env, url) {
+  if (url.pathname === "/t/go.js") {
+    return new Response(GO_JS, { headers: { "Content-Type": "text/javascript; charset=utf-8", "Cache-Control": "no-store" } });
+  }
+  const m = url.pathname.match(/^\/t\/(\d+)\/(post|skip)\/([A-Za-z0-9_-]{20,})$/);
+  if (!m) return page("Not found", "<h1>Not found</h1>");
+  const [, idS, action, sig] = m;
+  const id = Number(idS);
+  await ensureTrendSchema(env);
+  const t = await env.kaviri_waitlist.prepare("select * from trends where id = ?").bind(id).first();
+  const good = t && t.media_id && sig === (await sign(env, id, action, t.media_id));
+  const fresh = t && Date.parse(`${t.claimed_at || t.created_at}Z`) > Date.now() - LINK_DAYS * 864e5;
+  const json = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } });
+
+  if (request.method === "POST") {
+    if (!good) return json({ error: "This link is not valid." }, 403);
+    if (!fresh) return json({ error: "This link has expired. Use kaviri.dev/admin/trends." }, 410);
+    if (t.status === "posted") return json({ message: "Already posted. Nothing was sent twice." });
+    if (t.status === "skipped") return json({ message: "This one was skipped, so nothing was posted." });
+    if (t.status !== "filmed") return json({ error: `This pick is ${t.status}, not ready to post.` }, 409);
+    if (action === "skip") {
+      await setStatus(env, id, "skipped");
+      return json({ message: "Skipped. Nothing was posted." });
+    }
+    await postEverywhere(env, id);
+    return json({ message: "Posted to X, Bluesky, Mastodon, LinkedIn and YouTube. TikTok is in your TikTok inbox to finish." });
+  }
+  if (!good) return page("Link not valid", "<h1>This link is not valid</h1><p>Use <a href=\"/admin/trends\">the trends page</a>.</p>");
+  const verb = action === "post" ? "Posting to every channel" : "Skipping";
+  return page(
+    `${verb}: ${escHtml(t.short_title)}`,
+    `<h1>${escHtml(t.short_title)}</h1>
+<p id="state" class="note">${verb}...</p>
+<video src="${escHtml(t.media_path)}" controls playsinline preload="metadata" style="max-width:280px;border-radius:12px"></video>
+<p>${escHtml(t.caption)}</p>
+<noscript><form method="POST"><button class="btn btn-primary">${action === "post" ? "Post everywhere" : "Skip"}</button></form></noscript>
+<p class="muted"><a href="/admin/trends">All trends</a></p>
+<script src="/t/go.js"></script>`
+  );
 }
 
 export async function postEverywhere(env, id) {
