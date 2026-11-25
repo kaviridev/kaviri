@@ -143,6 +143,8 @@ The hooks are the two punch cards that open the video, big white words on black.
 the surprising claim, hook 2 the payoff that makes you watch. Each is 2 to 5 words and reads
 as a sentence. Good: "A 7B model" / "beat GPT-6 at code." Good: "One file." / "A whole database."
 Bad: labels like "AI Tool" or "Game Mod", or anything with a colon.
+Use only facts in the candidate's own text. Never invent a number, a speed-up, a benchmark or a
+comparison it does not state; a made-up claim on a real project's video is the worst outcome.
 The caption leads with the outcome, the way a developer would tell a friend, under 240
 characters, then ends with: Filmed by a script with kaviri. kaviri.dev
 Write plainly. No hashtags. No em dashes. No exclamation marks. Never speak for the project.
@@ -199,20 +201,16 @@ export async function pick(env, candidates) {
 export function script(t) {
   const ops = [
     { op: "frame", platform: "ios", style: "recording" },
-    // A repo opens at its README, where the screenshots and the pitch are, not the file list.
-    { op: "navigate", url: t.kind === "github" ? `${t.url.replace(/\/$/, "")}#readme` : t.url },
+    { op: "navigate", url: t.url },
     { op: "wait", ms: 4000 },
     { op: "title", text: t.hook1, style: "punch", transition: "cut", ms: 1000 },
   ];
   if (t.hook2) ops.push({ op: "title", text: t.hook2, style: "punch", transition: "cut", ms: 1000 });
   ops.push({ op: "start_recording" }, { op: "wait", ms: 1500 });
-  ops.push(
-    { op: "scroll", y: 650, smooth: true },
-    { op: "wait", ms: 1600 },
-    { op: "scroll", y: 650, smooth: true },
-    { op: "wait", ms: 1600 }
-  );
-  if (t.kind !== "site") ops.push({ op: "scroll", y: 650, smooth: true }, { op: "wait", ms: 1600 });
+  // scroll's y is a position from the top of the page, not a distance, so each step goes
+  // further down. On a repo the first step passes the file list and lands in the README.
+  const stops = t.kind === "github" ? [1300, 2000, 2700] : t.kind === "huggingface" ? [600, 1300, 2000] : [700, 1400];
+  for (const y of stops) ops.push({ op: "scroll", y, smooth: true }, { op: "wait", ms: 1600 });
   if (t.stat) ops.push({ op: "title", text: t.stat, sub: t.stat_sub || "", style: "stat" });
   ops.push({ op: "title", style: "end", at: "end" }, { op: "stop_recording" });
   return ops;
@@ -263,7 +261,7 @@ const out = (body, status = 200) =>
 /**
  * GET /api/trends/next claims the oldest pick that is ready to film and hands back its script
  * and a claim code. POST /api/trends/<id>/video with that code delivers the film. A claim that
- * never delivers is offered again after two hours.
+ * never delivers is offered again after 45 minutes (a run takes about 15).
  */
 export async function api(request, env, url, ctx) {
   await ensureTrendSchema(env);
@@ -271,7 +269,7 @@ export async function api(request, env, url, ctx) {
     const t = await env.kaviri_waitlist
       .prepare(
         `select * from trends where status = 'ready'
-            or (status = 'claimed' and claimed_at < datetime('now', '-2 hours'))
+            or (status = 'claimed' and claimed_at < datetime('now', '-45 minutes'))
          order by id limit 1`
       )
       .first();
