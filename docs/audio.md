@@ -149,6 +149,11 @@ asking `doctor --fix` to), run as a child process, never linked and never in kav
   permissively licensed English phonemiser in Rust, the model runs in process but the text
   front end still has to be espeak-ng.
 
+`--tts cloudflare` takes two kinds of voice. A two-letter language code (`en`) is MeloTTS. Any
+other name is a Deepgram Aura-2 speaker (`orion`, `apollo`, `arcas`, `thalia`, `helena`, ...), which
+sounds like a person and costs about three cents a minute of speech beyond Workers AI's daily
+free allowance.
+
 ## A voiceover: `--voiceover`
 
 `--voiceover narration.m4a` lays a recorded track under the whole take, from its first frame,

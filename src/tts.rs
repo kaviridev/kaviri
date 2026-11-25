@@ -163,7 +163,7 @@ pub fn help() -> String {
          none        silence as long as each line would take to say; for tests and CI\n  \
          openai      your key in OPENAI_API_KEY; voices alloy, nova, onyx, ...\n  \
          elevenlabs  your key in ELEVENLABS_API_KEY; voice is a voice id; word timings\n  \
-         cloudflare  CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN; Workers AI MeloTTS\n\n\
+         cloudflare  CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN; voice \"en\" is MeloTTS,\n              an Aura-2 name (orion, apollo, thalia, ...) is Deepgram Aura-2\n\n\
          Piper voices kaviri can fetch (--voice, or \"voice\" on a say op):\n",
     );
     for v in VOICES {
@@ -990,6 +990,26 @@ pub struct Cloudflare {
     token: String,
 }
 
+/// The Workers AI model and request body for a line in a voice.
+fn cloudflare_request(text: &str, voice: &str) -> Result<(&'static str, String), String> {
+    let v = voice.trim().to_ascii_lowercase();
+    if v.len() == 2 && v.chars().all(|c| c.is_ascii_lowercase()) {
+        return Ok((
+            "@cf/myshell-ai/melotts",
+            json!({"prompt": text, "lang": v}).to_string(),
+        ));
+    }
+    if v.is_empty() || !v.chars().all(|c| c.is_ascii_lowercase()) {
+        return Err(format!(
+            "cloudflare voice must be a language code (MeloTTS, \"en\") or an Aura-2 speaker name (\"orion\"), got {voice:?}"
+        ));
+    }
+    Ok((
+        "@cf/deepgram/aura-2-en",
+        json!({"text": text, "speaker": v, "encoding": "mp3"}).to_string(),
+    ))
+}
+
 impl Engine for Cloudflare {
     fn name(&self) -> &'static str {
         "cloudflare"
@@ -997,15 +1017,18 @@ impl Engine for Cloudflare {
     fn default_voice(&self) -> String {
         "en".into()
     }
-    /// MeloTTS on Workers AI. Its "voice" is a language code.
+    /// Two models on Workers AI, told apart by the voice. A two-letter language code ("en")
+    /// is MeloTTS, free-sounding and free. Any other name is a Deepgram Aura-2 speaker
+    /// ("orion", "apollo", "thalia", ...), which sounds like a person and costs about three
+    /// cents a minute of speech beyond the daily free allowance.
     fn synth(&self, text: &str, voice: &str, dir: &Path) -> Result<Raw, String> {
         if !self.account.chars().all(|c| c.is_ascii_alphanumeric()) {
             return Err("CLOUDFLARE_ACCOUNT_ID is not an account id".into());
         }
-        let body = json!({"prompt": text, "lang": voice}).to_string();
+        let (model, body) = cloudflare_request(text, voice)?;
         let resp = post(
             &format!(
-                "https://api.cloudflare.com/client/v4/accounts/{}/ai/run/@cf/myshell-ai/melotts",
+                "https://api.cloudflare.com/client/v4/accounts/{}/ai/run/{model}",
                 self.account
             ),
             &[
@@ -1044,6 +1067,17 @@ mod tests {
 
     fn env_of(pairs: &'static [(&'static str, &'static str)]) -> impl Fn(&str) -> Option<String> {
         move |k| pairs.iter().find(|p| p.0 == k).map(|p| p.1.to_string())
+    }
+
+    #[test]
+    fn a_cloudflare_voice_picks_its_model() {
+        let (m, b) = cloudflare_request("hi", "en").unwrap();
+        assert_eq!(m, "@cf/myshell-ai/melotts");
+        assert!(b.contains("\"lang\":\"en\""));
+        let (m, b) = cloudflare_request("hi", "Orion").unwrap();
+        assert_eq!(m, "@cf/deepgram/aura-2-en");
+        assert!(b.contains("\"speaker\":\"orion\""));
+        assert!(cloudflare_request("hi", "../x").is_err());
     }
 
     #[test]
