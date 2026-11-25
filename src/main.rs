@@ -265,6 +265,9 @@ struct Args {
     /// Whether the viewport, the video size and the backdrop were chosen on
     /// the command line, so a frame declared in a script knows what it may set.
     sized: bool,
+    /// --scale was given, so a phone frame keeps it instead of its own 3x; the way to film
+    /// a heavy WebGL page in a phone frame without paying for nine times the pixels.
+    scaled: bool,
     out_sized: bool,
     background_set: bool,
     smooth: zoom::Smooth,
@@ -422,6 +425,7 @@ fn parse_argv_from<I: Iterator<Item = String>>(mut argv: I) -> Result<Parsed, St
     let mut battery: u8 = 100;
     // Whether the take's size was chosen, so a phone frame knows it may choose.
     let mut sized = false;
+    let mut scaled = false;
     let mut out_sized = false;
     let mut a = Args {
         mode,
@@ -436,6 +440,7 @@ fn parse_argv_from<I: Iterator<Item = String>>(mut argv: I) -> Result<Parsed, St
         background: backdrop::Choice::Auto,
         frame: None,
         sized: false,
+        scaled: false,
         out_sized: false,
         background_set: false,
         smooth: zoom::Smooth::Auto,
@@ -477,7 +482,10 @@ fn parse_argv_from<I: Iterator<Item = String>>(mut argv: I) -> Result<Parsed, St
                 a.height = dimension("--height", &val("--height")?, 64, 16384)?;
                 sized = true;
             }
-            "--scale" => a.scale = ratio("--scale", &val("--scale")?, 0.5, 4.0)?,
+            "--scale" => {
+                a.scale = ratio("--scale", &val("--scale")?, 0.5, 4.0)?;
+                scaled = true;
+            }
             "--out-width" => {
                 a.out_w = Some(dimension("--out-width", &val("--out-width")?, 64, 8192)?);
                 out_sized = true;
@@ -617,6 +625,7 @@ fn parse_argv_from<I: Iterator<Item = String>>(mut argv: I) -> Result<Parsed, St
         background: None,
     };
     a.sized = sized;
+    a.scaled = scaled;
     a.out_sized = out_sized;
     a.background_set = background != "auto";
     if let Some(spec) = opts.build()? {
@@ -798,7 +807,9 @@ fn apply_frame(a: &mut Args, spec: device::Spec) {
         if !a.sized {
             a.width = css.0;
             a.height = css.1;
-            a.scale = scale;
+            if !a.scaled {
+                a.scale = scale;
+            }
         }
         if !a.out_sized {
             a.out_w = Some(out.0);

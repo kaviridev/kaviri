@@ -217,7 +217,25 @@ pub fn styles_help() -> String {
 
 /* ------------------------------------------------------------------ pages */
 
+/// Text for a card. A hyphen between two letters or digits becomes a non-breaking one, so a
+/// headline never wraps inside a name ("GPT-" over "6.2").
 fn esc(s: &str) -> String {
+    let c: Vec<char> = s.chars().collect();
+    let s: String = c
+        .iter()
+        .enumerate()
+        .map(|(i, &ch)| {
+            let joined = ch == '-'
+                && i > 0
+                && c[i - 1].is_alphanumeric()
+                && c.get(i + 1).is_some_and(|n| n.is_alphanumeric());
+            if joined {
+                '\u{2011}'
+            } else {
+                ch
+            }
+        })
+        .collect();
     s.replace('&', "&amp;")
         .replace('<', "&lt;")
         .replace('>', "&gt;")
@@ -337,7 +355,16 @@ fn headline_px(text: &str, w: u32, h: u32, max: f64) -> f64 {
     let n = text.chars().count() as f64;
     let portrait = h as f64 > w as f64 * 1.2;
     let fit = if portrait { 2.3 } else { 2.6 } * w.min(h).max(1) as f64 / n.max(6.0);
-    (short * max).min(fit).max(short * 0.045)
+    // The longest word cannot wrap, so it has to fit across the card by itself: a bold
+    // glyph is about 0.62 em wide, and the word gets 84% of the width.
+    let longest = text
+        .split_whitespace()
+        .map(|t| t.chars().count())
+        .max()
+        .unwrap_or(1)
+        .max(1) as f64;
+    let word = w as f64 * 0.84 / (longest * 0.62);
+    (short * max).min(fit).min(word).max(short * 0.045)
 }
 
 /// Words that blur in one after another, the way launch cards set their headline.
@@ -763,6 +790,24 @@ fn big(op: &Value, w: u32, h: u32) -> String {
 pub type RenderFrames<'a> =
     dyn FnMut(&str, u32, u32, usize, u32, &Path, &str, bool) -> Result<(), String> + 'a;
 
+/// The length ffmpeg reads off a file, which is what the joins have to agree with. The take's
+/// length as kaviri counted it can run past the last frame actually written, and a card cut in
+/// at that counted end then starts after the picture has run out, taking every card after it
+/// (the end card included) off the end of the video.
+fn media_secs(ffmpeg: &str, path: &str) -> Option<f64> {
+    let o = Command::new(ffmpeg)
+        .args(["-hide_banner", "-i", path])
+        .output()
+        .ok()?;
+    let err = String::from_utf8_lossy(&o.stderr);
+    let d = err.split("Duration: ").nth(1)?.split(',').next()?.trim();
+    let mut secs = 0.0;
+    for part in d.split(':') {
+        secs = secs * 60.0 + part.parse::<f64>().ok()?;
+    }
+    (secs > 0.0).then_some(secs)
+}
+
 fn has_audio(ffmpeg: &str, path: &str) -> bool {
     Command::new(ffmpeg)
         .args(["-hide_banner", "-i", path])
@@ -815,7 +860,16 @@ pub fn timeline(take: f64, cards: &[Card]) -> Timeline {
         .iter()
         .enumerate()
         .filter_map(|(k, c)| match c.place {
-            Place::Cut(t) => Some((t.clamp(0.0, take), k)),
+            // A card cut in within half a second of the end goes at the end: the scrap of
+            // take that would come back between it and the outro reads as a glitch.
+            Place::Cut(t) => Some((
+                if take - t < 0.5 {
+                    take
+                } else {
+                    t.clamp(0.0, take)
+                },
+                k,
+            )),
             _ => None,
         })
         .collect();
@@ -969,6 +1023,15 @@ pub fn finish(
         return Ok(Value::Null);
     }
     let ffmpeg = crate::zoom::find_ffmpeg()?;
+    let take = match media_secs(&ffmpeg, out) {
+        Some(real) if real < take => {
+            if std::env::var_os("KAVIRI_DEBUG_MOTION").is_some() {
+                eprintln!("kaviri: motion: take counted {take:.3}s, file is {real:.3}s");
+            }
+            real
+        }
+        _ => take,
+    };
     let (w, h) = (size.0 - size.0 % 2, size.1 - size.1 % 2);
     let dir = std::env::temp_dir().join(format!(
         "kaviri-motion-{}-{}",
@@ -1244,6 +1307,8 @@ mod tests {
             Some(("".into(), 62.5, 1, "%".into()))
         );
         assert_eq!(number_parts("none"), None);
+        assert_eq!(esc("GPT-6.2 <b>"), "GPT\u{2011}6.2 &lt;b&gt;");
+        assert_eq!(esc("a - b"), "a - b");
         let c = title(&json!({"text": "$8", "style": "stat"}), None).unwrap();
         assert!(page(&c, 1080, 1920).unwrap().contains("kvFrame"));
     }
