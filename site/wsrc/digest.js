@@ -9,7 +9,7 @@
 
 import { notifyOwner } from "./mail.js";
 import { render, h, stats, rows, note, button, status } from "./brand-email.js";
-import { socialStats, socialLines } from "./social.js";
+import { socialStats, socialLines, whatWorks, whatWorksLines, bestLine } from "./social.js";
 
 export const DIGEST_HOUR_UTC = 8;
 
@@ -72,6 +72,16 @@ export async function sendDigest(env) {
   blocks.push(h("Socials, last 7 days"));
   blocks.push(rows(socialLines(social)));
   blocks.push(note("Changes in brackets are since yesterday's email. TikTok is posted by hand, so it is not counted here."));
+  // Which kind of post is working: launches, trends, explainers, text. Collected an hour
+  // earlier by the cron (social.collectPostStats).
+  const works = await whatWorks(env).catch(() => null);
+  if (works?.kinds?.length) {
+    blocks.push(h("What's working, last 30 days"));
+    blocks.push(rows(whatWorksLines(works)));
+    const best = bestLine(works);
+    if (best) blocks.push(note(best));
+    if (works.kinds.reduce((a, k) => a + k.videos, 0) < 10) blocks.push(note("Fewer than ten posts so far, so read this as a hint, not a verdict."));
+  }
   blocks.push(button("Open the list", "https://kaviri.dev/admin"));
   const { html, text } = render({
     preheader: `${c.active} subscribed, ${plus(c.newDay)} in the last 24 hours.`,

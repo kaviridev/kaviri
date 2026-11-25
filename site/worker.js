@@ -20,6 +20,7 @@ import * as admin from "./wsrc/admin.js";
 import * as stripe from "./wsrc/stripe.js";
 import { ensureOutboundSchema, outboundUnsubscribe, runOutbound } from "./wsrc/outbound.js";
 import * as trends from "./wsrc/trends.js";
+import { POSTS_HOUR_UTC, collectPostStats } from "./wsrc/social.js";
 
 const SIGNATURE_SOURCE = "https://raw.githubusercontent.com/kaviridev/kaviri/main/site/email/signature.gif";
 
@@ -255,6 +256,15 @@ export default {
         await pruneVisits(env);
       })()
     );
+    // Each recent post's numbers, an hour before the email that ranks them. Its own run, so
+    // the email's run stays well inside the free plan's limit on outside requests.
+    if (at.getUTCHours() === POSTS_HOUR_UTC) {
+      ctx.waitUntil(
+        collectPostStats(env)
+          .then((r) => beat(env, "last_post_stats", JSON.stringify(r)))
+          .catch((e) => beat(env, "last_post_stats", JSON.stringify({ error: String(e) })))
+      );
+    }
     // The trending pick, once a day. The film and the owner's email follow when the runner
     // delivers it (wsrc/trends.js); nothing is posted from here.
     if (at.getUTCHours() === trends.TREND_HOUR_UTC) {

@@ -15,6 +15,7 @@
 
 import { notifyOwner } from "./mail.js";
 import { render, h, rows, note, button, status } from "./brand-email.js";
+import { tagPosts } from "./social.js";
 
 export const TREND_HOUR_UTC = 6;
 const MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
@@ -447,6 +448,13 @@ export async function postEverywhere(env, id) {
   const res = await r.text();
   if (!r.ok) throw new Error(`postiz posts: ${r.status} ${res.slice(0, 300)}`);
   await env.kaviri_waitlist.prepare("update trends set status = 'posted', posted_at = datetime('now') where id = ?").bind(id).run();
+  // So the daily email can tell how trend videos do against the other kinds.
+  try {
+    const ids = (JSON.parse(res) || []).map((x) => x.postId).filter(Boolean);
+    await tagPosts(env, ids, "trend", t.short_title);
+  } catch (e) {
+    console.error("trend: could not tag posts", String(e));
+  }
   return res;
 }
 
