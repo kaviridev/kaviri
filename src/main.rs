@@ -736,6 +736,7 @@ fn doctor_speech(a: &Args) {
         ("OPENAI_API_KEY", "openai"),
         ("ELEVENLABS_API_KEY", "elevenlabs"),
         ("CLOUDFLARE_API_TOKEN", "cloudflare"),
+        ("KAVIRI_TTS_COMMAND", "command"),
     ] {
         if std::env::var_os(var).is_some() {
             println!("  {var} is set, so --tts {who} is available (off unless named)");

@@ -31,7 +31,7 @@ kaviri record --script examples/narrated.jsonl --out narrated.mp4 \
 | field | type | default | notes |
 |---|---|---|---|
 | `text` | string | required | what to say |
-| `voice` | string | `--voice`, else the engine's default | an engine voice name, or a path to a Piper `.onnx` |
+| `voice` | string | `--voice`, else the engine's default | a voice of `--tts`, a path to a Piper `.onnx`, or `engine:voice` to use another engine for this line |
 | `wait` | bool | `false` | hold here until the line has been said |
 | `pad_ms` | number | `150` | extra pause after the line, with `wait` |
 | `gain_db` | number | `0` | this line's level, -60 to 24 |
@@ -69,6 +69,38 @@ pump keeps going.
 **Lines are cached** by engine (and model), voice and text in `~/.cache/kaviri/tts` (or `$KAVIRI_CACHE`,
 or `$XDG_CACHE_HOME/kaviri`). The second take of a script costs nothing, and with a cloud engine
 it is not billed twice.
+
+## Voices from any engine
+
+A voice can name its engine, so one take can mix them: a narrator and a guest, two hosts, a
+cloned voice for one line.
+
+```jsonc
+{"op":"say","text":"I am the narrator.","voice":"cloudflare:arcas"}
+{"op":"say","text":"And I am the guest.","voice":"elevenlabs:21m00Tcm4TlvDq8ikWAM"}
+{"op":"say","text":"Any Workers AI model, named in full.","voice":"cloudflare:@cf/deepgram/aura-1:asteria"}
+{"op":"say","text":"Or a program of your own.","voice":"command:my-clone"}
+```
+
+The prefix is one of `piper`, `none`, `openai`, `elevenlabs`, `cloudflare` or `command`. A voice
+with no prefix belongs to `--tts`, so a bare name or a Piper path means what it always did. Each
+engine checks its key once per take, before the browser starts, and every line is synthesised
+then, so a bad voice fails in a second. The op's result names the engine it used.
+
+### Any speech engine: `command`
+
+`--tts command` (or a `command:` voice) runs the program in `KAVIRI_TTS_COMMAND` with `sh -c`
+for each line. It gets the text on stdin and in `KAVIRI_TTS_TEXT`, the voice in
+`KAVIRI_TTS_VOICE`, and writes audio that ffmpeg can read to the path in `KAVIRI_TTS_OUT`. That
+is the way in for a local model kaviri has no engine for (Kokoro, XTTS, a voice clone) or any
+hosted API:
+
+```sh
+export KAVIRI_TTS_COMMAND='kokoro-tts --voice "$KAVIRI_TTS_VOICE" --out "$KAVIRI_TTS_OUT"'
+```
+
+The command is part of the cache key, so changing it makes the lines again. A non-zero exit, or
+no audio at the path, fails the line with the program's own error.
 
 ## A recorded clip: `voice`
 
@@ -149,8 +181,9 @@ asking `doctor --fix` to), run as a child process, never linked and never in kav
   permissively licensed English phonemiser in Rust, the model runs in process but the text
   front end still has to be espeak-ng.
 
-`--tts cloudflare` takes two kinds of voice. A two-letter language code (`en`) is MeloTTS. Any
-other name is a Deepgram Aura-2 speaker (`orion`, `apollo`, `arcas`, `thalia`, `helena`, ...), which
+`--tts cloudflare` takes three kinds of voice. A two-letter language code (`en`) is MeloTTS, a
+full model name with a speaker (`@cf/deepgram/aura-1:asteria`) is that model, and any other name is a
+Deepgram Aura-2 speaker (`orion`, `apollo`, `arcas`, `thalia`, `helena`, ...), which
 sounds like a person and costs about three cents a minute of speech beyond Workers AI's daily
 free allowance.
 

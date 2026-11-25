@@ -73,7 +73,8 @@ pub struct Session {
     /// When the speech in flight ends, on the recording clock. A `wait` stretches to it.
     pub speech_until: f64,
     /// The speech engine, chosen the first time a line is said.
-    engine: Option<std::sync::Arc<dyn crate::tts::Engine>>,
+    /// Speech engines made so far, by name: `--tts`, and any a line's voice names.
+    engines: std::collections::HashMap<String, std::sync::Arc<dyn crate::tts::Engine>>,
     /// Title cards and callouts for the take; see `crate::motion`.
     pub cards: Vec<crate::motion::Card>,
     /// The browser binary asked for, so the cards can be rendered in a browser of their own.
@@ -589,24 +590,24 @@ pub fn prepare_lines(cfg: &crate::soundtrack::Cfg, ops: &[Value]) -> Result<usiz
     if lines.is_empty() {
         return Ok(0);
     }
-    let e = crate::tts::select(&cfg.tts, &crate::tts::env_lookup)?;
+    let mut made = std::collections::HashMap::new();
     for (i, op) in lines.iter().enumerate() {
         let text = op["text"]
             .as_str()
             .map(str::trim)
             .filter(|t| !t.is_empty())
             .ok_or_else(|| format!("say {} has no text", i + 1))?;
-        let voice = op["voice"]
-            .as_str()
-            .map(String::from)
-            .or_else(|| cfg.voice.clone())
-            .unwrap_or_else(|| e.default_voice());
+        let spec = op["voice"].as_str().or(cfg.voice.as_deref());
+        let (e, voice) = crate::tts::resolve(&cfg.tts, spec, &mut made, &crate::tts::env_lookup)
+            .map_err(|err| format!("say {}: {err}", i + 1))?;
         crate::tts::speak(&*e, text, &voice)?;
     }
+    let mut names: Vec<&str> = made.values().map(|e| e.name()).collect();
+    names.sort_unstable();
     eprintln!(
         "kaviri: {} line(s) of narration ready ({})",
         lines.len(),
-        e.name()
+        names.join(", ")
     );
     Ok(lines.len())
 }
@@ -671,20 +672,10 @@ impl Session {
             sound: crate::soundtrack::Cfg::default(),
             clips: Vec::new(),
             speech_until: f64::NEG_INFINITY,
-            engine: None,
+            engines: std::collections::HashMap::new(),
             cards: Vec::new(),
             chromium: chromium.map(String::from),
         })
-    }
-
-    /// The engine `--tts` names, chosen once.
-    fn engine(&mut self) -> Result<std::sync::Arc<dyn crate::tts::Engine>, String> {
-        if let Some(e) = &self.engine {
-            return Ok(e.clone());
-        }
-        let e = crate::tts::select(&self.sound.tts, &crate::tts::env_lookup)?;
-        self.engine = Some(e.clone());
-        Ok(e)
     }
 
     /// Run `f` on its own thread while the frame pump keeps going, so a second of speech
@@ -701,20 +692,30 @@ impl Session {
             .map_err(|_| "the speech thread panicked".to_string())?
     }
 
-    fn line_of(&mut self, op: &Value) -> Result<(String, String), String> {
+    /// The text, voice and engine of a `say`. The voice is the line's own, else `--voice`, and
+    /// may name its engine ("elevenlabs:<id>"); the engine is otherwise `--tts`.
+    #[allow(clippy::type_complexity)]
+    fn line_of(
+        &mut self,
+        op: &Value,
+    ) -> Result<(String, String, std::sync::Arc<dyn crate::tts::Engine>), String> {
         let text = op["text"]
             .as_str()
             .map(str::trim)
             .filter(|t| !t.is_empty())
             .ok_or("say needs text: what to say")?
             .to_string();
-        let e = self.engine()?;
-        let voice = op["voice"]
+        let spec = op["voice"]
             .as_str()
             .map(String::from)
-            .or_else(|| self.sound.voice.clone())
-            .unwrap_or_else(|| e.default_voice());
-        Ok((text, voice))
+            .or_else(|| self.sound.voice.clone());
+        let (e, voice) = crate::tts::resolve(
+            &self.sound.tts,
+            spec.as_deref(),
+            &mut self.engines,
+            &crate::tts::env_lookup,
+        )?;
+        Ok((text, voice, e))
     }
 
     /// Put a clip on the take's clock at this moment, and wait it out if the op asks.
@@ -1527,12 +1528,12 @@ impl Session {
                 }
             }
             "say" => {
-                let (text, voice) = self.line_of(op)?;
-                let e = self.engine()?;
-                let (t, v) = (text.clone(), voice.clone());
-                let speech = self.pumping(move || crate::tts::speak(&*e, &t, &v))?;
+                let (text, voice, e) = self.line_of(op)?;
+                let (t, v, eng) = (text.clone(), voice.clone(), e.clone());
+                let speech = self.pumping(move || crate::tts::speak(&*eng, &t, &v))?;
                 let mut m = self.place("say", op, speech, Some(text))?;
                 m["voice"] = json!(voice);
+                m["engine"] = json!(e.name());
                 Ok(m)
             }
             "voice" => {

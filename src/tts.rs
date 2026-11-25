@@ -163,7 +163,7 @@ pub fn help() -> String {
          none        silence as long as each line would take to say; for tests and CI\n  \
          openai      your key in OPENAI_API_KEY; voices alloy, nova, onyx, ...\n  \
          elevenlabs  your key in ELEVENLABS_API_KEY; voice is a voice id; word timings\n  \
-         cloudflare  CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN; voice \"en\" is MeloTTS,\n              an Aura-2 name (orion, apollo, thalia, ...) is Deepgram Aura-2\n\n\
+         cloudflare  CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN; voice \"en\" is MeloTTS,\n              an Aura-2 name (orion, apollo, thalia, ...) is Deepgram Aura-2,\n              \"@cf/<model>:<speaker>\" is any Workers AI speech model\n  command     any program: KAVIRI_TTS_COMMAND gets the text, writes $KAVIRI_TTS_OUT\n\nA say op's voice can name its engine: \"elevenlabs:<id>\", \"cloudflare:arcas\", \"command:x\".\n\n\
          Piper voices kaviri can fetch (--voice, or \"voice\" on a say op):\n",
     );
     for v in VOICES {
@@ -356,12 +356,131 @@ pub fn select(name: &str, env: &dyn Fn(&str) -> Option<String>) -> Result<Arc<dy
             account: key("CLOUDFLARE_ACCOUNT_ID", "cloudflare")?,
             token: key("CLOUDFLARE_API_TOKEN", "cloudflare")?,
         }),
+        "command" => Arc::new(CommandEngine {
+            cmd: env("KAVIRI_TTS_COMMAND")
+                .filter(|c| !c.trim().is_empty())
+                .ok_or("--tts command needs the program to run in KAVIRI_TTS_COMMAND")?,
+        }),
         other => {
             return Err(format!(
-                "--tts must be piper, none, openai, elevenlabs or cloudflare, got {other}"
+                "--tts must be one of {}, got {other}",
+                ENGINES.join(", ")
             ))
         }
     })
+}
+
+/// Every engine `--tts` and a voice prefix can name.
+pub const ENGINES: &[&str] = &[
+    "piper",
+    "none",
+    "openai",
+    "elevenlabs",
+    "cloudflare",
+    "command",
+];
+
+/// A voice can name its engine: `"elevenlabs:21m00Tcm4TlvDq8ikWAM"`, `"openai:nova"`,
+/// `"cloudflare:arcas"`, `"piper:en_US-john-medium"`, `"command:my-voice"`. Anything without a
+/// known engine before the first colon is a voice of the default engine, so a Piper path or a
+/// bare name means what it always did.
+pub fn split_voice(spec: &str) -> (Option<&str>, &str) {
+    if let Some((e, v)) = spec.split_once(':') {
+        if ENGINES.contains(&e) {
+            return (Some(e), v);
+        }
+    }
+    (None, spec)
+}
+
+/// The engine and voice for one line. `spec` is the line's own voice, else `--voice`; the
+/// engine is the one the voice names, else `default` (`--tts`). Engines are made once each and
+/// kept in `made`, so a take that mixes three voices from two engines checks each key once.
+pub fn resolve(
+    default: &str,
+    spec: Option<&str>,
+    made: &mut std::collections::HashMap<String, Arc<dyn Engine>>,
+    env: &dyn Fn(&str) -> Option<String>,
+) -> Result<(Arc<dyn Engine>, String), String> {
+    let (named, voice) = match spec {
+        Some(s) => split_voice(s),
+        None => (None, ""),
+    };
+    let name = named.unwrap_or(default).to_string();
+    let e = match made.get(&name) {
+        Some(e) => e.clone(),
+        None => {
+            let e = select(&name, env)?;
+            made.insert(name, e.clone());
+            e
+        }
+    };
+    let voice = if voice.trim().is_empty() {
+        e.default_voice()
+    } else {
+        voice.trim().to_string()
+    };
+    Ok((e, voice))
+}
+
+/// Any speech engine at all, as a program you name in `KAVIRI_TTS_COMMAND`. It is run with
+/// `sh -c`, gets the line on stdin and in `KAVIRI_TTS_TEXT`, the voice in `KAVIRI_TTS_VOICE`,
+/// and writes audio (wav, mp3, ogg, anything ffmpeg reads) to the path in `KAVIRI_TTS_OUT`.
+/// That is the door for a local model kaviri has no engine for, a cloned voice, or a hosted
+/// API: a five-line script in front of it.
+pub struct CommandEngine {
+    cmd: String,
+}
+
+impl Engine for CommandEngine {
+    fn name(&self) -> &'static str {
+        "command"
+    }
+    fn default_voice(&self) -> String {
+        "default".into()
+    }
+    // The command is part of the key: change the program and lines are made again.
+    fn cache_tag(&self) -> String {
+        format!("command\n{}", self.cmd)
+    }
+    fn synth(&self, text: &str, voice: &str, dir: &Path) -> Result<Raw, String> {
+        use std::io::Write as _;
+        let out = dir.join("line.audio");
+        // A file left by an earlier line must not pass for this one's audio.
+        let _ = std::fs::remove_file(&out);
+        let mut child = std::process::Command::new("sh")
+            .arg("-c")
+            .arg(&self.cmd)
+            .env("KAVIRI_TTS_TEXT", text)
+            .env("KAVIRI_TTS_VOICE", voice)
+            .env("KAVIRI_TTS_OUT", &out)
+            .stdin(std::process::Stdio::piped())
+            .stdout(std::process::Stdio::null())
+            .stderr(std::process::Stdio::piped())
+            .spawn()
+            .map_err(|e| format!("KAVIRI_TTS_COMMAND could not start: {e}"))?;
+        if let Some(mut i) = child.stdin.take() {
+            let _ = i.write_all(text.as_bytes());
+        }
+        let o = child
+            .wait_with_output()
+            .map_err(|e| format!("KAVIRI_TTS_COMMAND: {e}"))?;
+        if !o.status.success() {
+            let err = String::from_utf8_lossy(&o.stderr);
+            return Err(format!(
+                "KAVIRI_TTS_COMMAND failed ({}): {}",
+                o.status,
+                err.trim().chars().take(400).collect::<String>()
+            ));
+        }
+        match std::fs::metadata(&out) {
+            Ok(m) if m.len() > 0 => Ok(Raw {
+                audio: out,
+                words: None,
+            }),
+            _ => Err("KAVIRI_TTS_COMMAND finished without writing audio to $KAVIRI_TTS_OUT".into()),
+        }
+    }
 }
 
 pub fn env_lookup(var: &str) -> Option<String> {
@@ -991,11 +1110,38 @@ pub struct Cloudflare {
 }
 
 /// The Workers AI model and request body for a line in a voice.
-fn cloudflare_request(text: &str, voice: &str) -> Result<(&'static str, String), String> {
+fn cloudflare_request(text: &str, voice: &str) -> Result<(String, String), String> {
+    // Any Workers AI speech model, named in full: "@cf/deepgram/aura-1:asteria", or
+    // "@cf/myshell-ai/melotts:fr". The part after the last colon is the speaker (or language).
+    if let Some(rest) = voice.trim().strip_prefix("@cf/") {
+        let (model, speaker) = match rest.rsplit_once(':') {
+            Some((m, sp)) => (format!("@cf/{m}"), sp.trim().to_string()),
+            None => (format!("@cf/{rest}"), String::new()),
+        };
+        if !model
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || "@/-_.".contains(c))
+        {
+            return Err(format!("not a Workers AI model name: {model}"));
+        }
+        let body = if model.contains("melotts") {
+            let lang = if speaker.is_empty() {
+                "en".to_string()
+            } else {
+                speaker
+            };
+            json!({"prompt": text, "lang": lang})
+        } else if speaker.is_empty() {
+            json!({"text": text, "encoding": "mp3"})
+        } else {
+            json!({"text": text, "speaker": speaker, "encoding": "mp3"})
+        };
+        return Ok((model, body.to_string()));
+    }
     let v = voice.trim().to_ascii_lowercase();
     if v.len() == 2 && v.chars().all(|c| c.is_ascii_lowercase()) {
         return Ok((
-            "@cf/myshell-ai/melotts",
+            "@cf/myshell-ai/melotts".to_string(),
             json!({"prompt": text, "lang": v}).to_string(),
         ));
     }
@@ -1005,7 +1151,7 @@ fn cloudflare_request(text: &str, voice: &str) -> Result<(&'static str, String),
         ));
     }
     Ok((
-        "@cf/deepgram/aura-2-en",
+        "@cf/deepgram/aura-2-en".to_string(),
         json!({"text": text, "speaker": v, "encoding": "mp3"}).to_string(),
     ))
 }
@@ -1078,6 +1224,57 @@ mod tests {
         assert_eq!(m, "@cf/deepgram/aura-2-en");
         assert!(b.contains("\"speaker\":\"orion\""));
         assert!(cloudflare_request("hi", "../x").is_err());
+        let (m, b) = cloudflare_request("hi", "@cf/deepgram/aura-1:asteria").unwrap();
+        assert_eq!(m, "@cf/deepgram/aura-1");
+        assert!(b.contains("\"speaker\":\"asteria\""));
+        let (m, b) = cloudflare_request("hi", "@cf/myshell-ai/melotts:fr").unwrap();
+        assert_eq!(m, "@cf/myshell-ai/melotts");
+        assert!(b.contains("\"lang\":\"fr\""));
+    }
+
+    #[test]
+    fn a_voice_can_name_its_engine_and_a_path_still_cannot() {
+        assert_eq!(split_voice("elevenlabs:abc"), (Some("elevenlabs"), "abc"));
+        assert_eq!(
+            split_voice("cloudflare:@cf/deepgram/aura-1:asteria"),
+            (Some("cloudflare"), "@cf/deepgram/aura-1:asteria")
+        );
+        assert_eq!(
+            split_voice("en_US-john-medium"),
+            (None, "en_US-john-medium")
+        );
+        assert_eq!(
+            split_voice("C:\\voices\\x.onnx"),
+            (None, "C:\\voices\\x.onnx")
+        );
+        let mut made = std::collections::HashMap::new();
+        let env = |_: &str| None;
+        let (e, v) = resolve("piper", Some("none:"), &mut made, &env).unwrap();
+        assert_eq!((e.name(), v.as_str()), ("none", "none"));
+        let (e, _) = resolve("none", None, &mut made, &env).unwrap();
+        assert_eq!(e.name(), "none");
+        assert_eq!(made.len(), 1);
+        assert!(resolve("none", Some("openai:nova"), &mut made, &env).is_err());
+    }
+
+    #[test]
+    fn a_command_engine_runs_the_program_it_is_given() {
+        let dir = std::env::temp_dir().join(format!("kaviri-cmd-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let c = CommandEngine {
+            cmd: "printf '%s|%s' \"$KAVIRI_TTS_VOICE\" \"$(cat)\" > \"$KAVIRI_TTS_OUT\"".into(),
+        };
+        let r = c.synth("hello there", "v1", &dir).unwrap();
+        assert_eq!(std::fs::read_to_string(&r.audio).unwrap(), "v1|hello there");
+        assert!(CommandEngine {
+            cmd: "exit 3".into()
+        }
+        .synth("x", "v", &dir)
+        .is_err());
+        assert!(CommandEngine { cmd: "true".into() }
+            .synth("x", "v", &dir)
+            .is_err());
+        let _ = std::fs::remove_dir_all(&dir);
     }
 
     #[test]

@@ -28,7 +28,8 @@ use std::process::{Command, Stdio};
 /// What the flags asked of the soundtrack.
 #[derive(Clone, Debug)]
 pub struct Cfg {
-    /// The speech engine for `say`: piper, none, openai, elevenlabs or cloudflare.
+    /// The default speech engine for `say`: piper, none, openai, elevenlabs, cloudflare or
+    /// command. A line's voice can name another (`tts::split_voice`).
     pub tts: String,
     /// The voice a `say` without its own uses.
     pub voice: Option<String>,
