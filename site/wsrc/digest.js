@@ -9,6 +9,7 @@
 
 import { notifyOwner } from "./mail.js";
 import { render, h, stats, rows, note, button, status } from "./brand-email.js";
+import { socialStats, socialLines } from "./social.js";
 
 export const DIGEST_HOUR_UTC = 8;
 
@@ -66,11 +67,16 @@ export async function sendDigest(env) {
     blocks.push(h("New since yesterday"));
     blocks.push(rows(recent.map((r) => [`${r.created_at.slice(11, 16)} UTC`, `${r.email}${r.country ? ` (${r.country})` : ""}`])));
   }
+  // The socials, last 7 days, with the change since yesterday's email in brackets.
+  const social = await socialStats(env).catch((e) => [{ label: "Socials", error: String(e) }]);
+  blocks.push(h("Socials, last 7 days"));
+  blocks.push(rows(socialLines(social)));
+  blocks.push(note("Changes in brackets are since yesterday's email. TikTok is posted by hand, so it is not counted here."));
   blocks.push(button("Open the list", "https://kaviri.dev/admin"));
   const { html, text } = render({
     preheader: `${c.active} subscribed, ${plus(c.newDay)} in the last 24 hours.`,
     blocks,
-    reason: "Sent every day at 08:00 UTC to the kaviri owner, including days with no change.",
+    reason: "Sent every day at 08:00 UTC to the kaviri owner, including days with no change. It carries the list and the socials.",
     signature: false,
   });
   return { ...(await notifyOwner(env, { subject, text, html })), ...c };
