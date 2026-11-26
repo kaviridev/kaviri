@@ -60,7 +60,7 @@
    "type": "code",
    "kicker": "only the first visit travels",
    "code": "visitor in Johannesburg\n  → edge in Johannesburg: HIT\n\nfirst visitor ever\n  → edge: MISS → origin → cached",
-   "say": "Only the first request goes all the way to your server. After that, it's local.",
+   "say": "The first request at each edge goes to your server. After that, it's served locally.",
    "chips": [
     "cache hit",
     "origin"

@@ -13,7 +13,7 @@
   {
    "type": "icons",
    "center": "sentence",
-   "say": "In the cat sat on the mat because it was tired, what does it mean? You knew instantly. A model has to work it out.",
+   "say": "The cat sat on the mat because it was tired. Who was tired? You knew instantly. A model has to work it out.",
    "items": [
     {
      "icon": "🐱",
@@ -44,7 +44,7 @@
      "icon": "⚖️",
      "title": "Weigh",
      "text": "decide which ones matter",
-     "say": "It weighs which ones matter. For it, cat matters most."
+     "say": "It weighs which ones matter. For the word it, the cat matters most."
     },
     {
      "icon": "🔁",
@@ -57,7 +57,7 @@
   {
    "type": "code",
    "kicker": "then predict",
-   "code": "The cat sat on the mat because it was\n\n→ tired   62%\n→ hungry  11%\n→ warm     6%",
+   "code": "The cat sat on the mat because it was\n\n→ tired\n→ hungry\n→ warm",
    "say": "At the end, it predicts the next token. Then it adds that token and does it again.",
    "chips": [
     "one token at a time"

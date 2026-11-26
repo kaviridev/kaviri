@@ -53,7 +53,7 @@
      "icon": "🔁",
      "title": "Revalidate",
      "text": "ask: has it changed?",
-     "say": "If not, it asks whether the file changed, using the ETag."
+     "say": "If not, it asks whether the file changed, using the E tag."
     },
     {
      "icon": "✅",

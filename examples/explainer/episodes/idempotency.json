@@ -40,15 +40,15 @@
    "items": [
     {
      "icon": "✅",
-     "title": "Safe",
+     "title": "Repeatable",
      "text": "GET, PUT, DELETE",
-     "say": "Reading, setting a value, deleting: safe to repeat."
+     "say": "Reading, setting a value, deleting: fine to repeat."
     },
     {
      "icon": "⚠️",
-     "title": "Not safe",
+     "title": "Not repeatable",
      "text": "\"add one\", \"charge $10\"",
-     "say": "Adding, charging, sending: not safe to repeat."
+     "say": "Adding, charging, sending: not fine to repeat."
     }
    ]
   },

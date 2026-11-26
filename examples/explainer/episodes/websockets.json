@@ -22,7 +22,7 @@
   {
    "type": "code",
    "kicker": "the upgrade",
-   "code": "GET /chat HTTP/1.1\nUpgrade: \"websocket\"\nConnection: \"Upgrade\"",
+   "code": "GET /chat HTTP/1.1\nUpgrade: websocket\nConnection: Upgrade",
    "chips": [
     "101 Switching Protocols"
    ],

@@ -41,7 +41,7 @@
   {
    "type": "code",
    "kicker": "the server opts in",
-   "code": "Access-Control-Allow-Origin: \"https://myapp.com\"\nAccess-Control-Allow-Methods: \"GET, POST\"",
+   "code": "Access-Control-Allow-Origin: https://myapp.com\nAccess-Control-Allow-Methods: GET, POST",
    "say": "CORS is how a server opts in. It sends headers saying which origins are allowed to read its responses."
   },
   {

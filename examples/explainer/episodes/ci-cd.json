@@ -7,7 +7,7 @@
    "type": "title",
    "kicker": "in 60 seconds",
    "title": "CI/CD",
-   "say": "CI/CD, in sixty seconds."
+   "say": "C I C D, in sixty seconds."
   },
   {
    "type": "icons",
@@ -31,7 +31,7 @@
   {
    "type": "cards",
    "kicker": "two halves",
-   "say": "CI/CD hands that to a machine, in two halves.",
+   "say": "C I C D hands that to a machine, in two halves.",
    "items": [
     {
      "icon": "🧪",
@@ -56,7 +56,7 @@
   {
    "type": "code",
    "kicker": "a pipeline",
-   "code": "on: push\njobs:\n  test:\n    steps:\n      - run: npm test\n  deploy:\n    needs: test",
+   "code": "on: push\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - run: npm test\n  deploy:\n    needs: test\n    runs-on: ubuntu-latest",
    "say": "It's a file in your repo. Push, and the steps run, in order, every time.",
    "chips": [
     "runs on every push"
@@ -65,7 +65,7 @@
   {
    "type": "statement",
    "text": "Small changes,\n*shipped often.*",
-   "say": "That's CI/CD. Small changes, shipped often, checked every time."
+   "say": "That's C I C D. Small changes, shipped often, checked every time."
   }
  ]
 }

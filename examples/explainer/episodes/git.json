@@ -1,7 +1,7 @@
 {
  "title": "Git in 60 seconds",
  "voice": "cloudflare:arcas",
- "caption": "Git in 60 seconds: commits, branches and merges, and why nothing you commit is ever really lost.",
+ "caption": "Git in 60 seconds: commits, branches and merges, and why what you commit is very hard to lose.",
  "scenes": [
   {
    "type": "title",

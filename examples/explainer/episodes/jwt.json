@@ -1,7 +1,7 @@
 {
  "title": "JWT in 60 seconds",
  "voice": "cloudflare:arcas",
- "caption": "JWT in 60 seconds: the signed token behind most logins, and what that signature does and does not protect.",
+ "caption": "JWT in 60 seconds: the signed token behind many logins, and what that signature does and does not protect.",
  "scenes": [
   {
    "type": "title",
@@ -29,7 +29,7 @@
   {
    "type": "code",
    "kicker": "three parts, dot separated",
-   "code": "header . payload . signature\n\n{ \"sub\": \"user_42\",\n  \"exp\": 1767225600 }",
+   "code": "header . payload . signature\n\n{ \"sub\": \"user_42\",\n  \"exp\": 1830297600 }",
    "say": "A JWT is three parts: a header, a payload with claims like who you are and when it expires, and a signature.",
    "chips": [
     "base64url",
@@ -49,7 +49,7 @@
     },
     {
      "icon": "🚫",
-     "title": "Tamper-proof",
+     "title": "Tamper-evident",
      "text": "change one byte, it fails",
      "say": "Change a single character, and the signature no longer matches."
     },

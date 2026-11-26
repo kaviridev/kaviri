@@ -56,7 +56,7 @@
   {
    "type": "code",
    "kicker": "what the app asks for",
-   "code": "https://auth.example.com/authorize\n  ?client_id=\"my-app\"\n  &scope=\"calendar.readonly\"\n  &redirect_uri=\"https://my-app.dev/callback\"",
+   "code": "https://auth.example.com/authorize\n  ?client_id=my-app\n  &scope=calendar.readonly\n  &redirect_uri=https://my-app.dev/callback",
    "say": "The app never sees your password. It asks for a scope, like read-only calendar, and that's all it gets."
   },
   {

@@ -1,7 +1,7 @@
 {
  "title": "DNS in 60 seconds",
  "voice": "cloudflare:arcas",
- "caption": "DNS in 60 seconds: how a name like kaviri.dev turns into an address your computer can actually connect to.",
+ "caption": "DNS in 60 seconds: how a name like example.com turns into an address your computer can actually connect to.",
  "scenes": [
   {
    "type": "title",
@@ -17,7 +17,7 @@
    "items": [
     {
      "icon": "🔤",
-     "label": "shop.example"
+     "label": "shop.example.com"
     },
     {
      "icon": "🔢",
@@ -53,7 +53,7 @@
   {
    "type": "terminal",
    "kicker": "ask it yourself",
-   "command": "dig +short shop.example",
+   "command": "dig +short shop.example.com",
    "output": "203.0.113.7",
    "say": "Then the answer is cached along the way, so the next lookup is almost instant."
   },

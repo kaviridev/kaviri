@@ -16,11 +16,11 @@
    "items": [
     {
      "icon": "🗄",
-     "label": "database: 80 ms"
+     "label": "database: slow"
     },
     {
      "icon": "⚡",
-     "label": "memory: under 1 ms"
+     "label": "memory: fast"
     }
    ]
   },
@@ -62,7 +62,7 @@
   {
    "type": "statement",
    "text": "Fast answers.\n*Sometimes stale ones.*",
-   "say": "That's caching. Fast answers, as long as you keep them fresh."
+   "say": "That's caching. Fast answers, sometimes stale ones."
   }
  ]
 }

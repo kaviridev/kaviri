@@ -58,8 +58,8 @@
     {
      "icon": "🚧",
      "title": "SameSite",
-     "text": "not sent from other sites",
-     "say": "SameSite: not sent when another site triggers the request."
+     "text": "limits cross-site sending",
+     "say": "SameSite: limits when other sites can make the browser send it."
     }
    ]
   },

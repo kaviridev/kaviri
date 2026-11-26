@@ -61,14 +61,14 @@
   {
    "type": "terminal",
    "kicker": "compile Rust for the web",
-   "command": "cargo build --target wasm32-unknown-unknown",
-   "output": "Finished release target(s)",
+   "command": "cargo build --release --target wasm32-unknown-unknown",
+   "output": "Finished `release` profile [optimized] target(s) in 4.20s",
    "say": "It's how heavy apps like video editors and design tools run in a tab, and it's spreading to servers too."
   },
   {
    "type": "statement",
-   "text": "Any language,\n*in a browser tab.*",
-   "say": "That's WebAssembly. Any language, in a browser tab."
+   "text": "Many languages,\n*one browser tab.*",
+   "say": "That's WebAssembly. Many languages, one browser tab."
   }
  ]
 }

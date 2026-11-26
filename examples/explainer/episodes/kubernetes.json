@@ -32,7 +32,7 @@
   {
    "type": "code",
    "kicker": "you describe what you want",
-   "code": "kind: Deployment\nspec:\n  replicas: 3\n  template:\n    containers:\n      - image: my-app:1.4",
+   "code": "kind: Deployment\nspec:\n  replicas: 3\n  template:\n    spec:\n      containers:\n        - image: my-app:1.4",
    "say": "With Kubernetes you don't say what to do. You describe what should exist: three copies of this image.",
    "chips": [
     "declarative",
@@ -54,7 +54,7 @@
      "icon": "📈",
      "title": "Scales",
      "text": "more traffic, more copies",
-     "say": "Traffic grows, it adds copies."
+     "say": "Traffic grows, it can add copies."
     },
     {
      "icon": "🔄",
