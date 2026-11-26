@@ -87,6 +87,12 @@ export const progress = (fraction, caption) => ({ kind: "progress", fraction, ca
 export const checklist = (items) => ({ kind: "checklist", items });
 /** A coloured pill: tone is "good", "warn" or "bad". */
 export const status = (text, tone = "good") => ({ kind: "status", text, tone });
+/**
+ * A picture that links somewhere, such as a video's first frame linking to the video. src is
+ * meant to be a cid: attached to the same message (rule 3: no remote images), so it shows
+ * without the reader allowing images. The text version is the alt and the link.
+ */
+export const image = (src, href, alt, width = 240) => ({ kind: "image", src, href, alt, width });
 
 /**
  * Inline markup, kept to the two things prose actually needs.
@@ -168,6 +174,8 @@ function blockHtml(b) {
           (t) => `<tr><td width="26" valign="top" style="padding:7px 0;"><div style="width:14px;height:14px;border:2px solid ${C.accent};border-radius:4px;font-size:0;line-height:0;">&nbsp;</div></td><td style="padding:6px 0;font-family:${SANS};font-size:14px;line-height:1.5;color:${C.ink};">${inline(t)}</td></tr>`
         )
         .join("")}</table>`;
+    case "image":
+      return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 20px;"><tr><td><a href="${esc(b.href)}" style="text-decoration:none;"><img src="${esc(b.src)}" width="${b.width}" alt="${esc(b.alt)}" style="display:block;width:${b.width}px;max-width:100%;height:auto;border:0;border-radius:10px;"></a></td></tr></table>`;
     case "status": {
       const tone = { good: [C.accentWash, C.accent], warn: ["#fdf3dc", "#8a5a00"], bad: ["#fde4e1", "#b42318"] }[b.tone] || [C.wash, C.muted];
       return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 16px;"><tr><td style="background:${tone[0]};border-radius:999px;padding:5px 12px;font-family:${SANS};font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:${tone[1]};">${esc(b.text)}</td></tr></table>`;
@@ -190,6 +198,8 @@ function blockText(b) {
     case "button":
     case "link":
       return `${b.label}: ${b.href}`;
+    case "image":
+      return `${b.alt}: ${b.href}`;
     case "rule":
       return "-".repeat(56);
     case "stats":

@@ -8,7 +8,7 @@
  */
 
 import { notifyOwner } from "./mail.js";
-import { render, h, stats, rows, note, button, status } from "./brand-email.js";
+import { render, h, p, stats, rows, note, button, status, link } from "./brand-email.js";
 import { socialStats, socialLines, whatWorks, whatWorksLines, bestLine } from "./social.js";
 
 export const DIGEST_HOUR_UTC = 8;
@@ -82,17 +82,28 @@ export async function sendDigest(env) {
     if (best) blocks.push(note(best));
     if (works.kinds.reduce((a, k) => a + k.videos, 0) < 10) blocks.push(note("Fewer than ten posts so far, so read this as a hint, not a verdict."));
   }
-  // The explainer job reports its last run here, so a stalled or failing run shows up.
+  // The explainer job reports its last run here, so a stalled or failing run shows up, and
+  // links each video it rendered in the last day so it can be watched before it posts.
   const auto = await env.kaviri_waitlist
-    .prepare("select updated_at, summary, next_up, problems from autopilot_status where name = 'explainers'")
+    .prepare("select * from autopilot_status where name = 'explainers'")
     .first()
     .catch(() => null);
   if (auto) {
-    blocks.push(h("Explainer autopilot"));
-    blocks.push(rows([["Last run", `${auto.updated_at} UTC`], ["Result", auto.summary], ["Next to post", auto.next_up || "nothing queued"]]));
+    blocks.push(h("Explainers"));
+    if (auto.problems) blocks.push(note(`*Needs a look:* ${auto.problems}`));
     if (Date.now() - Date.parse(auto.updated_at.replace(" ", "T") + "Z") > 36 * 36e5)
       blocks.push(note("*It has not run for over a day.* The machine it runs on may be off or asleep; it catches up when it wakes."));
-    if (auto.problems) blocks.push(note(`*Needs a look:* ${auto.problems}`));
+    blocks.push(p(auto.summary));
+    blocks.push(rows([["Next to post", auto.next_up || "nothing queued"], ["Last run", `${auto.updated_at.slice(5, 16)} UTC`]]));
+    let recent = [];
+    try { recent = JSON.parse(auto.recent || "[]"); } catch {}
+    if (recent.length) {
+      blocks.push(h("New videos, last 24 hours"));
+      for (const r of recent) {
+        const day = new Date(`${r.date}T12:00:00Z`).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
+        blocks.push(link(`${r.title}, posts ${day}`, r.watch));
+      }
+    }
   }
   blocks.push(button("Open the list", "https://kaviri.dev/admin"));
   const { html, text } = render({
