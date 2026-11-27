@@ -1,13 +1,14 @@
 {
  "title": "Caching in 60 seconds",
  "voice": "cloudflare:arcas",
- "caption": "Caching in 60 seconds: keeping answers close so you don't work them out twice.",
+ "caption": "Caching in 60 seconds: keeping answers close so you don't work them out twice. #caching #performance #backend",
  "scenes": [
   {
    "type": "title",
    "kicker": "in 60 seconds",
    "title": "Caching",
-   "say": "Caching, in sixty seconds."
+   "say": "The fastest computation is the one you never do.",
+   "sub": "The fastest computation is the one you never do."
   },
   {
    "type": "icons",
@@ -60,9 +61,15 @@
    ]
   },
   {
+   "type": "kaviri",
+   "text": "This video uses it: kaviri *caches every narrated line*, so a re-render only pays for what changed.",
+   "say": "This video uses it too. kaviri caches every narrated line, so a re-render only pays for what changed."
+  },
+  {
    "type": "statement",
    "text": "Fast answers.\n*Sometimes stale ones.*",
    "say": "That's caching. Fast answers, sometimes stale ones."
   }
- ]
+ ],
+ "credit": "filmed from a script with *kaviri.dev*"
 }

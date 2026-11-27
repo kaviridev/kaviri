@@ -1,13 +1,14 @@
 {
  "title": "HTTP caching in 60 seconds",
  "voice": "cloudflare:arcas",
- "caption": "HTTP caching in 60 seconds: the headers that decide whether your browser downloads a file again or not.",
+ "caption": "HTTP caching in 60 seconds: the headers that decide whether your browser downloads a file again or not. #webdev #http #performance",
  "scenes": [
   {
    "type": "title",
    "kicker": "in 60 seconds",
    "title": "HTTP caching",
-   "say": "HTTP caching, in sixty seconds."
+   "say": "The fastest web trick: never download the same thing twice.",
+   "sub": "The fastest web trick: never download the same thing twice."
   },
   {
    "type": "icons",
@@ -68,5 +69,6 @@
    "text": "The fastest request\n*is the one you never make.*",
    "say": "That's HTTP caching. The fastest request is the one you never make."
   }
- ]
+ ],
+ "credit": "filmed from a script with *kaviri.dev*"
 }

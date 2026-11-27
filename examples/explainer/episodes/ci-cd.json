@@ -1,13 +1,14 @@
 {
  "title": "CI/CD in 60 seconds",
  "voice": "cloudflare:arcas",
- "caption": "CI/CD in 60 seconds: every push gets tested and shipped by a machine, the same way every time.",
+ "caption": "CI/CD in 60 seconds: every push gets tested and shipped by a machine, the same way every time. #cicd #devops #github",
  "scenes": [
   {
    "type": "title",
    "kicker": "in 60 seconds",
    "title": "CI/CD",
-   "say": "C I C D, in sixty seconds."
+   "say": "Some teams ship to production dozens of times a day, without panicking.",
+   "sub": "Some teams ship to production dozens of times a day, without panicking."
   },
   {
    "type": "icons",
@@ -63,9 +64,15 @@
    ]
   },
   {
+   "type": "kaviri",
+   "text": "Even demo videos can be a CI step: kaviri *films them from a script* on every push, so they never go stale.",
+   "say": "One neat C I step: kaviri films your demo video from a script on every push, so it never goes stale."
+  },
+  {
    "type": "statement",
    "text": "Small changes,\n*shipped often.*",
    "say": "That's C I C D. Small changes, shipped often, checked every time."
   }
- ]
+ ],
+ "credit": "filmed from a script with *kaviri.dev*"
 }

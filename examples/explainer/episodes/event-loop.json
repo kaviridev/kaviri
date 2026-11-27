@@ -1,13 +1,13 @@
 {
  "title": "The event loop in 60 seconds",
  "voice": "cloudflare:arcas",
- "caption": "The JavaScript event loop in 60 seconds: how one thread juggles thousands of things at once.",
+ "caption": "The JavaScript event loop in 60 seconds: how one thread juggles thousands of things at once. #javascript #nodejs #webdev",
  "scenes": [
   {
    "type": "title",
    "kicker": "in 60 seconds",
    "title": "The event loop",
-   "say": "The event loop, in sixty seconds.",
+   "say": "JavaScript does one thing at a time. So how does it do everything at once?",
    "sub": "JavaScript"
   },
   {
@@ -68,5 +68,6 @@
    "text": "Never block\n*the loop.*",
    "say": "One long task freezes everything. That's the event loop."
   }
- ]
+ ],
+ "credit": "filmed from a script with *kaviri.dev*"
 }

@@ -1,13 +1,13 @@
 {
  "title": "Database indexes in 60 seconds",
  "voice": "cloudflare:arcas",
- "caption": "Database indexes in 60 seconds: why one line of SQL can make a slow query thousands of times faster.",
+ "caption": "Database indexes in 60 seconds: why one line of SQL can make a slow query thousands of times faster. #database #sql #backend",
  "scenes": [
   {
    "type": "title",
    "kicker": "in 60 seconds",
    "title": "Indexes",
-   "say": "Indexes, in sixty seconds.",
+   "say": "Same query, same data. One takes a minute, the other a millisecond.",
    "sub": "databases"
   },
   {
@@ -65,5 +65,6 @@
    "text": "Faster reads,\n*slightly slower writes.*",
    "say": "The catch: every insert also updates the index. That's an index. Faster reads, slightly slower writes."
   }
- ]
+ ],
+ "credit": "filmed from a script with *kaviri.dev*"
 }

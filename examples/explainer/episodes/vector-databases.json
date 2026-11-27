@@ -1,13 +1,14 @@
 {
  "title": "Vector databases in 60 seconds",
  "voice": "cloudflare:arcas",
- "caption": "Vector databases in 60 seconds: searching by meaning instead of matching words.",
+ "caption": "Vector databases in 60 seconds: searching by meaning instead of matching words. #ai #vectordatabase #search",
  "scenes": [
   {
    "type": "title",
    "kicker": "in 60 seconds",
    "title": "Vector databases",
-   "say": "Vector databases, in sixty seconds."
+   "say": "How does search find cheap flights when you typed budget travel?",
+   "sub": "How does search find cheap flights when you typed budget travel?"
   },
   {
    "type": "icons",
@@ -65,5 +66,6 @@
    "text": "Search by meaning,\n*not by spelling.*",
    "say": "That's a vector database. Search by meaning, not by spelling."
   }
- ]
+ ],
+ "credit": "filmed from a script with *kaviri.dev*"
 }

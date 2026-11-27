@@ -1,13 +1,14 @@
 {
  "title": "Fine-tuning in 60 seconds",
  "voice": "cloudflare:arcas",
- "caption": "Fine-tuning in 60 seconds: teaching a trained model a new habit, and when you should reach for it instead of a better prompt.",
+ "caption": "Fine-tuning in 60 seconds: teaching a trained model a new habit, and when you should reach for it instead of a better prompt. #ai #llm #finetuning",
  "scenes": [
   {
    "type": "title",
    "kicker": "in 60 seconds",
    "title": "Fine-tuning",
-   "say": "Fine-tuning, in sixty seconds."
+   "say": "Should you fine-tune a model, or just give it better context?",
+   "sub": "Should you fine-tune a model, or just give it better context?"
   },
   {
    "type": "icons",
@@ -64,5 +65,6 @@
    "text": "Fine-tune for behaviour.\n*Retrieve for knowledge.*",
    "say": "That's fine-tuning. Train it for behaviour, retrieve for knowledge."
   }
- ]
+ ],
+ "credit": "filmed from a script with *kaviri.dev*"
 }

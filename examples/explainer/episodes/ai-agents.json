@@ -1,13 +1,14 @@
 {
  "title": "AI agents in 60 seconds",
  "voice": "cloudflare:arcas",
- "caption": "AI agents in 60 seconds: a language model in a loop with tools, and why the loop is the whole trick.",
+ "caption": "AI agents in 60 seconds: a language model in a loop with tools, and why the loop is the whole trick. #ai #aiagents #llm",
  "scenes": [
   {
    "type": "title",
    "kicker": "in 60 seconds",
    "title": "AI agents",
-   "say": "AI agents, in sixty seconds."
+   "say": "A chatbot answers. An agent gets things done. What's the difference?",
+   "sub": "A chatbot answers. An agent gets things done. What's the difference?"
   },
   {
    "type": "icons",
@@ -61,9 +62,15 @@
    ]
   },
   {
+   "type": "kaviri",
+   "text": "Give an agent kaviri's MCP server, and it can *film a demo video* of the app it just built.",
+   "say": "One neat tool for an agent: kaviri. Give it kaviri's MCP server, and it can film a demo video of the app it just built."
+  },
+  {
    "type": "statement",
    "text": "A model, a loop,\n*and some tools.*",
    "say": "That's an agent. A model, a loop, and some tools."
   }
- ]
+ ],
+ "credit": "filmed from a script with *kaviri.dev*"
 }

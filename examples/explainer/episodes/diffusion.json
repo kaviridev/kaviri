@@ -1,13 +1,13 @@
 {
  "title": "Diffusion models in 60 seconds",
  "voice": "cloudflare:arcas",
- "caption": "Diffusion models in 60 seconds: how image generators turn pure noise into a picture.",
+ "caption": "Diffusion models in 60 seconds: how image generators turn pure noise into a picture. #ai #stablediffusion #genai",
  "scenes": [
   {
    "type": "title",
    "kicker": "in 60 seconds",
    "title": "Diffusion",
-   "say": "Diffusion, in sixty seconds.",
+   "say": "Every AI image starts as pure static. Really.",
    "sub": "how AI draws"
   },
   {
@@ -65,5 +65,6 @@
    "text": "Every image\n*starts as static.*",
    "say": "That's diffusion. Every image starts as static."
   }
- ]
+ ],
+ "credit": "filmed from a script with *kaviri.dev*"
 }

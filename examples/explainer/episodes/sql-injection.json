@@ -1,13 +1,14 @@
 {
  "title": "SQL injection in 60 seconds",
  "voice": "cloudflare:arcas",
- "caption": "SQL injection in 60 seconds: the decades-old bug that still leaks databases, and the simple fix.",
+ "caption": "SQL injection in 60 seconds: the decades-old bug that still leaks databases, and the simple fix. #security #sql #webdev",
  "scenes": [
   {
    "type": "title",
    "kicker": "in 60 seconds",
    "title": "SQL injection",
-   "say": "SQL injection, in sixty seconds."
+   "say": "One apostrophe in a login form can leak a whole database.",
+   "sub": "One apostrophe in a login form can leak a whole database."
   },
   {
    "type": "code",
@@ -42,5 +43,6 @@
    "text": "Data is data.\n*Never code.*",
    "say": "That's SQL injection. Data is data, never code."
   }
- ]
+ ],
+ "credit": "filmed from a script with *kaviri.dev*"
 }

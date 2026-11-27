@@ -1,13 +1,13 @@
 {
  "title": "Quantization in 60 seconds",
  "voice": "cloudflare:arcas",
- "caption": "Quantization in 60 seconds: how a big AI model gets small enough to run on a laptop or phone.",
+ "caption": "Quantization in 60 seconds: how a big AI model gets small enough to run on a laptop or phone. #ai #llm #quantization",
  "scenes": [
   {
    "type": "title",
    "kicker": "in 60 seconds",
    "title": "Quantization",
-   "say": "Quantization, in sixty seconds.",
+   "say": "How do you fit a giant AI model on a laptop?",
    "sub": "shrinking a model"
   },
   {
@@ -65,5 +65,6 @@
    "text": "Round the numbers.\n*Keep the smarts.*",
    "say": "That's quantization. Round the numbers, keep the smarts."
   }
- ]
+ ],
+ "credit": "filmed from a script with *kaviri.dev*"
 }

@@ -1,13 +1,14 @@
 {
  "title": "Idempotency in 60 seconds",
  "voice": "cloudflare:arcas",
- "caption": "Idempotency in 60 seconds: why pressing pay twice should not charge you twice.",
+ "caption": "Idempotency in 60 seconds: why pressing pay twice should not charge you twice. #api #backend #payments",
  "scenes": [
   {
    "type": "title",
    "kicker": "in 60 seconds",
    "title": "Idempotency",
-   "say": "Idempotency, in sixty seconds."
+   "say": "You tap pay, the screen freezes, you tap again. Were you charged twice?",
+   "sub": "You tap pay, the screen freezes, you tap again. Were you charged twice?"
   },
   {
    "type": "icons",
@@ -62,9 +63,15 @@
    ]
   },
   {
+   "type": "kaviri",
+   "text": "The same idea works for video: kaviri films *the same take from the same script*, every run.",
+   "say": "The same idea works for video. kaviri films the same take from the same script, every run."
+  },
+  {
    "type": "statement",
    "text": "Retry all you like.\n*It happens once.*",
    "say": "That's idempotency. Retry all you like, it happens once."
   }
- ]
+ ],
+ "credit": "filmed from a script with *kaviri.dev*"
 }

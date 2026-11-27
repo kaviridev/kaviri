@@ -1,13 +1,13 @@
 {
  "title": "WebAssembly in 60 seconds",
  "voice": "cloudflare:arcas",
- "caption": "WebAssembly in 60 seconds: running code written in Rust, C++ or Go inside the browser, close to native speed.",
+ "caption": "WebAssembly in 60 seconds: running code written in Rust, C++ or Go inside the browser, close to native speed. #webassembly #wasm #webdev",
  "scenes": [
   {
    "type": "title",
    "kicker": "in 60 seconds",
    "title": "WebAssembly",
-   "say": "WebAssembly, in sixty seconds.",
+   "say": "Photoshop runs in a browser tab. How?",
    "sub": "Wasm"
   },
   {
@@ -70,5 +70,6 @@
    "text": "Many languages,\n*one browser tab.*",
    "say": "That's WebAssembly. Many languages, one browser tab."
   }
- ]
+ ],
+ "credit": "filmed from a script with *kaviri.dev*"
 }

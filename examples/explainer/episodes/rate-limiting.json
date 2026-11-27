@@ -1,13 +1,14 @@
 {
  "title": "Rate limiting in 60 seconds",
  "voice": "cloudflare:arcas",
- "caption": "Rate limiting in 60 seconds: how an API stays up when one client sends far too many requests.",
+ "caption": "Rate limiting in 60 seconds: how an API stays up when one client sends far too many requests. #api #backend #webdev",
  "scenes": [
   {
    "type": "title",
    "kicker": "in 60 seconds",
    "title": "Rate limiting",
-   "say": "Rate limiting, in sixty seconds."
+   "say": "One script can hit your API thousands of times a second. Meet the bouncer.",
+   "sub": "One script can hit your API thousands of times a second. Meet the bouncer."
   },
   {
    "type": "icons",
@@ -69,5 +70,6 @@
    "text": "Fair share\n*for everyone.*",
    "say": "That's rate limiting. A fair share for everyone."
   }
- ]
+ ],
+ "credit": "filmed from a script with *kaviri.dev*"
 }

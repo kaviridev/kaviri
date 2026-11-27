@@ -1,13 +1,14 @@
 {
  "title": "Load balancers in 60 seconds",
  "voice": "cloudflare:arcas",
- "caption": "Load balancers in 60 seconds: one address in front, many servers behind it.",
+ "caption": "Load balancers in 60 seconds: one address in front, many servers behind it. #devops #backend #cloud",
  "scenes": [
   {
    "type": "title",
    "kicker": "in 60 seconds",
    "title": "Load balancers",
-   "say": "Load balancers, in sixty seconds."
+   "say": "A million visitors, one web address. How?",
+   "sub": "A million visitors, one web address. How?"
   },
   {
    "type": "icons",
@@ -72,5 +73,6 @@
    "text": "Many servers.\n*One front door.*",
    "say": "That's a load balancer. Many servers, one front door."
   }
- ]
+ ],
+ "credit": "filmed from a script with *kaviri.dev*"
 }

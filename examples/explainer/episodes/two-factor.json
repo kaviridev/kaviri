@@ -1,13 +1,14 @@
 {
  "title": "Two-factor auth in 60 seconds",
  "voice": "cloudflare:arcas",
- "caption": "Two-factor authentication in 60 seconds: how those six-digit codes work, with no internet connection.",
+ "caption": "Two-factor authentication in 60 seconds: how those six-digit codes work, with no internet connection. #security #2fa #passwords",
  "scenes": [
   {
    "type": "title",
    "kicker": "in 60 seconds",
    "title": "Two-factor auth",
-   "say": "Two-factor auth, in sixty seconds."
+   "say": "Your password leaked. Two-factor is why that's fine.",
+   "sub": "Your password leaked. Two-factor is why that's fine."
   },
   {
    "type": "icons",
@@ -64,5 +65,6 @@
    "text": "A password\n*and a phone.*",
    "say": "That's two-factor. A thief needs your password and your phone."
   }
- ]
+ ],
+ "credit": "filmed from a script with *kaviri.dev*"
 }

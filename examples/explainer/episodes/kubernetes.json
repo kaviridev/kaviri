@@ -1,13 +1,13 @@
 {
  "title": "Kubernetes in 60 seconds",
  "voice": "cloudflare:arcas",
- "caption": "Kubernetes in 60 seconds: you describe what should be running, and it keeps making that true.",
+ "caption": "Kubernetes in 60 seconds: you describe what should be running, and it keeps making that true. #kubernetes #devops #cloud",
  "scenes": [
   {
    "type": "title",
    "kicker": "in 60 seconds",
    "title": "Kubernetes",
-   "say": "Kubernetes, in sixty seconds.",
+   "say": "A hundred containers. One just crashed. Who restarts it?",
    "sub": "container orchestration"
   },
   {
@@ -69,5 +69,6 @@
    "text": "Say what should exist.\n*It handles the how.*",
    "say": "That's Kubernetes. Say what should exist, and it handles the how."
   }
- ]
+ ],
+ "credit": "filmed from a script with *kaviri.dev*"
 }

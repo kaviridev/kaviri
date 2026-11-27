@@ -1,13 +1,13 @@
 {
  "title": "HTTPS in 60 seconds",
  "voice": "cloudflare:arcas",
- "caption": "HTTPS in 60 seconds: what the padlock actually means, and how two strangers agree on a secret in public.",
+ "caption": "HTTPS in 60 seconds: what the padlock actually means, and how two strangers agree on a secret in public. #https #security #webdev",
  "scenes": [
   {
    "type": "title",
    "kicker": "in 60 seconds",
    "title": "HTTPS",
-   "say": "HTTPS, in sixty seconds.",
+   "say": "Anyone on your café Wi-Fi could read your traffic. Unless there's an S.",
    "sub": "HTTP over TLS"
   },
   {
@@ -68,5 +68,6 @@
    "text": "The padlock means\n*private, not trustworthy.*",
    "say": "The padlock means the connection is private. Not that the site is honest. That's HTTPS."
   }
- ]
+ ],
+ "credit": "filmed from a script with *kaviri.dev*"
 }

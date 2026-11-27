@@ -1,13 +1,14 @@
 {
  "title": "Prompt injection in 60 seconds",
  "voice": "cloudflare:arcas",
- "caption": "Prompt injection in 60 seconds: when the text an AI reads starts giving it orders.",
+ "caption": "Prompt injection in 60 seconds: when the text an AI reads starts giving it orders. #ai #security #promptinjection",
  "scenes": [
   {
    "type": "title",
    "kicker": "in 60 seconds",
    "title": "Prompt injection",
-   "say": "Prompt injection, in sixty seconds."
+   "say": "One hidden sentence on a web page can hijack your AI assistant.",
+   "sub": "One hidden sentence on a web page can hijack your AI assistant."
   },
   {
    "type": "icons",
@@ -68,5 +69,6 @@
    "text": "Content is data,\n*not commands.*",
    "say": "That's prompt injection. Content is data, not commands."
   }
- ]
+ ],
+ "credit": "filmed from a script with *kaviri.dev*"
 }

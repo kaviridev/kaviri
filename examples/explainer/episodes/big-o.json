@@ -1,13 +1,13 @@
 {
  "title": "Big O in 60 seconds",
  "voice": "cloudflare:arcas",
- "caption": "Big O notation in 60 seconds: how programmers describe what happens to code as the input gets huge.",
+ "caption": "Big O notation in 60 seconds: how programmers describe what happens to code as the input gets huge. #programming #algorithms #coding",
  "scenes": [
   {
    "type": "title",
    "kicker": "in 60 seconds",
    "title": "Big O",
-   "say": "Big O, in sixty seconds.",
+   "say": "Fast on ten items. On a million, it takes all week.",
    "sub": "how code scales"
   },
   {
@@ -68,5 +68,6 @@
    "text": "Not how fast.\n*How it grows.*",
    "say": "That's Big O. Not how fast, but how it grows."
   }
- ]
+ ],
+ "credit": "filmed from a script with *kaviri.dev*"
 }

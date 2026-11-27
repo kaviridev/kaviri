@@ -1,13 +1,13 @@
 {
  "title": "CDN in 60 seconds",
  "voice": "cloudflare:arcas",
- "caption": "CDNs in 60 seconds: why a website loads fast on the other side of the world from its server.",
+ "caption": "CDNs in 60 seconds: why a website loads fast on the other side of the world from its server. #cdn #webdev #performance",
  "scenes": [
   {
    "type": "title",
    "kicker": "in 60 seconds",
    "title": "CDN",
-   "say": "CDN, in sixty seconds.",
+   "say": "Why does a site hosted in California load fast in Lagos?",
    "sub": "content delivery network"
   },
   {
@@ -71,5 +71,6 @@
    "text": "Move the content\n*closer to people.*",
    "say": "That's a CDN. Move the content closer to people."
   }
- ]
+ ],
+ "credit": "filmed from a script with *kaviri.dev*"
 }

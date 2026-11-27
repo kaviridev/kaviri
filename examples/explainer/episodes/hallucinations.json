@@ -1,13 +1,13 @@
 {
  "title": "AI hallucinations in 60 seconds",
  "voice": "cloudflare:arcas",
- "caption": "AI hallucinations in 60 seconds: why language models state false things with total confidence.",
+ "caption": "AI hallucinations in 60 seconds: why language models state false things with total confidence. #ai #llm #chatgpt",
  "scenes": [
   {
    "type": "title",
    "kicker": "in 60 seconds",
    "title": "Hallucinations",
-   "say": "Hallucinations, in sixty seconds.",
+   "say": "Why does AI state made-up facts with total confidence?",
    "sub": "when AI makes things up"
   },
   {
@@ -75,5 +75,6 @@
    "text": "Fluent\n*isn't the same as true.*",
    "say": "That's a hallucination. Fluent isn't the same as true."
   }
- ]
+ ],
+ "credit": "filmed from a script with *kaviri.dev*"
 }

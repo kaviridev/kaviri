@@ -1,13 +1,14 @@
 {
  "title": "Cookies in 60 seconds",
  "voice": "cloudflare:arcas",
- "caption": "Cookies in 60 seconds: how a website remembers you between requests, when HTTP itself forgets everything.",
+ "caption": "Cookies in 60 seconds: how a website remembers you between requests, when HTTP itself forgets everything. #webdev #cookies #browser",
  "scenes": [
   {
    "type": "title",
    "kicker": "in 60 seconds",
    "title": "Cookies",
-   "say": "Cookies, in sixty seconds."
+   "say": "HTTP forgets you after every request. So how do sites remember you?",
+   "sub": "HTTP forgets you after every request. So how do sites remember you?"
   },
   {
    "type": "icons",
@@ -68,5 +69,6 @@
    "text": "A small note\n*the browser carries for you.*",
    "say": "That's a cookie. A small note the browser carries for you."
   }
- ]
+ ],
+ "credit": "filmed from a script with *kaviri.dev*"
 }

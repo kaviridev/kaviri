@@ -1,13 +1,14 @@
 {
  "title": "Webhooks in 60 seconds",
  "voice": "cloudflare:arcas",
- "caption": "Webhooks in 60 seconds: instead of asking an API if anything happened, let it tell you.",
+ "caption": "Webhooks in 60 seconds: instead of asking an API if anything happened, let it tell you. #webhooks #api #webdev",
  "scenes": [
   {
    "type": "title",
    "kicker": "in 60 seconds",
    "title": "Webhooks",
-   "say": "Webhooks, in sixty seconds."
+   "say": "Stop asking, is it done yet? every few seconds.",
+   "sub": "Stop asking, is it done yet? every few seconds."
   },
   {
    "type": "icons",
@@ -69,5 +70,6 @@
    "text": "Don't call us.\n*We'll call you.*",
    "say": "That's a webhook. Don't call us, we'll call you."
   }
- ]
+ ],
+ "credit": "filmed from a script with *kaviri.dev*"
 }

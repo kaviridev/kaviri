@@ -1,13 +1,14 @@
 {
  "title": "Race conditions in 60 seconds",
  "voice": "cloudflare:arcas",
- "caption": "Race conditions in 60 seconds: the bug that only shows up when two things happen at once.",
+ "caption": "Race conditions in 60 seconds: the bug that only shows up when two things happen at once. #programming #concurrency #backend",
  "scenes": [
   {
    "type": "title",
    "kicker": "in 60 seconds",
    "title": "Race conditions",
-   "say": "Race conditions, in sixty seconds."
+   "say": "Two clicks, a millisecond apart, and the bank loses money.",
+   "sub": "Two clicks, a millisecond apart, and the bank loses money."
   },
   {
    "type": "code",
@@ -59,5 +60,6 @@
    "text": "Check and change\n*in one step.*",
    "say": "That's a race condition. Check and change in one step."
   }
- ]
+ ],
+ "credit": "filmed from a script with *kaviri.dev*"
 }

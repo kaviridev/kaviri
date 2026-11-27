@@ -1,13 +1,13 @@
 {
  "title": "Transformers in 60 seconds",
  "voice": "cloudflare:arcas",
- "caption": "Transformers in 60 seconds: the architecture behind modern language models, and the one idea at its centre, attention.",
+ "caption": "Transformers in 60 seconds: the architecture behind modern language models, and the one idea at its centre, attention. #ai #transformers #llm",
  "scenes": [
   {
    "type": "title",
    "kicker": "in 60 seconds",
    "title": "Transformers",
-   "say": "Transformers, in sixty seconds.",
+   "say": "Every modern chatbot runs on one idea from 2017.",
    "sub": "the T in GPT"
   },
   {
@@ -68,5 +68,6 @@
    "text": "Attention\n*is the whole trick.*",
    "say": "Because every word is processed in parallel, they train fast on huge amounts of text. That's a transformer."
   }
- ]
+ ],
+ "credit": "filmed from a script with *kaviri.dev*"
 }

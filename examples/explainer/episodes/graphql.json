@@ -1,13 +1,14 @@
 {
  "title": "GraphQL in 60 seconds",
  "voice": "cloudflare:arcas",
- "caption": "GraphQL in 60 seconds: one endpoint where the client asks for exactly the data it wants.",
+ "caption": "GraphQL in 60 seconds: one endpoint where the client asks for exactly the data it wants. #graphql #api #webdev",
  "scenes": [
   {
    "type": "title",
    "kicker": "in 60 seconds",
    "title": "GraphQL",
-   "say": "GraphQL, in sixty seconds."
+   "say": "Tired of APIs that send everything except what you need?",
+   "sub": "Tired of APIs that send everything except what you need?"
   },
   {
    "type": "icons",
@@ -68,5 +69,6 @@
    "text": "Ask for what you need.\n*Get exactly that.*",
    "say": "That's GraphQL. Ask for what you need, get exactly that."
   }
- ]
+ ],
+ "credit": "filmed from a script with *kaviri.dev*"
 }

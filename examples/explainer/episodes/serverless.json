@@ -1,13 +1,14 @@
 {
  "title": "Serverless in 60 seconds",
  "voice": "cloudflare:arcas",
- "caption": "Serverless in 60 seconds: there are still servers, you just stop being the one who looks after them.",
+ "caption": "Serverless in 60 seconds: there are still servers, you just stop being the one who looks after them. #serverless #cloud #backend",
  "scenes": [
   {
    "type": "title",
    "kicker": "in 60 seconds",
    "title": "Serverless",
-   "say": "Serverless, in sixty seconds."
+   "say": "Run code without ever managing a server. Sort of.",
+   "sub": "Run code without ever managing a server. Sort of."
   },
   {
    "type": "icons",
@@ -66,9 +67,15 @@
    ]
   },
   {
+   "type": "kaviri",
+   "text": "This video's voice came from *a serverless model*, called from a kaviri script.",
+   "say": "Fun fact: this video's voice came from a serverless model, called from a kaviri script."
+  },
+  {
    "type": "statement",
    "text": "Still servers.\n*Not your servers.*",
    "say": "That's serverless. Still servers, just not yours to babysit."
   }
- ]
+ ],
+ "credit": "filmed from a script with *kaviri.dev*"
 }

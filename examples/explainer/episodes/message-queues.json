@@ -1,13 +1,14 @@
 {
  "title": "Message queues in 60 seconds",
  "voice": "cloudflare:arcas",
- "caption": "Message queues in 60 seconds: how systems hand off work without waiting on each other.",
+ "caption": "Message queues in 60 seconds: how systems hand off work without waiting on each other. #backend #systemdesign #queues",
  "scenes": [
   {
    "type": "title",
    "kicker": "in 60 seconds",
    "title": "Message queues",
-   "say": "Message queues, in sixty seconds."
+   "say": "Ten thousand orders arrive in the same second. Now what?",
+   "sub": "Ten thousand orders arrive in the same second. Now what?"
   },
   {
    "type": "icons",
@@ -74,5 +75,6 @@
    "text": "Hand it off.\n*Someone will get to it.*",
    "say": "That's a message queue. Hand it off, someone will get to it."
   }
- ]
+ ],
+ "credit": "filmed from a script with *kaviri.dev*"
 }

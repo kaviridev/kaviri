@@ -10,7 +10,7 @@
   script that narrates each beat and presses the key, and films it. Laid out for the tiktok
   preset (432x768); the bottom 40% stays clear for burned captions.
 
-  Scene types: title, icons, mesh, cards, code, terminal, video, statement. See README.md.
+  Scene types: title, icons, mesh, cards, code, terminal, video, statement, kaviri. See README.md.
 -->
 <style>
   @font-face { font-family: Inter; src: url(/site/brand/fonts/inter.woff2) format("woff2"); font-weight: 100 900; }
@@ -92,6 +92,17 @@
   /* statement */
   .big { font:700 44px/1.02 Grotesk; letter-spacing:-.035em; text-align:center; }
   .big em { font-style:normal; color:var(--accent); }
+
+  /* kaviri: a short segue to a real use of the topic, after the content and before the close */
+  .mark { font:700 54px/1 ui-monospace, "DejaVu Sans Mono", Menlo, monospace; letter-spacing:-.03em; }
+  .mark em { font-style:normal; color:var(--accent); }
+  .use { font:500 21px/1.35 Inter; color:var(--ink); text-align:center; max-width:360px; margin-top:18px; }
+
+  /* the credit on the last scene, small and out of the way of the content */
+  .credit { position:absolute; left:0; right:0; top:calc(60% - 46px); text-align:center; font:500 14px/1 Inter; color:var(--mute);
+    letter-spacing:.02em; opacity:0; transition:opacity .5s ease .6s; z-index:2; }
+  .credit.on { opacity:1; }
+  .credit b { color:var(--ink); font-weight:600; }
 </style>
 </head>
 <body>
@@ -138,6 +149,7 @@
     video: (s) => `<div class="screen">${s.label ? `<div class="url">${esc(s.label)}</div>` : ""}${
       /\.(mp4|webm|mov)$/i.test(s.src) ? `<video src="${esc(s.src)}" muted playsinline preload="auto"></video>` : `<img src="${esc(s.src)}" alt="">`}</div>`,
     statement: (s) => `<div class="big">${marked(s.text)}</div>`,
+    kaviri: (s) => `<div class="kick">${esc(s.kicker || "one neat use")}</div><div class="mark">kaviri<em>.dev</em></div><div class="use">${marked(s.text)}</div>`,
   };
 
   const scenes = ep.scenes.map((s, i) => {
@@ -166,9 +178,15 @@
     })();
   }
 
+  const credit = document.createElement("div");
+  credit.className = "credit";
+  credit.innerHTML = ep.credit ? marked(ep.credit).replace(/<em>/g, "<b>").replace(/<\/em>/g, "</b>") : "";
+  document.body.appendChild(credit);
+
   let n = 0, sub = 0;
   function enter(k) {
     scenes.forEach((s, i) => s.classList.toggle("on", i === k));
+    credit.classList.toggle("on", !!ep.credit && k === scenes.length - 1);
     sub = 0;
     const el = scenes[k];
     const pre = el.querySelector("pre[data-code]"); if (pre) typeCode(pre);
